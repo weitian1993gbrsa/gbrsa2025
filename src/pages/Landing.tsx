@@ -6,12 +6,16 @@ export default function Landing() {
   return (
     <main className="min-h-screen bg-brand-page flex items-center justify-center p-6">
       <section className="w-full max-w-md bg-white rounded-3xl shadow-xl ring-1 ring-black/5 p-8 text-center">
-        <img
-          src="/logo.png"
-          alt="GBRSA official logo"
-          className="h-20 w-20 mx-auto rounded-2xl object-contain"
-        />
-        <h1 className="mt-4 text-2xl font-bold tracking-wide">GBRSA JUDGING</h1>
+        
+<div className="flex justify-center items-center mt-2 mb-2 overflow-visible">
+  <img
+    src="/logo.png"
+    alt="GBRSA official logo"
+    className="block max-w-[176px] w-full h-auto object-contain rounded-none"
+    style={{ display: 'block' }}
+  />
+</div>
+<h1 className="mt-4 text-2xl font-bold tracking-wide">GBRSA JUDGING</h1>
 
         <div className="mt-8 space-y-4">
           <Link
