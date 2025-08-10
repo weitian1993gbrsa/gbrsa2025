@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>GBRSA Judging</title>
   <meta name="theme-color" content="#0f2a67" />
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,20 +12,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
-    /* Zoom lock helpers */
-    html { -webkit-text-size-adjust: 100%; }
-    html, body { touch-action: manipulation; }
-    a, button { touch-action: manipulation; }
-    input, select, textarea { font-size: 16px; } /* prevent iOS auto-zoom on focus */
-    
     :root{
-      --brand:#0f2a67; /* deep navy */
+      --brand:#0f2a67;
       --brand-600:#153a8a;
       --bg:#f6f7fb;
       --text:#0c0f16;
       --muted:#5b6478;
       --info-bg:#e9f5ff;
-      --radius:22px;
       --shadow:0 10px 25px rgba(15,42,103,.12);
     }
     *{box-sizing:border-box}
@@ -47,9 +40,12 @@
     .logo{ width:84px; height:84px; border-radius:20px; display:block; object-fit:contain; background:#fff; border:1px solid #e9eef6; }
     .logo-fallback{
       position:absolute; inset:0; display:grid; place-items:center; border-radius:20px;
-      background:linear-gradient(180deg,#fff,#f1f4fb); border:1px solid #e9eef6; font-weight:800; color:var(--brand);
+      background:linear-gradient(180deg,#ffffff,#f1f4fb); border:1px solid #e9eef6; font-weight:800; color:var(--brand);
       letter-spacing:.5px;
     }
+    /* hide fallback if image loads ok */
+    .logo-box.ok .logo-fallback{ display:none; }
+
     .brand h1{ margin:0; font-size:28px; letter-spacing:.5px; text-align:center; font-weight:800; }
 
     .btns{ display:grid; gap:18px; margin:28px 0 22px; }
@@ -73,7 +69,11 @@
     .info p:last-child{ margin:0 }
 
     footer{ margin-top:18px; font-size:12px; color:var(--muted); text-align:center }
-    .visually-hidden{position:absolute;left:-9999px;}
+
+    /* Zoom lock helpers */
+    html { -webkit-text-size-adjust: 100%; }
+    html, body, a, button { touch-action: manipulation; }
+    input, select, textarea { font-size: 16px; } /* prevent iOS auto-zoom on focus */
 
     /* Larger screens */
     @media (min-width:700px){
@@ -87,14 +87,10 @@
   <main class="wrap">
     <section class="card" aria-label="GBRSA Judging menu">
       <div class="brand">
-        <div class="logo-box" aria-hidden="true">
-          <!-- Default logo is an inline SVG data URI. Replace the src with /assets/logo.png when ready. -->
-          <img
-            class="logo"
-            alt="GBRSA logo"
-            src='data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8"?> <svg xmlns="http://www.w3.org/2000/svg" width="84" height="84" viewBox="0 0 84 84"><defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f1f4fb"/></linearGradient></defs><rect x="0.5" y="0.5" width="83" height="83" rx="18" fill="url(#g)" stroke="#e9eef6"/><circle cx="42" cy="34" r="17" fill="#0f2a67" opacity="0.12"/><text x="50%" y="63%" dominant-baseline="middle" text-anchor="middle" font-family="Inter,Arial,Helvetica,sans-serif" font-weight="800" font-size="16" fill="#0f2a67">GBRSA</text></svg>'
-          />
-          <span class="logo-fallback visually-hidden">GBRSA</span>
+        <div class="logo-box" id="logoBox">
+          <!-- Place your file as /logo.png (or change the src path below) -->
+          <img id="logo" class="logo" src="logo.png" alt="GBRSA logo">
+          <div class="logo-fallback">GBRSA</div>
         </div>
         <h1>GBRSA JUDGING</h1>
       </div>
@@ -106,7 +102,7 @@
       </nav>
 
       <div class="info" role="note" aria-label="Install instructions">
-        <p>For best experience, add this web‑app to your homescreen.</p>
+        <p>For best experience, add this web-app to your homescreen.</p>
         <p><b>On Android</b>, open your browser menu and choose <i>Add to Home screen</i> or <i>Install</i>.</p>
         <p><b>On iOS</b>, tap the <i>Share</i> button and choose <i>Add to Home Screen</i>.</p>
       </div>
@@ -118,9 +114,22 @@
   </main>
 
   <script>
-    /* Optional: you can inject real URLs without editing the file by adding this before the closing </body> tag in Netlify settings:
-       <script>window.ENV_SPEED_URL='https://your-speed-url';window.ENV_FREESTYLE_URL='https://your-freestyle-url';</script>
-    */
+    // If logo loads, hide the fallback
+    (function(){
+      var img = document.getElementById('logo');
+      var box = document.getElementById('logoBox');
+      if(img && box){
+        img.addEventListener('load', function(){ box.classList.add('ok'); });
+        img.addEventListener('error', function(){ box.classList.remove('ok'); });
+      }
+    })();
+  </script>
+
+  <script>
+    // Optional: configure destination links without editing the file.
+    // In Netlify, you can inject a small script in the HTML or use a snippet to set:
+    // window.ENV_SPEED_URL='https://your-speed-url';
+    // window.ENV_FREESTYLE_URL='https://your-freestyle-url';
     (function(){
       var speed = (window.ENV_SPEED_URL || null);
       var free  = (window.ENV_FREESTYLE_URL || null);
@@ -130,9 +139,9 @@
   </script>
 
   <script>
+    // Hard lock zoom: block pinch/double-tap/ctrl+wheel/keyboard zoom
     (function(){
       function lockZoom(){
-        // iOS double-tap
         var lastTouch = 0;
         document.addEventListener('touchend', function(e){
           var now = Date.now();
@@ -140,37 +149,29 @@
           lastTouch = now;
         }, { passive: false });
 
-        // iOS pinch gestures
-        var prevent = function(e){ e.preventDefault(); };
         ['gesturestart','gesturechange','gestureend'].forEach(function(evt){
-          document.addEventListener(evt, prevent, { passive: false });
+          document.addEventListener(evt, function(e){ e.preventDefault(); }, { passive: false });
         });
 
-        // Multi-touch (Android/others)
         document.addEventListener('touchstart', function(e){
           if(e.touches && e.touches.length > 1){ e.preventDefault(); }
         }, { passive: false });
 
-        // Trackpad pinch (Ctrl/Cmd + wheel)
         window.addEventListener('wheel', function(e){
           if(e.ctrlKey){ e.preventDefault(); }
         }, { passive: false });
 
-        // Keyboard zoom (Ctrl/Cmd + '+', '-', '=','0')
         window.addEventListener('keydown', function(e){
           if((e.ctrlKey || e.metaKey) && (/^[0\-\=\+]$/.test(e.key) || e.key === 'Add' || e.key === 'Subtract')){
             e.preventDefault();
           }
         });
       }
-      // Auto-enable on load
       if(document.readyState === 'loading'){
         document.addEventListener('DOMContentLoaded', lockZoom);
       } else {
         lockZoom();
       }
-      // Expose if you ever want to re-run
-      window.__lockZoom = lockZoom;
     })();
   </script>
 </body>
