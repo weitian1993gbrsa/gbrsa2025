@@ -8,3 +8,6 @@ html, body, #root { height: 100%; }
 body { background: #f6fbff; }
 
 body { overscroll-behavior-y: none; }
+
+.no-tap-highlight { -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior-y: none; }

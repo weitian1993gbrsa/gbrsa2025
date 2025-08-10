@@ -1,4 +1,3 @@
-
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -9,84 +8,118 @@ export default function SpeedPractice() {
   const [history, setHistory] = React.useState<number[]>([])
   const navigate = useNavigate()
 
-  // Stronger, unified haptics using pointer events
-  function vibrateStrong(kind: HapticKind) {
-    const patternMap: Record<HapticKind, number | number[]> = {
-      tap: [0, 18],
-      remove: [0, 28, 40, 28],
-      reset: [0, 35, 40, 35, 40, 35],
-      done: [0, 50],
-    }
+  // haptic strength: 'off' | 'medium' | 'strong' (persist between sessions)
+  const [haptics, setHaptics] = React.useState<'off'|'medium'|'strong'>(() => {
+    return (localStorage.getItem('gbrsa:haptics') as any) || 'strong'
+  })
+  React.useEffect(() => {
+    localStorage.setItem('gbrsa:haptics', haptics)
+  }, [haptics])
+
+  function vibrate(kind: HapticKind) {
+    if (haptics === 'off') return
     try {
       const v = (navigator as any)?.vibrate
-      if (v) { v(0); v(patternMap[kind]) }
+      if (!v) return
+      const medium = {
+        tap: [12],
+        remove: [24, 30, 24],
+        reset: [30, 30, 30, 30, 30],
+        done: [36],
+      } as const
+      const strong = {
+        tap: [0, 30],
+        remove: [0, 40, 30, 40],
+        reset: [0, 60, 40, 60, 40, 60],
+        done: [0, 70],
+      } as const
+      const pattern = (haptics === 'strong' ? strong : medium)[kind]
+      v(0); v(pattern)
     } catch {}
   }
 
-  // keyboard helpers (desktop practice)
+  // keyboard helpers
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat) return
-      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setCount(c => c + 1); vibrateStrong('tap') }
-      else if (e.key.toLowerCase() === 'z' || e.key === 'Backspace') { e.preventDefault(); setCount(c => Math.max(0, c - 1)); vibrateStrong('remove') }
-      else if (e.key.toLowerCase() === 'r') { e.preventDefault(); setCount(0); vibrateStrong('reset') }
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setCount(c => c + 1); vibrate('tap') }
+      else if (e.key.toLowerCase() === 'z' || e.key === 'Backspace') { e.preventDefault(); setCount(c => Math.max(0, c - 1)); vibrate('remove') }
+      else if (e.key.toLowerCase() === 'r') { e.preventDefault(); setCount(0); vibrate('reset') }
       else if (e.key.toLowerCase() === 'd') { e.preventDefault(); onDone() }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const onTap = () => setCount(c => c + 1)
-  const onRemove = () => setCount(c => Math.max(0, c - 1))
-  const onReset = () => setCount(0)
-  const onDone = () => {
+  const onTap = React.useCallback(() => setCount(c => c + 1), [])
+  const onRemove = React.useCallback(() => setCount(c => Math.max(0, c - 1)), [])
+  const onReset = React.useCallback(() => setCount(0), [])
+  const onDone = React.useCallback(() => {
     setHistory(h => [count, ...h].slice(0, 10))
     setCount(0)
     navigate('/')
-  }
+  }, [count, navigate])
 
-  // helper to bind pointer down for ultra-low latency
-  const bindPD = (kind: HapticKind, action: () => void) => (e: React.PointerEvent) => {
-    e.preventDefault()
-    vibrateStrong(kind)
-    action()
-  }
+  // Native pointer listeners for *lowest latency*
+  const tapRef = React.useRef<HTMLDivElement | null>(null)
+  React.useEffect(() => {
+    const el = tapRef.current
+    if (!el) return
+    const handler = (e: PointerEvent) => {
+      // prevent default to avoid any synthetic delays
+      e.preventDefault()
+      vibrate('tap')
+      onTap()
+    }
+    el.addEventListener('pointerdown', handler, { passive: false })
+    return () => el.removeEventListener('pointerdown', handler)
+  }, [onTap])
 
   return (
     <main className="h-dvh bg-brand-page">
-      <div className="h-full max-w-[420px] mx-auto px-4 py-4 flex flex-col overflow-hidden overscroll-none">
-        {/* Controls (fixed height) */}
-        <div className="grid grid-cols-3 gap-4 mb-4 shrink-0">
+      <div className="h-full max-w-[420px] mx-auto px-4 py-3 flex flex-col overflow-hidden overscroll-none">
+        {/* Controls */}
+        <div className="grid grid-cols-3 gap-3 mb-3 shrink-0">
           <button
-            onPointerDown={bindPD('done', onDone)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); vibrateStrong('done'); onDone() } }}
-            className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-emerald-500 shadow hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-emerald-300"
+            onPointerDown={(e) => { e.preventDefault(); vibrate('done'); onDone() }}
+            className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-emerald-500 shadow focus:outline-none focus:ring-4 focus:ring-emerald-300 no-tap-highlight"
           >
             Done
           </button>
           <button
-            onPointerDown={bindPD('remove', onRemove)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); vibrateStrong('remove'); onRemove() } }}
-            className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-emerald-500 shadow hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-emerald-300 justify-self-center"
+            onPointerDown={(e) => { e.preventDefault(); vibrate('remove'); onRemove() }}
+            className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-emerald-500 shadow focus:outline-none focus:ring-4 focus:ring-emerald-300 justify-self-center no-tap-highlight"
           >
             Remove Step
           </button>
           <button
-            onPointerDown={bindPD('reset', onReset)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); vibrateStrong('reset'); onReset() } }}
-            className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-rose-500 shadow hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-rose-300 justify-self-end"
+            onPointerDown={(e) => { e.preventDefault(); vibrate('reset'); onReset() }}
+            className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-rose-500 shadow focus:outline-none focus:ring-4 focus:ring-rose-300 justify-self-end no-tap-highlight"
           >
             Reset
           </button>
         </div>
 
-        {/* Tap zone fills the rest; ultra-low latency with Pointer events */}
+        {/* Haptics toggle (optional) */}
+        <div className="flex items-center justify-end gap-2 mb-2 text-[11px] text-gray-600 shrink-0">
+          <span>Haptics:</span>
+          <select
+            value={haptics}
+            onChange={(e) => setHaptics(e.target.value as any)}
+            className="rounded-md border border-gray-300 px-2 py-1 bg-white"
+          >
+            <option value="off">Off</option>
+            <option value="medium">Medium</option>
+            <option value="strong">Strong</option>
+          </select>
+        </div>
+
+        {/* Tap zone */}
         <div
+          ref={tapRef}
           role="button"
           tabIndex={0}
-          onPointerDown={bindPD('tap', onTap)}
-          onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); vibrateStrong('tap'); onTap() } }}
-          className="flex-1 w-full rounded-xl bg-brand-dark text-white select-none shadow ring-1 ring-black/5 flex items-center justify-center pb-[max(env(safe-area-inset-bottom),8px)] [touch-action:manipulation]"
+          className="flex-1 w-full rounded-xl bg-brand-dark text-white select-none shadow ring-1 ring-black/5 flex items-center justify-center pb-[max(env(safe-area-inset-bottom),8px)] [touch-action:none] no-tap-highlight"
         >
           <div className="text-center">
             <div className="text-lg opacity-90">Steps</div>
@@ -94,7 +127,6 @@ export default function SpeedPractice() {
           </div>
         </div>
 
-        {/* tiny history */}
         {history.length > 0 && (
           <div className="mt-2 text-xs text-gray-500 shrink-0">
             Last: {history.join(', ')}
