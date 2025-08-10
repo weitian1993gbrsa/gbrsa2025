@@ -35,7 +35,8 @@ body{
 .logo{
   display: block;
   margin: 4px auto 10px;
-  border-radius: 18px;
+  width: min(180px, 70%);
+  height: auto;
 }
 .title{
   margin: 8px 0 18px;
