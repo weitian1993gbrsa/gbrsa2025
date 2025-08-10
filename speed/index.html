@@ -4,20 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Speed Judge</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #fff; text-align: center; margin: 0; padding: 20px; }
-    button.scan { background: #00c853; color: white; padding: 10px 30px; font-weight: bold; border: none; border-radius: 3px; margin: 20px 0; font-size: 1em; }
-    input { display: block; margin: 20px auto; padding: 10px; border: 1px solid #000; border-radius: 10px; font-size: 1em; text-align: center; }
-    .circle { display: inline-block; background: #0a2a66; color: white; border-radius: 50%; width: 80px; height: 80px; line-height: 80px; font-weight: bold; margin: 10px; }
+    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; }
+    button.scan { background: #00c851; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+    input { padding: 10px; margin: 10px 0; border: 1px solid #333; border-radius: 10px; width: 80%; font-size: 16px; }
+    .circle { display: inline-block; width: 80px; height: 80px; line-height: 80px; border-radius: 50%; background: #0a2a66; color: white; font-weight: bold; margin: 20px; }
   </style>
 </head>
 <body>
-  <button class="scan">scan</button>
-  <input type="text" placeholder="NAME" id="name">
-  <input type="text" placeholder="ID" id="id">
-  <div>
-    <div class="circle">HEAT</div>
-    <div class="circle">COURT</div>
-  </div>
+  <button class="scan" id="startScan">scan</button>
+  <div><input type="text" id="name" placeholder="NAME"></div>
+  <div><input type="text" id="id" placeholder="ID"></div>
+  <div class="circle">HEAT</div>
+  <div class="circle">COURT</div>
+  <div id="reader" style="width: 300px; margin: auto; display:none;"></div>
+  <script>
+    document.getElementById("startScan").addEventListener("click", function() {
+        const readerDiv = document.getElementById("reader");
+        readerDiv.style.display = "block";
+
+        const html5QrCode = new Html5Qrcode("reader");
+
+        Html5Qrcode.getCameras().then(cameras => {
+            if (cameras && cameras.length) {
+                let cameraId = cameras.find(cam => cam.label.toLowerCase().includes("back"))?.id || cameras[0].id;
+                html5QrCode.start(
+                    cameraId,
+                    { fps: 10, qrbox: 200 },
+                    qrCodeMessage => {
+                        document.getElementById("id").value = qrCodeMessage;
+                        html5QrCode.stop().then(() => {
+                            readerDiv.style.display = "none";
+                        });
+                    },
+                    errorMessage => { }
+                ).catch(err => {
+                    alert("Unable to start scanning: " + err);
+                });
+            }
+        }).catch(err => {
+            alert("Camera error: " + err);
+        });
+    });
+  </script>
 </body>
 </html>
