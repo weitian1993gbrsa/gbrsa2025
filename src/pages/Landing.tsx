@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 export default function Landing() {
   return (
     <main className="min-h-screen bg-brand-page flex items-center justify-center p-6">
-      <section className="w-full max-w-md bg-white rounded-3xl shadow-xl ring-1 ring-black/5 p-8 text-center">
+      <section className="w-full max-w-[420px] bg-white rounded-3xl shadow-xl ring-1 ring-black/5 p-8 text-center mx-auto">
 
         <div className="flex justify-center items-center mt-2 mb-4 overflow-visible">
           <img

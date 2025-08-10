@@ -3,10 +3,13 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
+import { disableZoom } from './disableZoom'
 import Landing from './pages/Landing'
 import Speed from './pages/Speed'
 import Freestyle from './pages/Freestyle'
 import SpeedPractice from './pages/SpeedPractice'
+
+disableZoom();
 
 const router = createBrowserRouter([
   { path: '/', element: <Landing /> },
