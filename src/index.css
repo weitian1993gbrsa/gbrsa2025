@@ -6,3 +6,5 @@
 :root { color-scheme: light; }
 html, body, #root { height: 100%; }
 body { background: #f6fbff; }
+
+body { overscroll-behavior-y: none; }
