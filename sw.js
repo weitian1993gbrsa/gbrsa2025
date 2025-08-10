@@ -1,16 +1,16 @@
 
-const CACHE = "gbrsa-pwa-v3";
+const CACHE = "gbrsa-pwa-v4";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./logo.png",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-192-maskable.png",
-  "./icons/icon-512-maskable.png",
-  "./icons/apple-touch-icon.png",
-  "./icons/favicon-32.png"
+  "./icons/icon-192-v4.png",
+  "./icons/icon-512-v4.png",
+  "./icons/icon-192-maskable-v4.png",
+  "./icons/icon-512-maskable-v4.png",
+  "./icons/apple-touch-icon-v4.png",
+  "./icons/favicon-32-v4.png"
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
