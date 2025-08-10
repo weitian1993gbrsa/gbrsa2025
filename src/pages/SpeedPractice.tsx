@@ -30,7 +30,7 @@ export default function SpeedPractice() {
   }
 
   return (
-    <main className="min-h-screen bg-brand-page p-6">
+    <main className="min-h-screen bg-brand-page p-6 pb-2">
       <div className="max-w-[420px] mx-auto">
         {/* Top controls */}
         <div className="grid grid-cols-3 gap-4 mb-6">
@@ -60,7 +60,7 @@ export default function SpeedPractice() {
           tabIndex={0}
           onClick={onTap}
           onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onTap() } }}
-          className="w-full rounded-xl bg-brand-dark text-white select-none shadow ring-1 ring-black/5 flex items-center justify-center min-h-64 h-[calc(100dvh-280px)] overflow-hidden"
+          className="w-full rounded-xl bg-brand-dark text-white select-none shadow ring-1 ring-black/5 flex items-center justify-center min-h-64 h-[calc(100dvh-180px)] overflow-hidden"
         >
           <div className="text-center">
             <div className="text-lg opacity-90">Steps</div>
