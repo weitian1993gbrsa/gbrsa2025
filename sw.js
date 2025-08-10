@@ -1,9 +1,10 @@
 
-const CACHE = "gbrsa-pwa-v1";
+const CACHE = "gbrsa-pwa-v2";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./logo.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png",
@@ -20,8 +21,7 @@ self.addEventListener("activate", (e) => {
 });
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-  // Offline-first for our assets
-  if (ASSETS.includes(url.pathname) || url.origin === location.origin) {
+  if (url.origin === location.origin) {
     e.respondWith(
       caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
         const copy = resp.clone();
