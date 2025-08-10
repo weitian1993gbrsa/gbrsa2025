@@ -1,6 +1,6 @@
 
 import * as React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 export default function SpeedPractice() {
   const navigate = useNavigate()
@@ -68,14 +68,6 @@ export default function SpeedPractice() {
             <div className="text-3xl font-extrabold tracking-wide mt-1">{count}</div>
           </div>
         </div>
-
-        {/* Footer (optional link back) */}
-        <div className="mt-6 text-center">
-          <Link className="text-blue-700 underline" to="/">
-            ← Back
-          </Link>
-        </div>
-
         {/* Tiny history under the hood (helps practice) */}
         {history.length > 0 && (
           <div className="mt-4 text-xs text-gray-500">
