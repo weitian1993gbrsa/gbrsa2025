@@ -1,23 +1,14 @@
 
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { haptic } from '../lib/haptics'
 
 export default function SpeedPractice() {
   const [count, setCount] = React.useState(0)
   const [history, setHistory] = React.useState<number[]>([])
-  const [haptics, setHaptics] = React.useState<boolean>(() => {
-    const saved = localStorage.getItem('haptics')
-    if (saved !== null) return saved === '1'
-    return (navigator as any).maxTouchPoints > 0
-  })
   const navigate = useNavigate()
-
-  React.useEffect(() => { localStorage.setItem('haptics', haptics ? '1' : '0') }, [haptics])
 
   // haptics (Android Chrome supports Vibration API; iOS Safari ignores gracefully)
   function vibrate(pattern: number | number[] = 10) {
-    if (!haptics) return
     try { (navigator as any)?.vibrate?.(pattern) } catch {}
   }
 
@@ -34,11 +25,11 @@ export default function SpeedPractice() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const onTap = () => { haptic('tap'); setCount(c => c + 1) }
-  const onRemove = () => { haptic('remove'); setCount(c => Math.max(0, c - 1)) }
-  const onReset = () => { haptic('reset'); setCount(0) }
+  const onTap = () => { vibrate(8); setCount(c => c + 1) }
+  const onRemove = () => { vibrate([12, 40, 12]); setCount(c => Math.max(0, c - 1)) }
+  const onReset = () => { vibrate([20, 40, 20, 40, 20]); setCount(0) }
   const onDone = () => {
-    haptic('done');
+    vibrate(25);
     setHistory(h => [count, ...h].slice(0, 10))
     setCount(0)
     navigate('/')
@@ -51,21 +42,18 @@ export default function SpeedPractice() {
         <div className="grid grid-cols-3 gap-4 mb-4 shrink-0">
           <button
             onClick={onDone}
-            onTouchStart={() => { vibrate(10); }}
             className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-emerald-500 shadow hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-emerald-300"
           >
             Done
           </button>
           <button
             onClick={onRemove}
-            onTouchStart={() => { vibrate(10); }}
             className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-emerald-500 shadow hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-emerald-300 justify-self-center"
           >
             Remove Step
           </button>
           <button
             onClick={onReset}
-            onTouchStart={() => { vibrate(10); }}
             className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-rose-500 shadow hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-rose-300 justify-self-end"
           >
             Reset
@@ -77,7 +65,6 @@ export default function SpeedPractice() {
           role="button"
           tabIndex={0}
           onClick={onTap}
-          onTouchStart={() => { vibrate(10); onTap(); }}
           onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onTap() } }}
           className="flex-1 w-full rounded-xl bg-brand-dark text-white select-none shadow ring-1 ring-black/5 flex items-center justify-center pb-[max(env(safe-area-inset-bottom),8px)]"
         >
