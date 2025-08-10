@@ -8,33 +8,18 @@ export default function SpeedPractice() {
   const [history, setHistory] = React.useState<number[]>([])
   const navigate = useNavigate()
 
-  // haptic strength: 'off' | 'medium' | 'strong' (persist between sessions)
-  const [haptics, setHaptics] = React.useState<'off'|'medium'|'strong'>(() => {
-    return (localStorage.getItem('gbrsa:haptics') as any) || 'strong'
-  })
-  React.useEffect(() => {
-    localStorage.setItem('gbrsa:haptics', haptics)
-  }, [haptics])
-
+  // Vibrate-only feedback (Android browsers). iOS Safari ignores it gracefully.
   function vibrate(kind: HapticKind) {
-    if (haptics === 'off') return
     try {
       const v = (navigator as any)?.vibrate
       if (!v) return
-      const medium = {
-        tap: [12],
-        remove: [24, 30, 24],
-        reset: [30, 30, 30, 30, 30],
-        done: [36],
-      } as const
-      const strong = {
+      const pattern: Record<HapticKind, number | number[]> = {
         tap: [0, 30],
         remove: [0, 40, 30, 40],
         reset: [0, 60, 40, 60, 40, 60],
         done: [0, 70],
-      } as const
-      const pattern = (haptics === 'strong' ? strong : medium)[kind]
-      v(0); v(pattern)
+      }
+      v(0); v(pattern[kind])
     } catch {}
   }
 
@@ -60,13 +45,11 @@ export default function SpeedPractice() {
     navigate('/')
   }, [count, navigate])
 
-  // Native pointer listeners for *lowest latency*
   const tapRef = React.useRef<HTMLDivElement | null>(null)
   React.useEffect(() => {
     const el = tapRef.current
     if (!el) return
     const handler = (e: PointerEvent) => {
-      // prevent default to avoid any synthetic delays
       e.preventDefault()
       vibrate('tap')
       onTap()
@@ -98,20 +81,6 @@ export default function SpeedPractice() {
           >
             Reset
           </button>
-        </div>
-
-        {/* Haptics toggle (optional) */}
-        <div className="flex items-center justify-end gap-2 mb-2 text-[11px] text-gray-600 shrink-0">
-          <span>Haptics:</span>
-          <select
-            value={haptics}
-            onChange={(e) => setHaptics(e.target.value as any)}
-            className="rounded-md border border-gray-300 px-2 py-1 bg-white"
-          >
-            <option value="off">Off</option>
-            <option value="medium">Medium</option>
-            <option value="strong">Strong</option>
-          </select>
         </div>
 
         {/* Tap zone */}
