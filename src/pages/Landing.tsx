@@ -18,7 +18,7 @@ export default function Landing() {
 
 <h1 className="mt-4 text-2xl font-bold tracking-wide">GBRSA JUDGING</h1>
 
-        <div className="mt-8 space-y-4">
+        \1<Link to=\"/speed-practice\" className=\"block w-full rounded-full px-6 py-4 font-semibold bg-brand-dark text-white shadow hover:opacity-90 focus:outline-none focus:ring-4 focus:ring-blue-300 transition\">SPEED PRACTICE</Link>
           <Link
             to="/speed"
             className="block w-full rounded-full px-6 py-4 font-semibold bg-brand-dark text-white shadow hover:opacity-90 focus:outline-none focus:ring-4 focus:ring-blue-300 transition"

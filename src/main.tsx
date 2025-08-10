@@ -6,11 +6,13 @@ import './index.css'
 import Landing from './pages/Landing'
 import Speed from './pages/Speed'
 import Freestyle from './pages/Freestyle'
+import SpeedPractice from './pages/SpeedPractice'
 
 const router = createBrowserRouter([
   { path: '/', element: <Landing /> },
   { path: '/speed', element: <Speed /> },
   { path: '/freestyle', element: <Freestyle /> },
+  { path: '/speed-practice', element: <SpeedPractice /> },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
