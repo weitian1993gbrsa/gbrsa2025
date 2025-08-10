@@ -1,5 +1,5 @@
 
-const CACHE = "gbrsa-pwa-v2";
+const CACHE = "gbrsa-pwa-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,6 +7,8 @@ const ASSETS = [
   "./logo.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+  "./icons/icon-192-maskable.png",
+  "./icons/icon-512-maskable.png",
   "./icons/apple-touch-icon.png",
   "./icons/favicon-32.png"
 ];
