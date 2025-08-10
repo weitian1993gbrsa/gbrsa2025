@@ -7,6 +7,11 @@ export default function SpeedPractice() {
   const [history, setHistory] = React.useState<number[]>([])
   const navigate = useNavigate()
 
+  // haptics (Android Chrome supports Vibration API; iOS Safari ignores gracefully)
+  function vibrate(pattern: number | number[] = 10) {
+    try { (navigator as any)?.vibrate?.(pattern) } catch {}
+  }
+
   // keyboard helpers
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -20,10 +25,11 @@ export default function SpeedPractice() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const onTap = () => setCount(c => c + 1)
-  const onRemove = () => setCount(c => Math.max(0, c - 1))
-  const onReset = () => setCount(0)
+  const onTap = () => { vibrate(8); setCount(c => c + 1) }
+  const onRemove = () => { vibrate([12, 40, 12]); setCount(c => Math.max(0, c - 1)) }
+  const onReset = () => { vibrate([20, 40, 20, 40, 20]); setCount(0) }
   const onDone = () => {
+    vibrate(25);
     setHistory(h => [count, ...h].slice(0, 10))
     setCount(0)
     navigate('/')
