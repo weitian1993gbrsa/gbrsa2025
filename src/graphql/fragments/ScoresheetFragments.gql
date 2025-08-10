@@ -1,0 +1,39 @@
+fragment ScoresheetBaseFragment on Scoresheet {
+  id
+  judge { id }
+
+  rulesId
+  judgeType
+  competitionEventId
+
+  createdAt
+  updatedAt
+  excludedAt
+
+  options
+
+  ...MarkScoresheetFragment
+  ...TallyScoresheetFragment
+}
+
+fragment MarkScoresheetFragment on MarkScoresheet {
+  completedAt
+  submittedAt
+  openedAt
+
+  judge {
+    id
+    name
+  }
+
+  entry {
+    heat
+    pool
+  }
+
+  marks
+}
+
+fragment TallyScoresheetFragment on TallyScoresheet {
+  tally
+}

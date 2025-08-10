@@ -1,0 +1,3 @@
+mutation RegisterDevice ($name: String) {
+  registerDevice (name: $name)
+}

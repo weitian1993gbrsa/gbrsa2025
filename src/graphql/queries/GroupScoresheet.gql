@@ -1,0 +1,11 @@
+query GroupScoresheet ($groupId: ID!, $entryId: ID!, $scoresheetId: ID!) {
+  group (groupId: $groupId) {
+    id
+    entry (entryId: $entryId) {
+      ...EntryFragment
+      scoresheet (scoresheetId: $scoresheetId) {
+        ...ScoresheetBaseFragment
+      }
+    }
+  }
+}

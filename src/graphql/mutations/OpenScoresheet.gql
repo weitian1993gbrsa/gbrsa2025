@@ -1,0 +1,6 @@
+mutation OpenScoresheet ($scoresheetId: ID!, $openedAt: Timestamp!) {
+  fillMarkScoresheet (scoresheetId: $scoresheetId, openedAt: $openedAt) {
+    id
+    openedAt
+  }
+}
