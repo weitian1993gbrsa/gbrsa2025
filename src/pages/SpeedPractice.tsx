@@ -60,8 +60,7 @@ export default function SpeedPractice() {
           tabIndex={0}
           onClick={onTap}
           onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onTap() } }}
-          className="w-full rounded-lg bg-brand-dark text-white select-none shadow ring-1 ring-black/5 flex items-center justify-center"
-          style={{ aspectRatio: '1 / 1' }}
+          className="w-full rounded-xl bg-brand-dark text-white select-none shadow ring-1 ring-black/5 flex items-center justify-center min-h-64 h-[calc(100dvh-280px)] overflow-hidden"
         >
           <div className="text-center">
             <div className="text-lg opacity-90">Steps</div>
