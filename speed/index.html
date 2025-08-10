@@ -13,14 +13,15 @@
   </style>
 </head>
 <body>
-  <button class="scan" id="startScan">scan</button>
+  <h1>Speed Judge</h1>
+  <button class="scan" id="startScan">SCAN QR</button>
   <div><input type="text" id="name" placeholder="NAME" readonly></div>
   <div><input type="text" id="id" placeholder="ID" readonly></div>
   <div class="circle" id="heat">HEAT</div>
   <div class="circle" id="court">COURT</div>
   <div id="reader" style="width: 300px; margin: auto; display:none;"></div>
   <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzGqCEzDESo1l9VEv864qIp2pybvHvoP38wAUKypHVi1bLTVbSjD04SMCxffVV-V8U9fuEv-AxGSV1/pub?gid=0&single=true&output=csv";
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzGqCEzDESo1l9VEv864qIp2pybvHvoP38wAUKypHVi1bLTVbSjD04SMCxffVV-V8U9fuEv-AxGSV1/pub?output=csv";
 
     function fetchDataById(scannedId) {
         fetch(sheetUrl)
