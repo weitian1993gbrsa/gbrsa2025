@@ -1,12 +1,31 @@
-<!doctype html>
-<html lang="en"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Coming soon</title>
-<link rel="stylesheet" href="../assets/styles.css">
-<body class="page">
-  <section class="card">
-    <h1 class="title">Coming soon</h1>
-    <p>This section is a placeholder.</p>
-    <p><a class="btn" href="/">Back to Home</a></p>
-  </section>
-</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Speed Judge</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; background: #fff; padding: 20px; margin: 0; }
+  button.scan { background: #00c853; color: #fff; border: none; padding: 10px 30px; font-weight: bold; border-radius: 4px; }
+  input { display: block; margin: 20px auto; padding: 10px; border-radius: 12px; border: 1px solid #000; font-size: 1em; text-align: center; }
+  input.name { width: 80%; }
+  input.id { width: 50%; border-radius: 25px; }
+  .circle { display: inline-block; width: 90px; height: 90px; line-height: 90px; border-radius: 50%; background: #0d2a63; color: white; font-weight: bold; margin: 15px; }
+  a.back { display: block; margin-top: 20px; color: #0d2a63; text-decoration: none; font-size: 0.9em; }
+</style>
+</head>
+<body>
+<button class="scan">scan</button>
+<input type="text" class="name" placeholder="NAME" id="nameInput">
+<input type="text" class="id" placeholder="ID" id="idInput">
+<div class="circle" id="heatCircle">HEAT</div>
+<div class="circle" id="courtCircle">COURT</div>
+<a href="../" class="back">&larr; Back to Home</a>
+<script>
+function setHeatCourt(heat, court) {
+  document.getElementById('heatCircle').textContent = "HEAT " + (heat || "");
+  document.getElementById('courtCircle').textContent = "COURT " + (court || "");
+}
+</script>
+</body>
+</html>
