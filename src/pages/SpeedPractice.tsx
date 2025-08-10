@@ -51,18 +51,21 @@ export default function SpeedPractice() {
         <div className="grid grid-cols-3 gap-4 mb-4 shrink-0">
           <button
             onClick={onDone}
+            onTouchStart={() => { vibrate(10); }}
             className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-emerald-500 shadow hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-emerald-300"
           >
             Done
           </button>
           <button
             onClick={onRemove}
+            onTouchStart={() => { vibrate(10); }}
             className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-emerald-500 shadow hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-emerald-300 justify-self-center"
           >
             Remove Step
           </button>
           <button
             onClick={onReset}
+            onTouchStart={() => { vibrate(10); }}
             className="col-span-1 rounded-xl px-4 py-3 font-semibold text-white bg-rose-500 shadow hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-rose-300 justify-self-end"
           >
             Reset
@@ -74,6 +77,7 @@ export default function SpeedPractice() {
           role="button"
           tabIndex={0}
           onClick={onTap}
+          onTouchStart={() => { vibrate(10); onTap(); }}
           onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onTap() } }}
           className="flex-1 w-full rounded-xl bg-brand-dark text-white select-none shadow ring-1 ring-black/5 flex items-center justify-center pb-[max(env(safe-area-inset-bottom),8px)]"
         >
