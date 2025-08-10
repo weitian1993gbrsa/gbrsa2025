@@ -37,8 +37,8 @@
                 const foundRow = rows.find(row => row[idIndex] === scannedId);
                 if (foundRow) {
                     document.getElementById("name").value = foundRow[nameIndex];
-                    document.getElementById("heat").innerText = foundRow[heatIndex];
-                    document.getElementById("court").innerText = foundRow[courtIndex];
+                    document.getElementById("heat").innerText = "HEAT " + foundRow[heatIndex];
+                    document.getElementById("court").innerText = "COURT " + foundRow[courtIndex];
                 } else {
                     alert("ID not found in sheet");
                 }
