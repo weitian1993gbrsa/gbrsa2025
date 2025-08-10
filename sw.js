@@ -1,5 +1,5 @@
 
-const CACHE = "gbrsa-pwa-v4";
+const CACHE = "gbrsa-pwa-v4.1";
 const ASSETS = [
   "./",
   "./index.html",

@@ -8,7 +8,7 @@
   <meta name="color-scheme" content="light">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="manifest" href="manifest.webmanifest?v=4">
+  <link rel="manifest" href="manifest.webmanifest?v=4.1">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon-v4.png">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32-v4.png">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,8 +52,13 @@
       padding:16px 22px; border-radius:999px; border:0; cursor:pointer; display:block;
       box-shadow:0 6px 14px rgba(15,42,103,.18); transition:transform .06s ease, box-shadow .2s ease, background .2s ease;
       text-transform:uppercase; font-size:15px;
+      -webkit-tap-highlight-color: transparent; /* remove Android/iOS tap highlight */
+      position: relative;
     }
-    .btn:focus{ outline:3px solid #bcd3ff; outline-offset:2px }
+    .btn:focus{ outline: none; }
+    .btn:focus-visible{ outline: none; box-shadow: 0 0 0 3px #bcd3ff, 0 6px 14px rgba(15,42,103,.18); }
+
+    
     .btn:hover{ background:var(--brand-600); box-shadow:0 10px 22px rgba(15,42,103,.22) }
     .btn:active{ transform:translateY(1px); box-shadow:0 4px 10px rgba(15,42,103,.18) }
 
@@ -141,7 +146,7 @@
       }
       if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', lockZoom); } else { lockZoom(); }
 
-      if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js?v=4'); }
+      if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js?v=4.1'); }
     })();
   </script>
 </body>
