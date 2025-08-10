@@ -1,14 +1,23 @@
 
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { haptic } from '../lib/haptics'
 
 export default function SpeedPractice() {
   const [count, setCount] = React.useState(0)
   const [history, setHistory] = React.useState<number[]>([])
+  const [haptics, setHaptics] = React.useState<boolean>(() => {
+    const saved = localStorage.getItem('haptics')
+    if (saved !== null) return saved === '1'
+    return (navigator as any).maxTouchPoints > 0
+  })
   const navigate = useNavigate()
+
+  React.useEffect(() => { localStorage.setItem('haptics', haptics ? '1' : '0') }, [haptics])
 
   // haptics (Android Chrome supports Vibration API; iOS Safari ignores gracefully)
   function vibrate(pattern: number | number[] = 10) {
+    if (!haptics) return
     try { (navigator as any)?.vibrate?.(pattern) } catch {}
   }
 
@@ -25,11 +34,11 @@ export default function SpeedPractice() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const onTap = () => { vibrate(8); setCount(c => c + 1) }
-  const onRemove = () => { vibrate([12, 40, 12]); setCount(c => Math.max(0, c - 1)) }
-  const onReset = () => { vibrate([20, 40, 20, 40, 20]); setCount(0) }
+  const onTap = () => { haptic('tap'); setCount(c => c + 1) }
+  const onRemove = () => { haptic('remove'); setCount(c => Math.max(0, c - 1)) }
+  const onReset = () => { haptic('reset'); setCount(0) }
   const onDone = () => {
-    vibrate(25);
+    haptic('done');
     setHistory(h => [count, ...h].slice(0, 10))
     setCount(0)
     navigate('/')
