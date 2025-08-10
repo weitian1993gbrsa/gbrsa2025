@@ -36,8 +36,18 @@
     .brand{
       display:flex; flex-direction:column; align-items:center; gap:14px; margin-bottom:18px;
     }
-    .logo-box{ position:relative; width:96px; height:96px; border-radius:22px; overflow:hidden; }
-    .logo{ width:100%; height:100%; object-fit:contain; display:block; background:#fff; border-radius:22px; border:1px solid #e9eef6; }
+    /* Logo container with padding to prevent any cropping */
+    .logo-box{
+      width:104px; height:104px; padding:8px;
+      background:#fff; border-radius:24px; border:1px solid #e9eef6;
+      overflow:hidden; display:grid; place-items:center;
+      box-shadow:0 1px 0 rgba(0,0,0,.02) inset;
+    }
+    .logo{
+      width:100%; height:100%; display:block;
+      object-fit:contain; background:transparent; border:0;
+      border-radius:14px; /* smaller than container so corners never clip */
+    }
     .brand h1{ margin:0; font-size:28px; letter-spacing:.5px; text-align:center; font-weight:800; }
 
     .btns{ display:grid; gap:18px; margin:28px 0 22px; }
@@ -65,9 +75,8 @@
     /* Zoom lock helpers */
     html { -webkit-text-size-adjust: 100%; }
     html, body, a, button { touch-action: manipulation; }
-    input, select, textarea { font-size: 16px; } /* prevent iOS auto-zoom on focus */
+    input, select, textarea { font-size: 16px; }
 
-    /* Larger screens */
     @media (min-width:700px){
       .card{ padding:54px 48px }
       .brand h1{ font-size:30px }
@@ -86,7 +95,6 @@
       </div>
 
       <nav class="btns" aria-label="Primary">
-        <!-- Replace the # links with your actual URLs -->
         <a class="btn" id="speedBtn" href="#speed" aria-label="Open Speed Judge">Speed Judge</a>
         <a class="btn" id="freestyleBtn" href="#freestyle" aria-label="Open Freestyle Judge">Freestyle Judge</a>
       </nav>
@@ -104,8 +112,7 @@
   </main>
 
   <script>
-    // Optional: configure destination links without editing the file.
-    (function() {
+    (function(){
       var speed = (window.ENV_SPEED_URL || null);
       var free  = (window.ENV_FREESTYLE_URL || null);
       if(speed) document.getElementById('speedBtn').setAttribute('href', speed);
@@ -114,7 +121,6 @@
   </script>
 
   <script>
-    // Hard lock zoom: block pinch/double-tap/ctrl+wheel/keyboard zoom
     (function(){
       function lockZoom(){
         var lastTouch = 0;
