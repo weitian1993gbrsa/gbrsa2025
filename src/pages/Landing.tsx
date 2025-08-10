@@ -48,6 +48,7 @@ export default function Landing() {
         <p className="mt-8 text-[11px] text-gray-500">
           GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE – the simple scoring system
         </p>
+        <div className="mt-2"><a href="/vibrate-test" className="text-xs text-blue-700 underline">Vibration test</a></div>
       </section>
     </main>
   )
