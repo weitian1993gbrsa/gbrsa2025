@@ -14,12 +14,42 @@
 </head>
 <body>
   <button class="scan" id="startScan">scan</button>
-  <div><input type="text" id="name" placeholder="NAME"></div>
-  <div><input type="text" id="id" placeholder="ID"></div>
-  <div class="circle">HEAT</div>
-  <div class="circle">COURT</div>
+  <div><input type="text" id="name" placeholder="NAME" readonly></div>
+  <div><input type="text" id="id" placeholder="ID" readonly></div>
+  <div class="circle" id="heat">HEAT</div>
+  <div class="circle" id="court">COURT</div>
   <div id="reader" style="width: 300px; margin: auto; display:none;"></div>
   <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzGqCEzDESo1l9VEv864qIp2pybvHvoP38wAUKypHVi1bLTVbSjD04SMCxffVV-V8U9fuEv-AxGSV1/pub?gid=0&single=true&output=csv";
+
+    function fetchDataById(scannedId) {
+        fetch(sheetUrl)
+            .then(response => response.text())
+            .then(csvText => {
+                const rows = csvText.split("\n").map(r => r.split(","));
+                const header = rows[0];
+                const idIndex = header.indexOf("ID");
+                const nameIndex = header.indexOf("Name");
+                const heatIndex = header.indexOf("Heat");
+                const courtIndex = header.indexOf("Court");
+
+                const foundRow = rows.find(row => row[idIndex] === scannedId);
+                if (foundRow) {
+                    document.getElementById("name").value = foundRow[nameIndex];
+                    document.getElementById("heat").innerText = foundRow[heatIndex];
+                    document.getElementById("court").innerText = foundRow[courtIndex];
+                } else {
+                    alert("ID not found in sheet");
+                }
+            })
+            .catch(err => console.error("Error fetching sheet:", err));
+    }
+
+    function onQrScanned(scannedId) {
+        document.getElementById("id").value = scannedId;
+        fetchDataById(scannedId);
+    }
+
     document.getElementById("startScan").addEventListener("click", function() {
         const readerDiv = document.getElementById("reader");
         readerDiv.style.display = "block";
@@ -33,7 +63,7 @@
                     cameraId,
                     { fps: 10, qrbox: 200 },
                     qrCodeMessage => {
-                        document.getElementById("id").value = qrCodeMessage;
+                        onQrScanned(qrCodeMessage);
                         html5QrCode.stop().then(() => {
                             readerDiv.style.display = "none";
                         });
