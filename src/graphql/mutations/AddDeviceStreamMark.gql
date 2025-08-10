@@ -1,5 +1,0 @@
-mutation AddDeviceStreamMark ($mark: JSONObject!, $tally: JSONObject!, $info: DeviceStreamJudgeInfoInput!) {
-  addDeviceStreamMark (mark: $mark, tally: $tally, info: $info) {
-    sequence
-  }
-}

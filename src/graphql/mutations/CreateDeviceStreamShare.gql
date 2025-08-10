@@ -1,5 +1,0 @@
-mutation CreateDeviceStreamShare ($userId: ID!) {
-  createDeviceStreamShare (userId: $userId) {
-    ...DeviceStreamShareFragment
-  }
-}

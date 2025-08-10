@@ -1,4 +1,0 @@
-fragment JudgeFragment on Judge {
-  id
-  name
-}
