@@ -19,6 +19,61 @@
   const fREP = $('#fREP');
   const fSTATE = $('#fSTATE');
   const fHEAT = $('#fHEAT');
+  // --- CSV fallback loader with flexible header mapping ---
+  let __csvCache = null;
+  async function loadCsvFlex(){
+    try{
+      if (__csvCache) return __csvCache;
+      const sid = (window.CONFIG && window.CONFIG.SHEET_ID) || '';
+      const sheet = (window.CONFIG && window.CONFIG.DATA_SHEET_NAME) || 'Data';
+      if (!sid) throw new Error('No SHEET_ID configured');
+      const url = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}&_=${Date.now()}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      const text = await res.text();
+      const rows = text.trim().split(/\r?\n/).map(r => r.split(','));
+      __csvCache = rows;
+      return rows;
+    }catch(e){ console.warn('CSV load failed', e); return null; }
+  }
+  function idx(header,nameVariants){
+    const H = header.map(h=>h.trim().toUpperCase());
+    for (const n of nameVariants){
+      const k = n.toUpperCase();
+      const i = H.indexOf(k);
+      if (i>=0) return i;
+    }
+    return -1;
+  }
+  async function csvLookupByIdFlex(idUpper){
+    const rows = await loadCsvFlex();
+    if (!rows || !rows.length) return null;
+    const header = rows[0].map(h=>h.trim());
+    const idIdx = idx(header, ['ID','ENTRY ID','ENTRY_ID','ENTRY','PARTICIPANT ID','ENTRY NO','ENTRYNO']);
+    if (idIdx<0) return null;
+    for (let i=1;i<rows.length;i++){
+      const r = rows[i];
+      if (((r[idIdx]||'').trim().toUpperCase()) === idUpper){
+        const get = (names)=>{
+          const j = idx(header, names);
+          return j>=0 ? (r[j]||'') : '';
+        };
+        const obj = {
+          ID: r[idIdx]||'',
+          NAME1: get(['NAME1','NAME 1','N1','ATHLETE 1','ATHLETE1']),
+          NAME2: get(['NAME2','NAME 2','N2','ATHLETE 2','ATHLETE2']),
+          NAME3: get(['NAME3','NAME 3','N3','ATHLETE 3','ATHLETE3']),
+          NAME4: get(['NAME4','NAME 4','N4','ATHLETE 4','ATHLETE4']),
+          REP: get(['REP','REPRESENTATIVE']),
+          STATE: get(['STATE','TEAM','COUNTRY','ASSOCIATION']),
+          HEAT: get(['HEAT','GROUP','ROUND']),
+          COURT: get(['COURT','LANE','AREA'])
+        };
+        return obj;
+      }
+    }
+    return null;
+  }
+
   const fCOURT = $('#fCOURT');
 
   const btnConfirm = $('#btnConfirm');
@@ -73,9 +128,31 @@
     try {
       const data = await apiGet({ cmd:'participant', entryId: id }); // provided by app.js
       if (!data || !data.found){
+        // CSV flexible fallback
+        const csv = await csvLookupByIdFlex(id);
+        if (csv){
+          const names = [csv.NAME1,csv.NAME2,csv.NAME3,csv.NAME4].filter(Boolean).map(escapeHtml).join('<br>');
+          const rep = csv.REP || '';
+          const state = csv.STATE || '';
+          const heat = csv.HEAT || '';
+          const court = csv.COURT || '';
+          pId.textContent = id;
+          pNames.innerHTML = names || '—';
+          pRep.textContent = rep || '—';
+          pState.textContent = state || '—';
+          badgeHeat.textContent = heat ? `HEAT ${heat}` : 'HEAT —';
+          badgeCourt.textContent = court ? `COURT ${court}` : 'COURT —';
+          fId.value = id;
+          fNAME1.value = csv.NAME1 || '';
+          fNAME2.value = csv.NAME2 || '';
+          fNAME3.value = csv.NAME3 || '';
+          fNAME4.value = csv.NAME4 || '';
+          fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fCOURT.value = court;
+          btnConfirm.disabled = false;
+          return;
+        }
         hideParticipant(); hideStep2(); clearHidden();
         if (window.toast) toast('ID not found.');
-        return;
       }
       const p = data.participant || {};
 
@@ -170,14 +247,7 @@
         const out = await apiPost(payload); // provided by app.js
         if (out && (out.ok || out.raw)) {
           if (window.toast) toast('Submitted ✅');
-          
-  
-  setTimeout(() => { window.location.href = 'https://gbrsascore.netlify.app/speed'; }, 800);
-// Redirect after short delay so toast shows
-  setTimeout(() => {
-    window.location.href = 'https://gbrsascore.netlify.app/speed';
-  }, 800);
-
+          resetUI();
         } else {
           throw new Error('Server rejected');
         }
@@ -187,6 +257,18 @@
       }
     });
   }
+
+
+// --- Robust ID input triggers ---
+(function(){
+  if (!entryInput) return;
+  let t=null;
+  const run = ()=> lookupById(entryInput.value);
+  entryInput.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(run, 300); });
+  entryInput.addEventListener('change', run);
+  entryInput.addEventListener('keyup', e=>{ if (e.key==='Enter') run(); });
+})();
+
 
   // Initial state
   hideParticipant();
