@@ -170,7 +170,14 @@
         const out = await apiPost(payload); // provided by app.js
         if (out && (out.ok || out.raw)) {
           if (window.toast) toast('Submitted ✅');
-          resetUI();
+          
+  
+  setTimeout(() => { window.location.href = 'https://gbrsascore.netlify.app/speed'; }, 800);
+// Redirect after short delay so toast shows
+  setTimeout(() => {
+    window.location.href = 'https://gbrsascore.netlify.app/speed';
+  }, 800);
+
         } else {
           throw new Error('Server rejected');
         }
