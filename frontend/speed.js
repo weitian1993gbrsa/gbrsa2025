@@ -2,10 +2,11 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
-  const ROI_RATIO = 0.60; // 20% center ROI
-  let offCanvas, offCtx;
-  const STABLE_FRAMES = 3; // strict
-  const HOLD_MS = 400;     // strict (ms)
+  const ROI_RATIO = 0.20; // 20% center ROI
+  let offCanvas, offCtx;  const STABLE_FRAMES_MIN = 6, STABLE_FRAMES_MAX = 8;
+  const HOLD_MS_MIN = 700, HOLD_MS_MAX = 1000;
+  const STABLE_FRAMES = STABLE_FRAMES_MAX;
+  const HOLD_MS = HOLD_MS_MAX;
   let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const submitOverlay = document.getElementById('submitOverlay');
   const overlayText   = document.getElementById('overlayText');
@@ -157,39 +158,24 @@
     try {
       const vw = cam.videoWidth, vh = cam.videoHeight;
       if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
-
-      // Ensure offscreen canvas matches full frame
-      if (!offCanvas){ 
-        offCanvas = document.createElement('canvas'); 
-        offCtx = offCanvas.getContext('2d', { willReadFrequently:true }); 
-      }
-      if (offCanvas.width !== vw || offCanvas.height !== vh){ 
-        offCanvas.width = vw; 
-        offCanvas.height = vh; 
-      }
-
-      // Draw full frame
-      offCtx.drawImage(cam, 0, 0, vw, vh);
-
-      // Detect on full frame
+      // Center square ROI (20% of min side)
+      const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
+      const sx = Math.floor((vw - side) / 2);
+      const sy = Math.floor((vh - side) / 2);
+      if (!offCanvas){ offCanvas = document.createElement('canvas'); offCtx = offCanvas.getContext('2d', { willReadFrequently:true }); }
+      if (offCanvas.width !== side || offCanvas.height !== side){ offCanvas.width = side; offCanvas.height = side; }
+      offCtx.drawImage(cam, sx, sy, side, side, 0, 0, side, side);
       const codes = await detector.detect(offCanvas);
       if (codes && codes.length) {
         const c = codes[0];
         const rawValue = (c.rawValue || '').trim();
         const bb = c.boundingBox || c.bounds;
-
-        // ROI: centered square, but only require the center of the code to be inside
-        let centerInside = true;
+        let fullyInside = true;
         if (bb){
-          const cx = bb.x + (bb.width  || 0) / 2;
-          const cy = bb.y + (bb.height || 0) / 2;
-          const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
-          const sx = Math.floor((vw - side) / 2);
-          const sy = Math.floor((vh - side) / 2);
-          centerInside = (cx >= sx && cy >= sy && cx <= (sx + side) && cy <= (sy + side));
+          const EDGE = Math.floor(0.02 * side); // 2% tolerance
+          fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
         }
-
-        if (centerInside){
+        if (fullyInside){
           const now = Date.now();
           if (_stableValue === rawValue){
             _stableCount++;
