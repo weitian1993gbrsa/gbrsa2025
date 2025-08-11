@@ -92,6 +92,7 @@
         return;
       }
       const p = data.participant || {};
+      if (entryInput) entryInput.value = id;
 
       const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']]
         .filter(Boolean).map(escapeHtml).join('<br>');
@@ -137,6 +138,7 @@
     try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
+      entryInput && (entryInput.value = ''); hideParticipant(); hideStep2(); clearHidden();
       cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
       // Allow Android/iOS back button to close camera instead of leaving page
       try{ history.pushState({camera:true}, ''); }catch(_){}
@@ -157,7 +159,7 @@
       if (codes && codes.length) {
         const rawValue = (codes[0].rawValue || '').trim();
         const id = rawValue;
-        entryInput.value = id;
+        
         await stopScan();
         await lookupById(id);
       }
