@@ -1,5 +1,10 @@
 (function(){
   const $ = (q, el=document) => el.querySelector(q);
+  // simple debounce for input
+  function debounce(fn, ms=300){
+    let t; return (...args)=>{ clearTimeout(t); t = setTimeout(()=>fn(...args), ms); };
+  }
+
 
   // Elements
   const entryInput = $('#entryIdInput');
@@ -10,6 +15,18 @@
   const pNames = $('#pNames');
   const pRep = $('#pRep');
   const pState = $('#pState');
+  // Loading overlay helpers
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  function showLoading(msg = 'Submitting…'){
+    if (!loadingOverlay) return;
+    const m = loadingOverlay.querySelector('.msg');
+    if (m) m.textContent = msg;
+    loadingOverlay.classList.remove('hide');
+  }
+  function hideLoading(){
+    if (loadingOverlay) loadingOverlay.classList.add('hide');
+  }
+
 
   const fId = $('#fId');
   const fNAME1 = $('#fNAME1');
@@ -59,12 +76,12 @@
     setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150);
   }
 
-  async function lookupById(raw){
-    const id = String(raw||'').trim().toUpperCase();
+  async function lookupById(raw){ const id = String(raw||'').trim().toUpperCase();
     if (!id){ hideParticipant(); hideStep2(); clearHidden(); return; }
 
     // show loading
     showParticipant();
+    if (typeof btnConfirm!=='undefined' && btnConfirm) btnConfirm.disabled = true;
     btnConfirm.disabled = true;
     pId.textContent = 'Loading…';
     pNames.innerHTML = loadingDots;
@@ -103,92 +120,17 @@
       fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fCOURT.value = court;
 
       btnConfirm.disabled = false;
-    } catch (err){
-      console.error(err);
-      hideParticipant(); hideStep2(); clearHidden();
-      if (window.toast) toast('Lookup failed.');
+    } \1
+      try { hideLoading(); } catch(_) {}
     }
   }
 
   // Manual input triggers (simple & reliable)
   if (entryInput){
-    entryInput.addEventListener('change', e => lookupById(e.target.value));
-    entryInput.addEventListener('keyup', e => { if (e.key === 'Enter') lookupById(entryInput.value); });
-    entryInput.addEventListener('input', e => { if (e.target.value.trim() === ''){ hideParticipant(); hideStep2(); clearHidden(); } });
-  }
-
-  // Camera scan support
-  async function startScan(){
-    if (!('BarcodeDetector' in window)) { if (window.toast) toast('QR not supported. Type ID.'); return; }
-    try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
-    } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
-  }
-  async function scanLoop(){
-    if (!scanning) return;
-    try {
-      const codes = await detector.detect(cam);
-      if (codes && codes.length) {
-        const rawValue = (codes[0].rawValue || '').trim();
-        const id = rawValue;
-        entryInput.value = id;
-        await stopScan();
-        await lookupById(id);
-      }
-    } catch(e){}
-    requestAnimationFrame(scanLoop);
-  }
-  async function stopScan(){
-    scanning = false;
-    if (cam) cam.pause();
-    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    cameraWrap.classList.add('hide');
-  }
-  if (btnOpenCamera) btnOpenCamera.addEventListener('click', startScan);
-  if (btnCloseCamera) btnCloseCamera.addEventListener('click', stopScan);
-
-  // Confirm reveals Step 2
-  if (btnConfirm){
-    btnConfirm.addEventListener('click', ()=> {
-      scoreFormWrap.classList.remove('hide');
-      if (window.toast) toast('Ready to enter score.');
-      scoreFormWrap.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  }
-
-  // Submit
-  if (scoreForm){
-    scoreForm.addEventListener('submit', async (e)=> {
-      e.preventDefault();
-      const fd = new FormData(scoreForm);
-      const payload = Object.fromEntries(fd.entries());
-      // FALSE START: 'YES' when checked, blank when unchecked
-      payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '';
-      try {
-        const out = await apiPost(payload); // provided by app.js
-        if (out && (out.ok || out.raw)) {
-          if (window.toast) toast('Submitted ✅');
-          
-  
-  setTimeout(() => { window.location.href = 'https://gbrsascore.netlify.app/speed'; }, 800);
-// Redirect after short delay so toast shows
-  setTimeout(() => {
-    window.location.href = 'https://gbrsascore.netlify.app/speed';
-  }, 800);
-
-        } else {
-          throw new Error('Server rejected');
-        }
-      } catch (err) {
-        console.error(err);
-        if (window.toast) toast('Submit failed — check internet/app script.');
-      }
-    });
-  }
-
-  // Initial state
-  hideParticipant();
-  hideStep2();
+  const fire = () => lookupById(entryInput.value);
+  const fireIfEnter = (e) => { if (e.key === 'Enter') fire(); };
+  entryInput.addEventListener('change', e => fire());
+  entryInput.addEventListener('keyup', fireIfEnter);
+  entryInput.addEventListener('blur', e => fire());
+  entryInput.addEventListener('input', debounce(fire, 300));
 })();
