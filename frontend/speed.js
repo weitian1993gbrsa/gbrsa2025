@@ -30,37 +30,12 @@
   let detector = null;
   let scanning = false;
 
-  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',\"'\":'&#39;'}[m])); }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
   function extractIdFromRaw(raw){
     let id = (raw||'').trim();
     try { const u = new URL(id); id = u.searchParams.get('id') || u.searchParams.get('ID') || u.searchParams.get('entryId') || id; } catch {}
     return id;
-  }
-
-  // --- Reset UI back to initial (before ID typed) ---
-  function resetUI(){
-    // Clear forms/hidden fields
-    scoreForm.reset();
-    [fId,fNAME1,fNAME2,fNAME3,fNAME4,fREP,fSTATE,fHEAT,fCOURT].forEach(el => el.value = '');
-    // Hide sections & disable confirm
-    participantCard.classList.add('hide');
-    scoreFormWrap.classList.add('hide');
-    btnConfirm.disabled = true;
-    // Clear visible labels
-    pId.textContent = '—';
-    pNames.innerHTML = '—';
-    pRep.textContent = '—';
-    pState.textContent = '—';
-    badgeHeat.textContent = 'HEAT —';
-    badgeCourt.textContent = 'COURT —';
-    // Clear ID box & focus it
-    entryInput.value = '';
-    // Close camera if open
-    stopScan();
-    // Scroll to top and focus entry
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => entryInput.focus(), 350);
   }
 
   async function lookupById(id){
@@ -151,18 +126,10 @@
     payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '';
     try {
       const out = await apiPost(payload);
-      if (out && (out.ok || out.raw)) { 
-        toast('Submitted ✅');
-        // Return to the initial screen ready for the next ID
-        resetUI();
-      } else { throw new Error('Server rejected'); }
+      if (out && (out.ok || out.raw)) { toast('Submitted ✅'); scoreForm.reset(); }
+      else { throw new Error('Server rejected'); }
     } catch (err) {
       console.error(err); toast('Submit failed — check internet/app script.');
     }
-  });
-
-  // Optional: allow Esc to reset quickly
-  document.addEventListener('keydown', (e)=>{
-    if (e.key === 'Escape') resetUI();
   });
 })();
