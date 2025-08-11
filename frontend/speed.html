@@ -28,7 +28,7 @@
       <div id="cameraWrap" class="camera hide">
         <video id="cam" playsinline></video>
         <div class="scan-tip">Point your rear camera at the QR</div>
-        <button id="btnCloseCamera" class="btn ghost">Close Camera</button>
+        <button id="btnCloseCamera" class="btn ghost"><span aria-hidden="true">×</span><span class="sr-only">Close Camera</span></button>
       </div>
       <div class="hint">Type the ID above if your camera is broken.</div>
     </section>
@@ -76,13 +76,5 @@
   </main>
 
   <footer class="foot"><small>GB ROPE SKIPPING ACADEMY</small></footer>
-
-  <!-- Submit overlay -->
-  <div id="submitOverlay" class="overlay hide" aria-live="polite" aria-busy="true">
-    <div class="overlay-card">
-      <div class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-      <div id="overlayText" class="overlay-text">Sending…</div>
-    </div>
-  </div>
 </body>
 </html>
