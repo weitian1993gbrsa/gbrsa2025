@@ -40,6 +40,10 @@
 
   async function lookupById(id){
     if (!id) return;
+    // set loading UI
+    btnConfirm.disabled = true;
+    pId.textContent = 'Loading…';
+    pNames.innerHTML = '<span class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>';
     try {
       const data = await apiGet({ cmd:'participant', entryId: id });
       if (!data || !data.found) { participantCard.classList.add('hide'); toast('ID not found.'); return; }
@@ -64,10 +68,17 @@
       fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fCOURT.value = court;
 
       participantCard.classList.remove('hide');
+      btnConfirm.disabled = false;
     } catch (err) { console.error(err); toast('Lookup failed.'); }
   }
 
-  entryInput.addEventListener('change', (e)=> lookupById(e.target.value.trim()));
+  const debouncedLookup = debounce((v)=> lookupById(v), 300);
+
+  entryInput.addEventListener('input', (e)=> {
+    const v = e.target.value.trim();
+    if (v.length) { debouncedLookup(v); }
+  });
+  entryInput.addEventListener('change', (e)=> { const v = e.target.value.trim(); if (v.length) lookupById(v); });
   entryInput.addEventListener('keyup', (e)=> { if (e.key === 'Enter') lookupById(entryInput.value.trim()); });
 
   async function startScan(){

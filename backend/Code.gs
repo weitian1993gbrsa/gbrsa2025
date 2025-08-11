@@ -1,4 +1,4 @@
-/** GBRSA backend (header-aligned, tolerant ID) */
+/** GBRSA backend (fast lookup) */
 const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg';
 const DATA_SHEET = PropertiesService.getScriptProperties().getProperty('DATA_SHEET_NAME') || 'Data';
 const RESULT_SHEET = PropertiesService.getScriptProperties().getProperty('RESULT_SHEET_NAME') || 'Result';
@@ -10,12 +10,27 @@ function sameId(a,b){ const A=normalizeId(a), B=normalizeId(b); if (A===B) retur
 function doGet(e){
   const cmd=(e.parameter.cmd||'').toLowerCase();
   if (cmd==='ping') return json({ ok:true, ts: Date.now() });
-  if (cmd==='participant'){ const entryId=normalizeId(e.parameter.entryId); if(!entryId) return json({ error:'Missing entryId' });
-    const sh=SpreadsheetApp.openById(SHEET_ID).getSheetByName(DATA_SHEET); if(!sh) return json({ error:`Data sheet 'Data' not found`});
-    const values=sh.getDataRange().getValues(); if(!values.length) return json({ found:false });
-    const headers=values[0].map(String); const idx=headers.findIndex(h=> String(h).trim().toUpperCase()==='ID'); if(idx===-1) return json({ error:"Column 'ID' not found" });
-    for(let r=1;r<values.length;r++){ if(sameId(values[r][idx], entryId)){ const obj={}; headers.forEach((h,i)=> obj[String(h).trim().toUpperCase()]=values[r][i]); return json({ found:true, participant: obj, matchedRow: r+1 }); } }
-    return json({ found:false });
+  if (cmd==='participant'){ 
+    const entryId=normalizeId(e.parameter.entryId);
+    if(!entryId) return json({ error:'Missing entryId' });
+    const sh=SpreadsheetApp.openById(SHEET_ID).getSheetByName(DATA_SHEET);
+    if(!sh) return json({ error:`Data sheet 'Data' not found`});
+    const lastRow = sh.getLastRow();
+    const lastCol = sh.getLastColumn();
+    if (lastRow < 2) return json({ found:false });
+    const headers = sh.getRange(1,1,1,lastCol).getValues()[0].map(String);
+    // search only ID column (assumed col 1 header 'ID')
+    const idHeader = headers[0].trim().toUpperCase();
+    if (idHeader !== 'ID') return json({ error:"Column 'ID' must be in A1" });
+    const idRange = sh.getRange(2,1,lastRow-1,1);
+    const finder = idRange.createTextFinder(entryId).matchEntireCell(true).matchCase(true);
+    const cell = finder.findNext();
+    if (!cell) return json({ found:false });
+    const rowIndex = cell.getRow();
+    const rowVals = sh.getRange(rowIndex,1,1,lastCol).getValues()[0];
+    const obj = {};
+    headers.forEach((h,i)=> obj[String(h).trim().toUpperCase()] = rowVals[i]);
+    return json({ found:true, participant: obj, matchedRow: rowIndex });
   }
   return json({ error:'Unknown command' });
 }
