@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Speed Judge • GBRSA Cup 2025</title><link rel="stylesheet" href="./styles.css"/><script defer src="./app.js"></script><script defer src="./config.js"></script><script defer src="./speed.js"></script></head>
+<body class="page"><header class="topbar"><a class="back" href="./index.html" aria-label="Back">←</a><img src="./assets/company-logo.png" alt="GBRSA" class="logo" /><div class="titles"><h1>Speed Judge</h1></div></header>
+<main class="container">
+<section class="block"><h2>Step 1 — Identify Participant</h2><div class="scan-row">
+<button id="btnOpenCamera" class="btn">📷 Scan QR</button><input id="entryIdInput" class="input" placeholder="or type ID manually" inputmode="numeric" />
+</div><div id="cameraWrap" class="camera hide"><video id="cam" playsinline></video><div class="scan-tip">Point your rear camera at the QR</div><button id="btnCloseCamera" class="btn ghost">Close Camera</button></div>
+<div class="hint">If your phone doesn't support QR scanning, type the ID above.</div></section>
+<section id="participantCard" class="block hide"><div class="row space"><h2>Participant</h2><div class="badges"><span id="badgeHeat" class="badge">HEAT —</span><span id="badgeCourt" class="badge">COURT —</span></div></div>
+<dl class="info"><div><dt>ID</dt><dd id="pId">—</dd></div><div><dt>Names</dt><dd id="pNames">—</dd></div><div><dt>Representative</dt><dd id="pRep">—</dd></div><div><dt>State</dt><dd id="pState">—</dd></div></dl>
+<button id="btnConfirm" class="btn primary">Confirm & Start Scoring</button></section>
+<section id="scoreFormWrap" class="block hide"><h2>Step 2 — Enter Score</h2><form id="scoreForm" class="form"><div class="grid">
+<label class="field"><span>SCORE</span><input name="SCORE" type="number" required min="0" class="input" placeholder="e.g. 156"/></label>
+<label class="check"><input type="checkbox" name="FALSE START"/> <span>FALSE START</span></label>
+<label class="field col-span-2"><span>REMARK</span><input name="REMARK" class="input" placeholder="Optional notes"/></label>
+</div>
+<input type="hidden" name="ID" id="fId"/><input type="hidden" name="NAME1" id="fNAME1"/><input type="hidden" name="NAME2" id="fNAME2"/><input type="hidden" name="NAME3" id="fNAME3"/><input type="hidden" name="NAME4" id="fNAME4"/><input type="hidden" name="REPRESENTATIVE" id="fREP"/><input type="hidden" name="STATE" id="fSTATE"/><input type="hidden" name="HEAT" id="fHEAT"/><input type="hidden" name="COURT" id="fCOURT"/>
+<div class="row space"><button type="submit" class="btn primary">Submit Result</button><button type="button" id="btnSaveOffline" class="btn ghost">Save Offline</button></div>
+<div id="pendingBox" class="pending hide"><span id="pendingCount">0</span> pending offline. <button type="button" id="btnSync" class="link">Sync now</button></div>
+</form></section></main><footer class="foot"><small>Results are sent to Google Sheet → “Result” tab.</small></footer></body></html>
