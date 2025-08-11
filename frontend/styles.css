@@ -67,14 +67,5 @@ html, body { touch-action: manipulation; }
 #btnCloseCamera:active{transform:scale(.97)}
 
 
-/* Camera fit + center scan box */
-.camera{position:relative}
-.camera video{width:100%;height:auto;display:block;object-fit:cover;max-height:70vh}
-.scan-box{
-  position:absolute; left:50%; top:50%;
-  width:20vmin; height:20vmin; /* visual box ~20% */
-  transform:translate(-50%,-50%);
-  border:2px solid #fff; border-radius:10px;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.18);
-  pointer-events:none;
-}
+/* Smaller camera viewport */
+.camera video{max-height:48vh !important}
