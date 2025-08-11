@@ -67,5 +67,14 @@ html, body { touch-action: manipulation; }
 #btnCloseCamera:active{transform:scale(.97)}
 
 
-/* Smaller camera viewport */
-.camera video{max-height:48vh !important}
+/* Center white scan box (CSS-only, no HTML changes) */
+#cameraWrap{position:relative}
+#cameraWrap::after{
+  content:"";
+  position:absolute; left:50%; top:50%;
+  width:20vmin; height:20vmin;              /* box size */
+  transform:translate(-50%,-50%);
+  border:2px solid #fff; border-radius:10px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.18);  /* dim outside */
+  pointer-events:none; z-index:3;
+}
