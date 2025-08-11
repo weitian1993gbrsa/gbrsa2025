@@ -7,8 +7,9 @@
   let offCanvas, offCtx;
   const INNER_LOCK_RATIO = 0.50; // inner box (50% of ROI) to confirm
   const MIN_AREA_RATIO = 0.06; // QR bbox must cover >=6% of ROI area
-  const STABLE_FRAMES = 2;     // frames the same code stays centered before accepting
-  let _stableValue = '', _stableCount = 0, _lastAccept = 0;
+  const STABLE_FRAMES = 6;     // frames the same code stays centered before accepting
+  const HOLD_MS = 700;         // must hold centered for this long before accept
+  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
   if (entryInput){
