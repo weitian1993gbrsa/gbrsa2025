@@ -30,6 +30,8 @@
   let detector = null;
   let scanning = false;
 
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
   function extractIdFromRaw(raw){
     let id = (raw||'').trim();
     try { const u = new URL(id); id = u.searchParams.get('id') || u.searchParams.get('ID') || u.searchParams.get('entryId') || id; } catch {}
@@ -43,24 +45,21 @@
       if (!data || !data.found) { participantCard.classList.add('hide'); toast('ID not found.'); return; }
       const p = data.participant || {};
 
-      const name1 = p['NAME1'] || '';
-      const name2 = p['NAME2'] || '';
-      const name3 = p['NAME3'] || '';
-      const name4 = p['NAME4'] || '';
-      const names = [name1,name2,name3,name4].filter(Boolean).join('\n');
-
+      const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']].filter(Boolean).map(escapeHtml).join('<br>');
       const rep = p['REPRESENTATIVE'] || '';
       const state = p['STATE'] || '';
       const heat = p['HEAT'] || '';
       const court = p['COURT'] || '';
 
       pId.textContent = id;
-      pNames.textContent = names || '—';
+      pNames.innerHTML = names || '—';
       pRep.textContent = rep || '—';
       pState.textContent = state || '—';
       badgeHeat.textContent = `HEAT ${heat||'—'}`;
       badgeCourt.textContent = `COURT ${court||'—'}`;
 
+      // Fill hidden fields
+      const [name1,name2,name3,name4] = [p['NAME1']||'',p['NAME2']||'',p['NAME3']||'',p['NAME4']||''];
       fId.value = id; fNAME1.value = name1; fNAME2.value = name2; fNAME3.value = name3; fNAME4.value = name4;
       fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fCOURT.value = court;
 
@@ -113,7 +112,7 @@
     e.preventDefault();
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
-    payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '-';
+    payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '';
     try {
       const out = await apiPost(payload);
       if (out && (out.ok || out.raw)) { toast('Submitted ✅'); scoreForm.reset(); }
