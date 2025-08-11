@@ -147,7 +147,28 @@
     try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide');
+      cam.srcObject = stream; await cam.play(); 
+      // Add close button to camera overlay if not present
+      if (!document.getElementById('closeScanBtn')) {
+        const btn = document.createElement('button');
+        btn.id = 'closeScanBtn';
+        btn.textContent = '×';
+        btn.style.position = 'absolute';
+        btn.style.top = '8px';
+        btn.style.right = '12px';
+        btn.style.fontSize = '28px';
+        btn.style.color = 'white';
+        btn.style.background = 'rgba(0,0,0,0.4)';
+        btn.style.border = 'none';
+        btn.style.padding = '0 12px';
+        btn.style.borderRadius = '6px';
+        btn.style.cursor = 'pointer';
+        btn.style.zIndex = '1000';
+        btn.addEventListener('click', stopScan);
+        cameraWrap.appendChild(btn);
+      }
+
+cameraWrap.classList.remove('hide');
       const _roiSync = ()=>{ try{ const rect = cam.getBoundingClientRect(); const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO); cameraWrap.style.setProperty('--roi-side', sidePx + 'px'); }catch(_){ } };
       _roiSync(); window.addEventListener('resize', _roiSync); window.addEventListener('orientationchange', _roiSync); window._roiSync = _roiSync;
       scanning = true; scanLoop();
@@ -204,6 +225,8 @@
 }
 
   async function stopScan(){
+    const xbtn = document.getElementById('closeScanBtn'); if (xbtn) xbtn.remove();
+
     scanning = false;
     if (cam) cam.pause();
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
