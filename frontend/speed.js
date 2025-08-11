@@ -2,10 +2,10 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
-  const ROI_RATIO = 0.20; // 20% center ROI
+  const ROI_RATIO = 0.25; // 20% center ROI
   let offCanvas, offCtx;
     const STABLE_FRAMES_MIN = 6, STABLE_FRAMES_MAX = 8;
-  const HOLD_MS_MIN = 700, HOLD_MS_MAX = 1000;
+  const HOLD_MS_MIN = 800, HOLD_MS_MAX = 1000;
   const STABLE_FRAMES = STABLE_FRAMES_MAX;
   const HOLD_MS = HOLD_MS_MAX;
   let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
@@ -147,7 +147,9 @@
     try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-      cam.srcObject = stream; await cam.play(); 
+      cam.srcObject = stream;
+      try { cam.setAttribute('playsinline',''); cam.muted = true; } catch(_) {}
+      await cam.play(); 
       // Add close button to camera overlay if not present
       if (!document.getElementById('closeScanBtn')) {
         const btn = document.createElement('button');
@@ -209,7 +211,7 @@ cameraWrap.classList.remove('hide');
             _stableCount = 1;
             _lockStart = now;
           }
-          if (_stableCount >= STABLE_FRAMES && (now - _lockStart) >= HOLD_MS && (now - _lastAccept) > 600){
+          if (_stableCount >= STABLE_FRAMES && (now - _lockStart) >= HOLD_MS && (now - _lastAccept) > 1500){
             _lastAccept = now;
             const id = rawValue;
             await stopScan();
