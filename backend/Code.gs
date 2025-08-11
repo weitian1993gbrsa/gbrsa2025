@@ -1,4 +1,4 @@
-/** GBRSA backend (header-aligned, tolerant ID) — no CORS headers needed */
+/** GBRSA backend (header-aligned, tolerant ID) */
 const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg';
 const DATA_SHEET = PropertiesService.getScriptProperties().getProperty('DATA_SHEET_NAME') || 'Data';
 const RESULT_SHEET = PropertiesService.getScriptProperties().getProperty('RESULT_SHEET_NAME') || 'Result';

@@ -113,7 +113,7 @@
     e.preventDefault();
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
-    payload['FALSE START'] = fd.get('FALSE START') ? 'TRUE' : 'FALSE';
+    payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '-';
     try {
       const out = await apiPost(payload);
       if (out && (out.ok || out.raw)) { toast('Submitted ✅'); scoreForm.reset(); }
