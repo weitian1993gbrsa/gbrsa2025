@@ -17,7 +17,7 @@
   const fNAME3 = $('#fNAME3');
   const fNAME4 = $('#fNAME4');
   const fREP = $('#fREP');
-  const fSTATE = $('#fSTATE');
+  const fSTATE = $('#fSTATE'];
   const fHEAT = $('#fHEAT');
   const fCOURT = $('#fCOURT');
 
@@ -25,7 +25,7 @@
   const scoreFormWrap = $('#scoreFormWrap');
   const scoreForm = $('#scoreForm');
 
-  // Camera bits (kept for QR scanning)
+  // Camera bits
   const cam = $('#cam');
   const cameraWrap = $('#cameraWrap');
   const btnOpenCamera = $('#btnOpenCamera');
@@ -47,16 +47,21 @@
   }
 
   function resetUI(){
+    // Clear everything and **do not** focus ID (keeps mobile keyboard hidden)
     scoreForm.reset();
     clearHidden();
     hideParticipant();
     hideStep2();
     pId.textContent = '—'; pNames.innerHTML = '—'; pRep.textContent = '—'; pState.textContent = '—';
     badgeHeat.textContent = 'HEAT —'; badgeCourt.textContent = 'COURT —';
-    entryInput.value = '';
+    // Ensure the field is blurred so keyboard closes
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+    entryInput && entryInput.blur && entryInput.blur();
+    entryInput && (entryInput.value = '');
     stopScan();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150);
   }
 
   async function lookupById(raw){
@@ -71,10 +76,10 @@
     pRep.textContent = ''; pState.textContent = ''; badgeHeat.textContent = 'HEAT —'; badgeCourt.textContent = 'COURT —';
 
     try {
-      const data = await apiGet({ cmd:'participant', entryId: id }); // provided by app.js
+      const data = await apiGet({ cmd:'participant', entryId: id });
       if (!data || !data.found){
         hideParticipant(); hideStep2(); clearHidden();
-        if (window.toast) toast('ID not found.');
+        window.toast && toast('ID not found.');
         return;
       }
       const p = data.participant || {};
@@ -86,7 +91,6 @@
       const heat = p['HEAT'] || '';
       const court = p['COURT'] || '';
 
-      // Fill visible
       pId.textContent = id;
       pNames.innerHTML = names || '—';
       pRep.textContent = rep || '—';
@@ -94,7 +98,6 @@
       badgeHeat.textContent = `HEAT ${heat||'—'}`;
       badgeCourt.textContent = `COURT ${court||'—'}`;
 
-      // Fill hidden fields
       fId.value = id;
       fNAME1.value = p['NAME1'] || '';
       fNAME2.value = p['NAME2'] || '';
@@ -106,11 +109,11 @@
     } catch (err){
       console.error(err);
       hideParticipant(); hideStep2(); clearHidden();
-      if (window.toast) toast('Lookup failed.');
+      window.toast && toast('Lookup failed.');
     }
   }
 
-  // Manual input triggers (simple & reliable)
+  // Manual input triggers
   if (entryInput){
     entryInput.addEventListener('change', e => lookupById(e.target.value));
     entryInput.addEventListener('keyup', e => { if (e.key === 'Enter') lookupById(entryInput.value); });
@@ -119,12 +122,12 @@
 
   // Camera scan support
   async function startScan(){
-    if (!('BarcodeDetector' in window)) { if (window.toast) toast('QR not supported. Type ID.'); return; }
-    try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
+    if (!('BarcodeDetector' in window)) { window.toast && toast('QR not supported. Type ID.'); return; }
+    try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ window.toast && toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
       cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
-    } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
+    } catch (e) { console.error(e); window.toast && toast('Cannot open camera.'); }
   }
   async function scanLoop(){
     if (!scanning) return;
@@ -133,7 +136,7 @@
       if (codes && codes.length) {
         const rawValue = (codes[0].rawValue || '').trim();
         const id = rawValue;
-        entryInput.value = id;
+        entryInput && (entryInput.value = id);
         await stopScan();
         await lookupById(id);
       }
@@ -146,40 +149,30 @@
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     cameraWrap.classList.add('hide');
   }
-  if (btnOpenCamera) btnOpenCamera.addEventListener('click', startScan);
-  if (btnCloseCamera) btnCloseCamera.addEventListener('click', stopScan);
+  btnOpenCamera && btnOpenCamera.addEventListener('click', startScan);
+  btnCloseCamera && btnCloseCamera.addEventListener('click', stopScan);
 
-  // Confirm reveals Step 2
-  if (btnConfirm){
-    btnConfirm.addEventListener('click', ()=> {
-      scoreFormWrap.classList.remove('hide');
-      if (window.toast) toast('Ready to enter score.');
-      scoreFormWrap.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  }
+  // Confirm -> show Step 2
+  btnConfirm && btnConfirm.addEventListener('click', ()=> {
+    scoreFormWrap.classList.remove('hide');
+    window.toast && toast('Ready to enter score.');
+    scoreFormWrap.scrollIntoView({behavior:'smooth', block:'start'});
+  });
 
   // Submit
-  if (scoreForm){
-    scoreForm.addEventListener('submit', async (e)=> {
-      e.preventDefault();
-      const fd = new FormData(scoreForm);
-      const payload = Object.fromEntries(fd.entries());
-      // FALSE START: 'YES' when checked, blank when unchecked
-      payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '';
-      try {
-        const out = await apiPost(payload); // provided by app.js
-        if (out && (out.ok || out.raw)) {
-          if (window.toast) toast('Submitted ✅');
-          resetUI();
-        } else {
-          throw new Error('Server rejected');
-        }
-      } catch (err) {
-        console.error(err);
-        if (window.toast) toast('Submit failed — check internet/app script.');
-      }
-    });
-  }
+  scoreForm && scoreForm.addEventListener('submit', async (e)=> {
+    e.preventDefault();
+    const fd = new FormData(scoreForm);
+    const payload = Object.fromEntries(fd.entries());
+    payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '';
+    try {
+      const out = await apiPost(payload);
+      if (out && (out.ok || out.raw)) { window.toast && toast('Submitted ✅'); resetUI(); }
+      else { throw new Error('Server rejected'); }
+    } catch (err) {
+      console.error(err); window.toast && toast('Submit failed — check internet/app script.');
+    }
+  });
 
   // Initial state
   hideParticipant();
