@@ -2,10 +2,10 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
-  const ROI_RATIO = 0.20; // 20% center ROI
+  const ROI_RATIO = 0.60; // 20% center ROI
   let offCanvas, offCtx;
-  const STABLE_FRAMES = 8; // strict
-  const HOLD_MS = 900;     // strict (ms)
+  const STABLE_FRAMES = 3; // strict
+  const HOLD_MS = 400;     // strict (ms)
   let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const submitOverlay = document.getElementById('submitOverlay');
   const overlayText   = document.getElementById('overlayText');
@@ -157,24 +157,39 @@
     try {
       const vw = cam.videoWidth, vh = cam.videoHeight;
       if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
-      // Center square ROI (20% of min side)
-      const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
-      const sx = Math.floor((vw - side) / 2);
-      const sy = Math.floor((vh - side) / 2);
-      if (!offCanvas){ offCanvas = document.createElement('canvas'); offCtx = offCanvas.getContext('2d', { willReadFrequently:true }); }
-      if (offCanvas.width !== side || offCanvas.height !== side){ offCanvas.width = side; offCanvas.height = side; }
-      offCtx.drawImage(cam, sx, sy, side, side, 0, 0, side, side);
+
+      // Ensure offscreen canvas matches full frame
+      if (!offCanvas){ 
+        offCanvas = document.createElement('canvas'); 
+        offCtx = offCanvas.getContext('2d', { willReadFrequently:true }); 
+      }
+      if (offCanvas.width !== vw || offCanvas.height !== vh){ 
+        offCanvas.width = vw; 
+        offCanvas.height = vh; 
+      }
+
+      // Draw full frame
+      offCtx.drawImage(cam, 0, 0, vw, vh);
+
+      // Detect on full frame
       const codes = await detector.detect(offCanvas);
       if (codes && codes.length) {
         const c = codes[0];
         const rawValue = (c.rawValue || '').trim();
         const bb = c.boundingBox || c.bounds;
-        let fullyInside = true;
+
+        // ROI: centered square, but only require the center of the code to be inside
+        let centerInside = true;
         if (bb){
-          const EDGE = Math.floor(0.02 * side); // 2% tolerance
-          fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
+          const cx = bb.x + (bb.width  || 0) / 2;
+          const cy = bb.y + (bb.height || 0) / 2;
+          const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
+          const sx = Math.floor((vw - side) / 2);
+          const sy = Math.floor((vh - side) / 2);
+          centerInside = (cx >= sx && cy >= sy && cx <= (sx + side) && cy <= (sy + side));
         }
-        if (fullyInside){
+
+        if (centerInside){
           const now = Date.now();
           if (_stableValue === rawValue){
             _stableCount++;
