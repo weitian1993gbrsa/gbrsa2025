@@ -4,7 +4,7 @@
   // Elements
   const ROI_RATIO = 0.20; // 20% center ROI
   let offCanvas, offCtx;
-  const STABLE_FRAMES_MIN = 6, STABLE_FRAMES_MAX = 8;
+    const STABLE_FRAMES_MIN = 6, STABLE_FRAMES_MAX = 8;
   const HOLD_MS_MIN = 700, HOLD_MS_MAX = 1000;
   const STABLE_FRAMES = STABLE_FRAMES_MAX;
   const HOLD_MS = HOLD_MS_MAX;
@@ -147,9 +147,7 @@
     try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-      cam.srcObject = stream;
-      try{ cam.setAttribute('playsinline',''); cam.muted = true; }catch(_){}
-      await cam.play(); cameraWrap.classList.remove('hide');
+      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide');
       const _roiSync = ()=>{ try{ const rect = cam.getBoundingClientRect(); const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO); cameraWrap.style.setProperty('--roi-side', sidePx + 'px'); }catch(_){ } };
       _roiSync(); window.addEventListener('resize', _roiSync); window.addEventListener('orientationchange', _roiSync); window._roiSync = _roiSync;
       scanning = true; scanLoop();
@@ -168,10 +166,7 @@
       if (!offCanvas){ offCanvas = document.createElement('canvas'); offCtx = offCanvas.getContext('2d', { willReadFrequently:true }); }
       if (offCanvas.width !== side || offCanvas.height !== side){ offCanvas.width = side; offCanvas.height = side; }
       offCtx.drawImage(cam, sx, sy, side, side, 0, 0, side, side);
-      let codes = await detector.detect(offCanvas);
-      if (!codes || !codes.length){
-        try { codes = await detector.detect(cam); } catch(_){}
-      }
+      const codes = await detector.detect(offCanvas);
       if (codes && codes.length) {
         const c = codes[0];
         const rawValue = (c.rawValue || '').trim();
@@ -181,7 +176,6 @@
           const EDGE = Math.floor(0.02 * side); // 2% tolerance
           fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
         }
-        fullyInside = true;
         if (fullyInside){
           const now = Date.now();
           if (_stableValue === rawValue){
