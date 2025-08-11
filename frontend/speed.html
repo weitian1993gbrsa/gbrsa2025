@@ -13,7 +13,7 @@
   <header class="topbar">
     <a class="back" href="./index.html" aria-label="Back">←</a>
     <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
-    <div class="titles"><h1 id="titleDebug">Speed Judge</h1></div>
+    <div class="titles"><h1>Speed Judge</h1></div>
   </header>
 
   <main class="container">
@@ -21,7 +21,7 @@
       <h2>Step 1 — Identify Participant</h2>
       <div class="scan-row">
         <button id="btnOpenCamera" class="btn">📷 Scan QR</button>
-        <input id="entryIdInput" class="input" placeholder="or type ID manually" inputmode="numeric" />
+        <input id="entryIdInput" class="input" placeholder="or type ID manually" inputmode="text" />
       </div>
       <div id="cameraWrap" class="camera hide">
         <video id="cam" playsinline></video>
@@ -52,18 +52,12 @@
       <h2>Step 2 — Enter Score</h2>
       <form id="scoreForm" class="form">
         <div class="grid">
-          <label class="field">
-            <span>SCORE</span>
-            <input name="SCORE" type="number" required min="0" class="input" placeholder="e.g. 156"/>
-          </label>
-          <label class="check">
-            <input type="checkbox" name="FALSE START"/> <span>FALSE START</span>
-          </label>
-          <label class="field col-span-2">
-            <span>REMARK</span>
-            <input name="REMARK" class="input" placeholder="Optional notes"/>
-          </label>
+          <label class="field"><span>SCORE</span>
+            <input name="SCORE" type="number" required min="0" class="input" placeholder="e.g. 156"/></label>
+          <label class="check"><input type="checkbox" name="FALSE START"/> <span>FALSE START</span></label>
+          <label class="field col-span-2"><span>REMARK</span><input name="REMARK" class="input" placeholder="Optional notes"/></label>
         </div>
+        <!-- Hidden required context for Result sheet -->
         <input type="hidden" name="ID" id="fId"/>
         <input type="hidden" name="NAME1" id="fNAME1"/>
         <input type="hidden" name="NAME2" id="fNAME2"/>
@@ -73,22 +67,14 @@
         <input type="hidden" name="STATE" id="fSTATE"/>
         <input type="hidden" name="HEAT" id="fHEAT"/>
         <input type="hidden" name="COURT" id="fCOURT"/>
-        <div class="row space">
-          <button type="submit" class="btn primary">Submit Result</button>
-          <button type="button" id="btnSaveOffline" class="btn ghost">Save Offline</button>
-        </div>
-        <div id="pendingBox" class="pending hide">
-          <span id="pendingCount">0</span> pending offline. <button type="button" id="btnSync" class="link">Sync now</button>
-        </div>
-      </form>
-    </section>
 
-    <section id="debugPanel" class="block hide">
-      <h3>Debug</h3>
-      <pre id="debugText" style="white-space:pre-wrap;max-height:220px;overflow:auto"></pre>
+        <div class="row space"><button type="submit" class="btn primary">Submit Result</button>
+        <button type="button" id="btnSaveOffline" class="btn ghost">Save Offline</button></div>
+        <div id="pendingBox" class="pending hide"><span id="pendingCount">0</span> pending offline. <button type="button" id="btnSync" class="link">Sync now</button></div>
+      </form>
     </section>
   </main>
 
-  <footer class="foot"><small>Results are sent to Google Sheet → “Result” tab.</small></footer>
+  <footer class="foot"><small>Results send to Google Sheet → “Result”.</small></footer>
 </body>
 </html>
