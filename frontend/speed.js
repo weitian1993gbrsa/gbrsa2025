@@ -3,7 +3,7 @@
 
   // Elements
   // Region-of-interest: percentage of the shorter video side to scan
-  const ROI_RATIO = 0.50; // 50% of min(videoWidth, videoHeight)
+  const ROI_RATIO = 0.30; // 50% of min(videoWidth, videoHeight)
   let offCanvas, offCtx;
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field

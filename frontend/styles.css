@@ -71,7 +71,7 @@ html, body { touch-action: manipulation; }
 /* Centered scan box to guide QR scanning */
 .scan-box{
   position:absolute; left:50%; top:50%;
-  width:48vmin; height:48vmin; /* square based on viewport's smaller side */
+  width:30vmin; height:30vmin; /* square based on viewport's smaller side */
   max-width:70%; max-height:70%;
   transform:translate(-50%,-50%);
   border:2px solid #fff; border-radius:10px;
