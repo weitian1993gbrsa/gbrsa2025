@@ -75,23 +75,5 @@
   </main>
 
   <footer class="foot"><small>Results send to Google Sheet → “Result”.</small></footer>
-
-<!-- Loading overlay shown during submit -->
-<div id="loadingOverlay" class="loading hide" aria-live="polite" aria-busy="true">
-  <div class="box">
-    <div class="spinner"></div>
-    <div class="msg">Submitting…</div>
-  </div>
-</div>
-
-<style>
-  .loading{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:grid; place-items:center; z-index:9999; }
-  .loading.hide{ display:none; }
-  .loading .box{ background:#fff; border-radius:14px; padding:16px 18px; min-width:220px; box-shadow:0 10px 30px rgba(0,0,0,.15); text-align:center; }
-  .loading .msg{ margin-top:10px; font-weight:600; }
-  .spinner{ width:28px; height:28px; border:3px solid #e5e7eb; border-top-color:#3b82f6; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-</style>
-
 </body>
 </html>
