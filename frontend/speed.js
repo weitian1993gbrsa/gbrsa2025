@@ -19,6 +19,43 @@
   const fREP = $('#fREP');
   const fSTATE = $('#fSTATE');
   const fHEAT = $('#fHEAT');
+  // --- CSV fallback (published Sheet) ---
+  let _csvCache = null;
+  async function loadCsvRows(){
+    if (_csvCache) return _csvCache;
+    try {
+      const sid = (window.CONFIG && window.CONFIG.SHEET_ID) || '';
+      const sheet = (window.CONFIG && window.CONFIG.DATA_SHEET_NAME) || 'Data';
+      if (!sid) throw new Error('No SHEET_ID configured');
+      const url = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}&_=${Date.now()}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      const text = await res.text();
+      const rows = text.trim().split(/\\r?\\n/).map(r => r.split(','));
+      _csvCache = rows;
+      return rows;
+    } catch(e){
+      console.error('CSV load failed', e);
+      return null;
+    }
+  }
+  async function csvLookupById(id){
+    const rows = await loadCsvRows();
+    if (!rows || !rows.length) return null;
+    const header = rows[0].map(h => h.trim().toUpperCase());
+    const idIdx = header.indexOf('ID');
+    if (idIdx < 0) return null;
+    for (let i=1;i<rows.length;i++){
+      const r = rows[i];
+      if ((r[idIdx]||'').trim().toUpperCase() === id){
+        // convert to object by header
+        const obj = {};
+        for (let j=0;j<header.length;j++){ obj[ header[j] ] = r[j] || ''; }
+        return obj;
+      }
+    }
+    return null;
+  }
+
   const fCOURT = $('#fCOURT');
 
   const btnConfirm = $('#btnConfirm');
@@ -73,10 +110,32 @@
     try {
       const data = await apiGet({ cmd:'participant', entryId: id }); // provided by app.js
       if (!data || !data.found){
+        // Try CSV fallback
+        const csv = await csvLookupById(id);
+        if (csv){
+          // Map CSV columns (expects headers: ID, NAME1..4, REP, STATE, HEAT, COURT)
+          const rep = csv['REP'] || csv['REPRESENTATIVE'] || '';
+          const state = csv['STATE'] || '';
+          const heat = csv['HEAT'] || '';
+          const court = csv['COURT'] || '';
+          const names = [csv['NAME1'], csv['NAME2'], csv['NAME3'], csv['NAME4']].filter(Boolean);
+          pId.textContent = id;
+          pNames.innerHTML = names.length ? names.map(n => `<div>${n}</div>`).join('') : '—';
+          pRep.textContent = rep || '—';
+          pState.textContent = state || '—';
+          badgeHeat.textContent = heat ? `HEAT ${heat}` : 'HEAT —';
+          badgeCourt.textContent = court ? `COURT ${court}` : 'COURT —';
+          fId.value = id;
+          fNAME1.value = csv['NAME1'] || '';
+          fNAME2.value = csv['NAME2'] || '';
+          fNAME3.value = csv['NAME3'] || '';
+          fNAME4.value = csv['NAME4'] || '';
+          fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fCOURT.value = court;
+          btnConfirm.disabled = false;
+          return;
+        }
         hideParticipant(); hideStep2(); clearHidden();
         if (window.toast) toast('ID not found.');
-        return;
-      }
       const p = data.participant || {};
 
       const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']]
@@ -124,7 +183,17 @@
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
       cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
-    } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
+    } catch (e) {
+      console.error(e);
+      // CAMERA_FALLBACK
+      try {
+        const alt = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        cam.srcObject = alt; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
+      } catch (e2) {
+        console.error(e2);
+        if (window.toast) toast('Cannot open camera.');
+      }
+    }
   }
   async function scanLoop(){
     if (!scanning) return;
