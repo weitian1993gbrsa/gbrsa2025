@@ -2,13 +2,13 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
-  const submitOverlay = document.getElementById('submitOverlay');
-  const overlayText = document.getElementById('overlayText');
-  const ROI_RATIO = 0.20;
+  const ROI_RATIO = 0.20; // 20% center ROI
   let offCanvas, offCtx;
-  const STABLE_FRAMES = 8;
-  const HOLD_MS = 900;
-  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0; // 20% center ROI
+  const STABLE_FRAMES = 8; // strict
+  const HOLD_MS = 900;     // strict (ms)
+  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
+  const submitOverlay = document.getElementById('submitOverlay');
+  const overlayText   = document.getElementById('overlayText');
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
   if (entryInput){
@@ -149,16 +149,6 @@
       const _roiSync = ()=>{ try{ const rect = cam.getBoundingClientRect(); const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO); cameraWrap.style.setProperty('--roi-side', sidePx + 'px'); }catch(_){ } };
       _roiSync(); window.addEventListener('resize', _roiSync); window.addEventListener('orientationchange', _roiSync); window._roiSync = _roiSync;
       scanning = true; scanLoop();
-      // Allow Android/iOS back button to close camera instead of leaving page
-      try{ history.pushState({camera:true}, ''); }catch(_){}
-      const _onPop = (ev)=>{ if (scanning) { try{ ev.preventDefault(); }catch(_){ } stopScan(); } };
-      window.addEventListener('popstate', _onPop, { once:true });
-      // Allow Esc to close camera
-      const _onEsc = (ev)=>{ if (ev.key==='Escape' && scanning) stopScan(); };
-      document.addEventListener('keydown', _onEsc, { once:true });
-      // Store to remove if stopScan called manually
-      window._camHandlers = { _onPop, _onEsc };
-        
     } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
   }
   async function scanLoop()
@@ -167,6 +157,7 @@
     try {
       const vw = cam.videoWidth, vh = cam.videoHeight;
       if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
+      // Center square ROI (20% of min side)
       const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
       const sx = Math.floor((vw - side) / 2);
       const sy = Math.floor((vh - side) / 2);
@@ -180,7 +171,7 @@
         const bb = c.boundingBox || c.bounds;
         let fullyInside = true;
         if (bb){
-          const EDGE = Math.floor(0.02 * side);
+          const EDGE = Math.floor(0.02 * side); // 2% tolerance
           fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
         }
         if (fullyInside){
