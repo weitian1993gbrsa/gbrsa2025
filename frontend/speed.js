@@ -2,10 +2,10 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
-  const ROI_RATIO = 0.20; // 20% center ROI
+  const ROI_RATIO = 0.20; // Center ROI 20%
   let offCanvas, offCtx;
-  const STABLE_FRAMES = 3; // frames to stay steady
-  const HOLD_MS = 350;     // hold time in ms
+  const STABLE_FRAMES = 3; // stability frames
+  const HOLD_MS = 350;     // hold time (ms)
   let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
@@ -139,21 +139,7 @@
     try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide');
-      // Sync scan box size to ROI
-      const scanBoxEl = document.getElementById('scanBox');
-      const _scanBoxSync = ()=>{
-        if (!scanBoxEl) return;
-        const rect = cam.getBoundingClientRect();
-        const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO);
-        scanBoxEl.style.width = sidePx + 'px';
-        scanBoxEl.style.height = sidePx + 'px';
-      };
-      _scanBoxSync();
-      window.addEventListener('resize', _scanBoxSync);
-      window.addEventListener('orientationchange', _scanBoxSync);
-      window._scanBoxSync = _scanBoxSync;
-      scanning = true; scanLoop();
+      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
       // Allow Android/iOS back button to close camera instead of leaving page
       try{ history.pushState({camera:true}, ''); }catch(_){}
       const _onPop = (ev)=>{ if (scanning) { try{ ev.preventDefault(); }catch(_){ } stopScan(); } };
@@ -172,7 +158,7 @@
     try {
       const vw = cam.videoWidth, vh = cam.videoHeight;
       if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
-      // Center ROI
+      // Center square ROI
       const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
       const sx = Math.floor((vw - side) / 2);
       const sy = Math.floor((vh - side) / 2);
@@ -186,7 +172,7 @@
         const bb = c.boundingBox || c.bounds;
         let fullyInside = true;
         if (bb){
-          const EDGE = Math.floor(0.02 * side);
+          const EDGE = Math.floor(0.02 * side); // 2% tolerance
           fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
         }
         if (fullyInside){
@@ -218,8 +204,6 @@
     if (cam) cam.pause();
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     cameraWrap.classList.add('hide');
-    try{ if (window._scanBoxSync){ window.removeEventListener('resize', window._scanBoxSync); window.removeEventListener('orientationchange', window._scanBoxSync); window._scanBoxSync = null; } }catch(_){}
-        
   }
   if (btnOpenCamera) btnOpenCamera.addEventListener('click', startScan);
   if (btnCloseCamera) btnCloseCamera.addEventListener('click', stopScan);

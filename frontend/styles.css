@@ -66,15 +66,3 @@ html, body { touch-action: manipulation; }
 #btnCloseCamera{position:absolute;top:.5rem;right:.5rem;min-width:40px;height:40px;line-height:40px;padding:0;border-radius:999px;border:1px solid var(--border);background:#fff;box-shadow:0 6px 20px #0002;display:grid;place-items:center;font-size:20px;font-weight:700}
 #btnCloseCamera:active{transform:scale(.97)}
 
-
-/* Center white scan box (CSS-only, no HTML changes) */
-#cameraWrap{position:relative}
-#cameraWrap::after{
-  content:"";
-  position:absolute; left:50%; top:50%;
-  width:20vmin; height:20vmin;              /* box size */
-  transform:translate(-50%,-50%);
-  border:2px solid #fff; border-radius:10px;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.18);  /* dim outside */
-  pointer-events:none; z-index:3;
-}
