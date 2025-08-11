@@ -2,11 +2,13 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
-  const ROI_RATIO = 0.20; // 20% center ROI
+  const submitOverlay = document.getElementById('submitOverlay');
+  const overlayText = document.getElementById('overlayText');
+  const ROI_RATIO = 0.20;
   let offCanvas, offCtx;
-  const STABLE_FRAMES = 8; // strict stability
-  const HOLD_MS = 900;     // strict hold (ms)
-  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
+  const STABLE_FRAMES = 8;
+  const HOLD_MS = 900;
+  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0; // 20% center ROI
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
   if (entryInput){
@@ -54,7 +56,8 @@
 
   function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  function hideStep2(){ scoreFormWrap.classList.add('hide'); btnConfirm.disabled = true; }
+  function hideStep2(){ if (document.activeElement && document.activeElement.blur){ try{ document.activeElement.blur(); }catch(_){ } }
+    scoreFormWrap.classList.add('hide'); btnConfirm.disabled = true; }
   function showParticipant(){ participantCard.classList.remove('hide'); }
   function hideParticipant(){ participantCard.classList.add('hide'); }
 
@@ -63,6 +66,7 @@
   }
 
   function resetUI(){
+    if (document.activeElement && document.activeElement.blur){ try{ document.activeElement.blur(); }catch(_){ } }
     scoreForm.reset();
     clearHidden();
     hideParticipant();
@@ -72,7 +76,8 @@
     entryInput.value = '';
     stopScan();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150);
+    const isTouch = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints>0);
+    if (!isTouch){ setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150); }
   }
 
   async function lookupById(raw){
@@ -121,6 +126,7 @@
       btnConfirm.disabled = false;
     } catch (err){
       console.error(err);
+        if (submitOverlay){ submitOverlay.classList.add('hide'); }
       hideParticipant(); hideStep2(); clearHidden();
       if (window.toast) toast('Lookup failed.');
     }
@@ -140,16 +146,8 @@
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
       cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide');
-      // Sync CSS box to ROI in screen pixels
-      const _roiSync = ()=>{
-        const rect = cam.getBoundingClientRect();
-        const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO);
-        cameraWrap.style.setProperty('--roi-side', sidePx + 'px');
-      };
-      _roiSync();
-      window.addEventListener('resize', _roiSync);
-      window.addEventListener('orientationchange', _roiSync);
-      window._roiSync = _roiSync;
+      const _roiSync = ()=>{ try{ const rect = cam.getBoundingClientRect(); const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO); cameraWrap.style.setProperty('--roi-side', sidePx + 'px'); }catch(_){ } };
+      _roiSync(); window.addEventListener('resize', _roiSync); window.addEventListener('orientationchange', _roiSync); window._roiSync = _roiSync;
       scanning = true; scanLoop();
       // Allow Android/iOS back button to close camera instead of leaving page
       try{ history.pushState({camera:true}, ''); }catch(_){}
@@ -169,7 +167,6 @@
     try {
       const vw = cam.videoWidth, vh = cam.videoHeight;
       if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
-      // Center square ROI
       const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
       const sx = Math.floor((vw - side) / 2);
       const sy = Math.floor((vh - side) / 2);
@@ -183,7 +180,7 @@
         const bb = c.boundingBox || c.bounds;
         let fullyInside = true;
         if (bb){
-          const EDGE = Math.floor(0.02 * side); // 2% tolerance
+          const EDGE = Math.floor(0.02 * side);
           fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
         }
         if (fullyInside){
@@ -234,6 +231,8 @@
   if (scoreForm){
     scoreForm.addEventListener('submit', async (e)=> {
       e.preventDefault();
+      if (document.activeElement && document.activeElement.blur){ try{ document.activeElement.blur(); }catch(_){ } }
+      if (submitOverlay){ overlayText && (overlayText.textContent = 'Sending…'); submitOverlay.classList.remove('hide'); }
       const fd = new FormData(scoreForm);
       const payload = Object.fromEntries(fd.entries());
       // FALSE START: 'YES' when checked, blank when unchecked
@@ -242,12 +241,14 @@
         const out = await apiPost(payload); // provided by app.js
         if (out && (out.ok || out.raw)) {
           if (window.toast) toast('Submitted ✅');
+                    if (submitOverlay){ overlayText && (overlayText.textContent = 'Saved!'); await new Promise(r=>setTimeout(r, 550)); submitOverlay.classList.add('hide'); }
           resetUI();
         } else {
           throw new Error('Server rejected');
         }
       } catch (err) {
         console.error(err);
+        if (submitOverlay){ submitOverlay.classList.add('hide'); }
         if (window.toast) toast('Submit failed — check internet/app script.');
       }
     });

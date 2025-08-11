@@ -67,14 +67,12 @@ html, body { touch-action: manipulation; }
 #btnCloseCamera:active{transform:scale(.97)}
 
 
-/* Center white scan box (synced to JS via --roi-side) */
-#cameraWrap{position:relative}
-#cameraWrap::after{
-  content:"";
-  position:absolute; left:50%; top:50%;
-  width:var(--roi-side, 20vmin); height:var(--roi-side, 20vmin);
-  transform:translate(-50%,-50%);
-  border:2px solid #fff; border-radius:10px;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.18);
-  pointer-events:none; z-index:3;
-}
+/* Submit overlay */
+.overlay{position:fixed;inset:0;background:#ffffffcc;backdrop-filter:saturate(1.1) blur(2px);display:flex;align-items:center;justify-content:center;z-index:9999}
+.overlay.hide{display:none}
+.overlay-card{display:flex;flex-direction:column;align-items:center;gap:.75rem;background:#fff;padding:1.25rem 1.5rem;border-radius:16px;box-shadow:0 10px 30px #0002;border:1px solid #e5e7eb}
+.overlay-text{font-weight:700;color:#111827}
+.loading{display:flex;gap:.25rem}
+.loading .dot{width:.5rem;height:.5rem;border-radius:999px;background:#111827;opacity:.3;animation:blink 1s infinite}
+.loading .dot:nth-child(2){animation-delay:.15s}.loading .dot:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
