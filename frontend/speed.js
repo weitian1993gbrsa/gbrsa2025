@@ -2,16 +2,6 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
-  // Region-of-interest: percentage of the shorter video side to scan
-  const ROI_RATIO = 0.24; // 50% of min(videoWidth, videoHeight)
-  let offCanvas, offCtx;
-  function getIdRegex(){ try{ const r = window.CONFIG && window.CONFIG.ID_REGEX; if (r) return new RegExp(r); }catch(_){ } return /^[A-Z0-9-]{4,20}$/; }
-  const INNER_LOCK_RATIO = 0.50; // inner box (50% of ROI) to confirm
-  const EDGE_LEEWAY = 0.02;    // 2% tolerance to avoid jitter at edges
-  const MIN_AREA_RATIO = 0.05; // QR bbox must cover >=6% of ROI area
-  const STABLE_FRAMES = 3;     // frames the same code stays centered before accepting
-  const HOLD_MS = 350;         // must hold centered for this long before accept
-  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
   if (entryInput){
@@ -99,7 +89,6 @@
         return;
       }
       const p = data.participant || {};
-      if (entryInput) entryInput.value = id;
 
       const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']]
         .filter(Boolean).map(escapeHtml).join('<br>');
@@ -145,23 +134,7 @@
     try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-      entryInput && (entryInput.value = ''); hideParticipant(); hideStep2(); clearHidden();
-      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide');
-      // Sync scan box size to ROI based on rendered video size
-      const scanBoxEl = document.getElementById('scanBox');
-      const _syncScanBox = ()=>{
-        if (!scanBoxEl) return;
-        const rect = cam.getBoundingClientRect();
-        const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO);
-        scanBoxEl.style.width = sidePx + 'px';
-        scanBoxEl.style.height = sidePx + 'px';
-      };
-      _syncScanBox();
-      window.addEventListener('resize', _syncScanBox);
-      window.addEventListener('orientationchange', _syncScanBox);
-      // keep handlers to remove later
-      window._scanBoxSync = _syncScanBox;
-      scanning = true; scanLoop();
+      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
       // Allow Android/iOS back button to close camera instead of leaving page
       try{ history.pushState({camera:true}, ''); }catch(_){}
       const _onPop = (ev)=>{ if (scanning) { try{ ev.preventDefault(); }catch(_){ } stopScan(); } };
@@ -181,7 +154,7 @@
       if (codes && codes.length) {
         const rawValue = (codes[0].rawValue || '').trim();
         const id = rawValue;
-        
+        entryInput.value = id;
         await stopScan();
         await lookupById(id);
       }
