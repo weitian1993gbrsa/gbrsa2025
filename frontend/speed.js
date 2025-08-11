@@ -2,6 +2,8 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
+  const submitOverlay = document.getElementById('submitOverlay');
+  const overlayText = document.getElementById('overlayText');
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
   if (entryInput){
@@ -49,7 +51,8 @@
 
   function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  function hideStep2(){ scoreFormWrap.classList.add('hide'); btnConfirm.disabled = true; }
+  function hideStep2(){ if (document.activeElement && document.activeElement.blur) { try{ document.activeElement.blur(); }catch(_){} }
+    scoreFormWrap.classList.add('hide'); btnConfirm.disabled = true; }
   function showParticipant(){ participantCard.classList.remove('hide'); }
   function hideParticipant(){ participantCard.classList.add('hide'); }
 
@@ -58,6 +61,7 @@
   }
 
   function resetUI(){
+    if (document.activeElement && document.activeElement.blur) { try{ document.activeElement.blur(); }catch(_){} }
     scoreForm.reset();
     clearHidden();
     hideParticipant();
@@ -67,7 +71,8 @@
     entryInput.value = '';
     stopScan();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150);
+    const isTouch = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints > 0);
+    if (!isTouch) { setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150); }
   }
 
   async function lookupById(raw){
@@ -116,7 +121,6 @@
       btnConfirm.disabled = false;
     } catch (err){
       console.error(err);
-        if (submitOverlay){ submitOverlay.classList.add('hide'); }
       hideParticipant(); hideStep2(); clearHidden();
       if (window.toast) toast('Lookup failed.');
     }
@@ -174,7 +178,7 @@
   if (scoreForm){
     scoreForm.addEventListener('submit', async (e)=> {
       e.preventDefault();
-      // Show overlay while sending
+      if (document.activeElement && document.activeElement.blur) { try{ document.activeElement.blur(); }catch(_){} }
       if (submitOverlay){ overlayText && (overlayText.textContent = 'Sending…'); submitOverlay.classList.remove('hide'); }
       const fd = new FormData(scoreForm);
       const payload = Object.fromEntries(fd.entries());
@@ -184,15 +188,13 @@
         const out = await apiPost(payload); // provided by app.js
         if (out && (out.ok || out.raw)) {
           if (window.toast) toast('Submitted ✅');
-                    // Small success pause
-          if (submitOverlay){ overlayText && (overlayText.textContent = 'Saved!'); submitOverlay.classList.add('hide'); }
+                    if (submitOverlay){ overlayText && (overlayText.textContent = 'Saved!'); await new Promise(r=>setTimeout(r, 550)); submitOverlay.classList.add('hide'); }
           resetUI();
         } else {
           throw new Error('Server rejected');
         }
       } catch (err) {
         console.error(err);
-        if (submitOverlay){ submitOverlay.classList.add('hide'); }
         if (window.toast) toast('Submit failed — check internet/app script.');
       }
     });

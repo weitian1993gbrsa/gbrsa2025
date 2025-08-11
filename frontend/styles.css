@@ -59,7 +59,6 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 
 html, body { touch-action: manipulation; }
 
-
 /* Fullscreen submit overlay */
 .overlay{position:fixed;inset:0;background:#ffffffcc;backdrop-filter:saturate(1.1) blur(2px);display:flex;align-items:center;justify-content:center;z-index:9999}
 .overlay.hide{display:none}
