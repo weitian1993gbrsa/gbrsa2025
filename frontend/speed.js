@@ -2,11 +2,6 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
-  const ROI_RATIO = 0.20; // Center ROI 20%
-  let offCanvas, offCtx;
-  const STABLE_FRAMES = 3; // stability frames
-  const HOLD_MS = 350;     // hold time (ms)
-  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
   if (entryInput){
@@ -152,53 +147,20 @@
         
     } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
   }
-  async function scanLoop()
-{
+  async function scanLoop(){
     if (!scanning) return;
     try {
-      const vw = cam.videoWidth, vh = cam.videoHeight;
-      if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
-      // Center square ROI
-      const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
-      const sx = Math.floor((vw - side) / 2);
-      const sy = Math.floor((vh - side) / 2);
-      if (!offCanvas){ offCanvas = document.createElement('canvas'); offCtx = offCanvas.getContext('2d', { willReadFrequently:true }); }
-      if (offCanvas.width !== side || offCanvas.height !== side){ offCanvas.width = side; offCanvas.height = side; }
-      offCtx.drawImage(cam, sx, sy, side, side, 0, 0, side, side);
-      const codes = await detector.detect(offCanvas);
+      const codes = await detector.detect(cam);
       if (codes && codes.length) {
-        const c = codes[0];
-        const rawValue = (c.rawValue || '').trim();
-        const bb = c.boundingBox || c.bounds;
-        let fullyInside = true;
-        if (bb){
-          const EDGE = Math.floor(0.02 * side); // 2% tolerance
-          fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
-        }
-        if (fullyInside){
-          const now = Date.now();
-          if (_stableValue === rawValue){
-            _stableCount++;
-          } else {
-            _stableValue = rawValue;
-            _stableCount = 1;
-            _lockStart = now;
-          }
-          if (_stableCount >= STABLE_FRAMES && (now - _lockStart) >= HOLD_MS && (now - _lastAccept) > 400){
-            _lastAccept = now;
-            const id = rawValue;
-            await stopScan();
-            await lookupById(id);
-            return;
-          }
-        } else {
-          _stableCount = 0;
-        }
+        const rawValue = (codes[0].rawValue || '').trim();
+        const id = rawValue;
+        entryInput.value = id;
+        await stopScan();
+        await lookupById(id);
       }
     } catch(e){}
     requestAnimationFrame(scanLoop);
-}
-
+  }
   async function stopScan(){
     scanning = false;
     if (cam) cam.pause();
