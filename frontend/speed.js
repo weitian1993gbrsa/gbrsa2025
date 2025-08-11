@@ -47,7 +47,6 @@
   const cam = $('#cam');
   const cameraWrap = $('#cameraWrap');
   const btnOpenCamera = $('#btnOpenCamera');
-  const btnCloseCamera = $('#btnCloseCamera');
   let stream = null;
   let detector = null;
   let scanning = false;
@@ -246,8 +245,6 @@ cameraWrap.classList.remove('hide');
         
   }
   if (btnOpenCamera) btnOpenCamera.addEventListener('click', startScan);
-  if (btnCloseCamera) btnCloseCamera.addEventListener('click', stopScan);
-
   // Confirm reveals Step 2
   if (btnConfirm){
     btnConfirm.addEventListener('click', ()=> {
