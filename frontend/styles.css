@@ -84,3 +84,6 @@ html, body { touch-action: manipulation; }
 
 
 .scan-box.locked{ border-color:#22c55e; box-shadow:0 0 0 9999px rgba(0,0,0,.10), 0 0 0 3px #22c55e44 }
+
+/* camera video fit */
+.camera video{width:100%;height:auto;display:block;object-fit:cover;max-height:70vh}

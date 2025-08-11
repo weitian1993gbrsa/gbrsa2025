@@ -6,6 +6,7 @@
   const ROI_RATIO = 0.30; // 50% of min(videoWidth, videoHeight)
   let offCanvas, offCtx;
   const INNER_LOCK_RATIO = 0.50; // inner box (50% of ROI) to confirm
+  const EDGE_LEEWAY = 0.02;    // 2% tolerance to avoid jitter at edges
   const MIN_AREA_RATIO = 0.06; // QR bbox must cover >=6% of ROI area
   const STABLE_FRAMES = 6;     // frames the same code stays centered before accepting
   const HOLD_MS = 700;         // must hold centered for this long before accept
@@ -144,7 +145,22 @@
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
       entryInput && (entryInput.value = ''); hideParticipant(); hideStep2(); clearHidden();
-      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
+      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide');
+      // Sync scan box size to ROI based on rendered video size
+      const scanBoxEl = document.getElementById('scanBox');
+      const _syncScanBox = ()=>{
+        if (!scanBoxEl) return;
+        const rect = cam.getBoundingClientRect();
+        const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO);
+        scanBoxEl.style.width = sidePx + 'px';
+        scanBoxEl.style.height = sidePx + 'px';
+      };
+      _syncScanBox();
+      window.addEventListener('resize', _syncScanBox);
+      window.addEventListener('orientationchange', _syncScanBox);
+      // keep handlers to remove later
+      window._scanBoxSync = _syncScanBox;
+      scanning = true; scanLoop();
       // Allow Android/iOS back button to close camera instead of leaving page
       try{ history.pushState({camera:true}, ''); }catch(_){}
       const _onPop = (ev)=>{ if (scanning) { try{ ev.preventDefault(); }catch(_){ } stopScan(); } };
