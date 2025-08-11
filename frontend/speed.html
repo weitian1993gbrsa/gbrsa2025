@@ -57,7 +57,7 @@
           <label class="check"><input type="checkbox" name="FALSE START"/> <span>FALSE START</span></label>
           <label class="field col-span-2"><span>REMARK</span><input name="REMARK" class="input" placeholder="Optional notes"/></label>
         </div>
-        <!-- Hidden required context for Result sheet -->
+        <!-- Hidden context -->
         <input type="hidden" name="ID" id="fId"/>
         <input type="hidden" name="NAME1" id="fNAME1"/>
         <input type="hidden" name="NAME2" id="fNAME2"/>
@@ -68,9 +68,7 @@
         <input type="hidden" name="HEAT" id="fHEAT"/>
         <input type="hidden" name="COURT" id="fCOURT"/>
 
-        <div class="row space"><button type="submit" class="btn primary">Submit Result</button>
-        <button type="button" id="btnSaveOffline" class="btn ghost">Save Offline</button></div>
-        <div id="pendingBox" class="pending hide"><span id="pendingCount">0</span> pending offline. <button type="button" id="btnSync" class="link">Sync now</button></div>
+        <div class="row space"><button type="submit" class="btn primary">Submit Result</button></div>
       </form>
     </section>
   </main>

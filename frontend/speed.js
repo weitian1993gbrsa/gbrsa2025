@@ -21,10 +21,6 @@
   const btnConfirm = $('#btnConfirm');
   const scoreFormWrap = $('#scoreFormWrap');
   const scoreForm = $('#scoreForm');
-  const pendingBox = $('#pendingBox');
-  const pendingCount = $('#pendingCount');
-  const btnSaveOffline = $('#btnSaveOffline');
-  const btnSync = $('#btnSync');
 
   const cam = $('#cam');
   const cameraWrap = $('#cameraWrap');
@@ -33,13 +29,6 @@
   let stream = null;
   let detector = null;
   let scanning = false;
-
-  function updatePendingBadge(){
-    const n = queue.all().length;
-    pendingCount.textContent = String(n);
-    pendingBox.classList.toggle('hide', n === 0);
-  }
-  updatePendingBadge();
 
   function extractIdFromRaw(raw){
     let id = (raw||'').trim();
@@ -58,7 +47,7 @@
       const name2 = p['NAME2'] || '';
       const name3 = p['NAME3'] || '';
       const name4 = p['NAME4'] || '';
-      const names = [name1,name2,name3,name4].filter(Boolean).join(' / ');
+      const names = [name1,name2,name3,name4].filter(Boolean).join('\n');
 
       const rep = p['REPRESENTATIVE'] || '';
       const state = p['STATE'] || '';
@@ -127,28 +116,10 @@
     payload['FALSE START'] = fd.get('FALSE START') ? 'TRUE' : 'FALSE';
     try {
       const out = await apiPost(payload);
-      if (out && out.ok){ toast('Submitted ✅'); scoreForm.reset(); updatePendingBadge(); }
+      if (out && (out.ok || out.raw)) { toast('Submitted ✅'); scoreForm.reset(); }
       else { throw new Error('Server rejected'); }
     } catch (err) {
-      queue.add(payload); toast('Offline — saved locally. Tap Sync later.'); updatePendingBadge();
+      console.error(err); toast('Submit failed — check internet/app script.');
     }
-  });
-
-  btnSaveOffline.addEventListener('click', ()=> {
-    const fd = new FormData(scoreForm);
-    const payload = Object.fromEntries(fd.entries());
-    payload['FALSE START'] = fd.get('FALSE START') ? 'TRUE' : 'FALSE';
-    queue.add(payload); updatePendingBadge(); toast('Saved offline.');
-  });
-
-  btnSync.addEventListener('click', async ()=> {
-    const items = queue.all(); if (!items.length) return toast('Nothing to sync.');
-    let remaining = [];
-    for (const item of items){
-      try { const out = await apiPost(item); if (!out || !out.ok) remaining.push(item); } catch { remaining.push(item); }
-    }
-    if (remaining.length === 0) { queue.clear(); toast('All pending submissions synced ✅'); }
-    else { queue.set(remaining); toast(`Some items failed. Remaining: ${remaining.length}`); }
-    updatePendingBadge();
   });
 })();
