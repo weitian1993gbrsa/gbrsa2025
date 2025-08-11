@@ -116,6 +116,7 @@
       btnConfirm.disabled = false;
     } catch (err){
       console.error(err);
+        if (submitOverlay){ submitOverlay.classList.add('hide'); }
       hideParticipant(); hideStep2(); clearHidden();
       if (window.toast) toast('Lookup failed.');
     }
@@ -173,6 +174,8 @@
   if (scoreForm){
     scoreForm.addEventListener('submit', async (e)=> {
       e.preventDefault();
+      // Show overlay while sending
+      if (submitOverlay){ overlayText && (overlayText.textContent = 'Sending…'); submitOverlay.classList.remove('hide'); }
       const fd = new FormData(scoreForm);
       const payload = Object.fromEntries(fd.entries());
       // FALSE START: 'YES' when checked, blank when unchecked
@@ -181,12 +184,15 @@
         const out = await apiPost(payload); // provided by app.js
         if (out && (out.ok || out.raw)) {
           if (window.toast) toast('Submitted ✅');
+                    // Small success pause
+          if (submitOverlay){ overlayText && (overlayText.textContent = 'Saved!'); submitOverlay.classList.add('hide'); }
           resetUI();
         } else {
           throw new Error('Server rejected');
         }
       } catch (err) {
         console.error(err);
+        if (submitOverlay){ submitOverlay.classList.add('hide'); }
         if (window.toast) toast('Submit failed — check internet/app script.');
       }
     });
