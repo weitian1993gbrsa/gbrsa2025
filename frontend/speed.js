@@ -7,6 +7,7 @@
   const STABLE_FRAMES = 8; // strict
   const HOLD_MS = 900;     // strict (ms)
   let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
+  let _strictStart = 0, _relaxed = false;
   const submitOverlay = document.getElementById('submitOverlay');
   const overlayText   = document.getElementById('overlayText');
   const entryInput = $('#entryIdInput');
@@ -146,9 +147,14 @@
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
       cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide');
+      // Add scanning hint if not present
+      if (!document.getElementById('scanHint')){
+        const hint = document.createElement('div'); hint.id='scanHint'; hint.className='scan-hint';
+        hint.textContent = 'Center the QR in the box'; cameraWrap.appendChild(hint);
+      }
       const _roiSync = ()=>{ try{ const rect = cam.getBoundingClientRect(); const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO); cameraWrap.style.setProperty('--roi-side', sidePx + 'px'); }catch(_){ } };
       _roiSync(); window.addEventListener('resize', _roiSync); window.addEventListener('orientationchange', _roiSync); window._roiSync = _roiSync;
-      scanning = true; scanLoop();
+       _strictStart = Date.now(); _relaxed = false; scanning = true; scanLoop();
     } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
   }
   async function scanLoop()
@@ -183,7 +189,10 @@
             _stableCount = 1;
             _lockStart = now;
           }
-          if (_stableCount >= STABLE_FRAMES && (now - _lockStart) >= HOLD_MS && (now - _lastAccept) > 600){
+          if (!_relaxed && (now - _strictStart) > 2500){ /* relax temporarily */ _relaxed = true; }
+          const REQ_FRAMES = _relaxed ? Math.max(2, Math.floor(STABLE_FRAMES/2)) : STABLE_FRAMES;
+          const REQ_HOLD   = _relaxed ? Math.max(250, Math.floor(HOLD_MS/2))       : HOLD_MS;
+          if (_stableCount >= REQ_FRAMES && (now - _lockStart) >= REQ_HOLD && (now - _lastAccept) > 600){
             _lastAccept = now;
             const id = rawValue;
             await stopScan();
