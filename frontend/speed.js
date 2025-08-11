@@ -2,6 +2,11 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
+  const ROI_RATIO = 0.20; // 20% center ROI
+  let offCanvas, offCtx;
+  const STABLE_FRAMES = 3; // frames to stay steady
+  const HOLD_MS = 350;     // hold time in ms
+  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
   if (entryInput){
@@ -134,7 +139,21 @@
     try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
+      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide');
+      // Sync scan box size to ROI
+      const scanBoxEl = document.getElementById('scanBox');
+      const _scanBoxSync = ()=>{
+        if (!scanBoxEl) return;
+        const rect = cam.getBoundingClientRect();
+        const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO);
+        scanBoxEl.style.width = sidePx + 'px';
+        scanBoxEl.style.height = sidePx + 'px';
+      };
+      _scanBoxSync();
+      window.addEventListener('resize', _scanBoxSync);
+      window.addEventListener('orientationchange', _scanBoxSync);
+      window._scanBoxSync = _scanBoxSync;
+      scanning = true; scanLoop();
       // Allow Android/iOS back button to close camera instead of leaving page
       try{ history.pushState({camera:true}, ''); }catch(_){}
       const _onPop = (ev)=>{ if (scanning) { try{ ev.preventDefault(); }catch(_){ } stopScan(); } };
@@ -147,25 +166,60 @@
         
     } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
   }
-  async function scanLoop(){
+  async function scanLoop()
+{
     if (!scanning) return;
     try {
-      const codes = await detector.detect(cam);
+      const vw = cam.videoWidth, vh = cam.videoHeight;
+      if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
+      // Center ROI
+      const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
+      const sx = Math.floor((vw - side) / 2);
+      const sy = Math.floor((vh - side) / 2);
+      if (!offCanvas){ offCanvas = document.createElement('canvas'); offCtx = offCanvas.getContext('2d', { willReadFrequently:true }); }
+      if (offCanvas.width !== side || offCanvas.height !== side){ offCanvas.width = side; offCanvas.height = side; }
+      offCtx.drawImage(cam, sx, sy, side, side, 0, 0, side, side);
+      const codes = await detector.detect(offCanvas);
       if (codes && codes.length) {
-        const rawValue = (codes[0].rawValue || '').trim();
-        const id = rawValue;
-        entryInput.value = id;
-        await stopScan();
-        await lookupById(id);
+        const c = codes[0];
+        const rawValue = (c.rawValue || '').trim();
+        const bb = c.boundingBox || c.bounds;
+        let fullyInside = true;
+        if (bb){
+          const EDGE = Math.floor(0.02 * side);
+          fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
+        }
+        if (fullyInside){
+          const now = Date.now();
+          if (_stableValue === rawValue){
+            _stableCount++;
+          } else {
+            _stableValue = rawValue;
+            _stableCount = 1;
+            _lockStart = now;
+          }
+          if (_stableCount >= STABLE_FRAMES && (now - _lockStart) >= HOLD_MS && (now - _lastAccept) > 400){
+            _lastAccept = now;
+            const id = rawValue;
+            await stopScan();
+            await lookupById(id);
+            return;
+          }
+        } else {
+          _stableCount = 0;
+        }
       }
     } catch(e){}
     requestAnimationFrame(scanLoop);
-  }
+}
+
   async function stopScan(){
     scanning = false;
     if (cam) cam.pause();
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     cameraWrap.classList.add('hide');
+    try{ if (window._scanBoxSync){ window.removeEventListener('resize', window._scanBoxSync); window.removeEventListener('orientationchange', window._scanBoxSync); window._scanBoxSync = null; } }catch(_){}
+        
   }
   if (btnOpenCamera) btnOpenCamera.addEventListener('click', startScan);
   if (btnCloseCamera) btnCloseCamera.addEventListener('click', stopScan);
