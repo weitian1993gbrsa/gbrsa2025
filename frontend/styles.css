@@ -56,3 +56,5 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 .loading .dot{width:6px;height:6px;border-radius:50%;background:#9ca3af;animation:b 1s infinite ease-in-out}
 .loading .dot:nth-child(2){animation-delay:.15s}.loading .dot:nth-child(3){animation-delay:.3s}
 @keyframes b{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+
+html, body { touch-action: manipulation; }
