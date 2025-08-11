@@ -5,11 +5,12 @@
   // Region-of-interest: percentage of the shorter video side to scan
   const ROI_RATIO = 0.30; // 50% of min(videoWidth, videoHeight)
   let offCanvas, offCtx;
+  function getIdRegex(){ try{ const r = window.CONFIG && window.CONFIG.ID_REGEX; if (r) return new RegExp(r); }catch(_){ } return /^[A-Z0-9-]{4,20}$/; }
   const INNER_LOCK_RATIO = 0.50; // inner box (50% of ROI) to confirm
   const EDGE_LEEWAY = 0.02;    // 2% tolerance to avoid jitter at edges
   const MIN_AREA_RATIO = 0.06; // QR bbox must cover >=6% of ROI area
-  const STABLE_FRAMES = 6;     // frames the same code stays centered before accepting
-  const HOLD_MS = 700;         // must hold centered for this long before accept
+  const STABLE_FRAMES = 8;     // frames the same code stays centered before accepting
+  const HOLD_MS = 1000;         // must hold centered for this long before accept
   let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
