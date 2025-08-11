@@ -32,7 +32,9 @@
 
   function extractIdFromRaw(raw){
     let id = (raw||'').trim();
-    try { const u = new URL(id); id = u.searchParams.get('id') || u.searchParams.get('ID') || u.searchParams.get('entryId') || id; } catch {}
+    try { const u = new URL(id);
+      id = u.searchParams.get('id') || u.searchParams.get('ID') || u.searchParams.get('entryId') || id;
+    } catch {}
     return id;
   }
 
@@ -47,7 +49,7 @@
       const name2 = p['NAME2'] || '';
       const name3 = p['NAME3'] || '';
       const name4 = p['NAME4'] || '';
-      const names = [name1,name2,name3,name4].filter(Boolean).join('\n');
+      const names = [name1,name2,name3,name4].filter(Boolean).join('\\n');
 
       const rep = p['REPRESENTATIVE'] || '';
       const state = p['STATE'] || '';
@@ -113,7 +115,8 @@
     e.preventDefault();
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
-    payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '-';
+    // FALSE START: 'YES' if checked, otherwise blank
+    payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '';
     try {
       const out = await apiPost(payload);
       if (out && (out.ok || out.raw)) { toast('Submitted ✅'); scoreForm.reset(); }
