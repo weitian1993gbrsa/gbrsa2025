@@ -2,13 +2,13 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
-  const ROI_RATIO = 0.20; // 20% center ROI
-  let offCanvas, offCtx;
-  const STABLE_FRAMES = 8; // strict
-  const HOLD_MS = 900;     // strict (ms)
-  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const submitOverlay = document.getElementById('submitOverlay');
   const overlayText   = document.getElementById('overlayText');
+  const ROI_RATIO = 0.20; // center ROI 20%
+  let offCanvas, offCtx;
+  const STABLE_FRAMES = 8; // strict
+  const HOLD_MS = 900;     // strict ms
+  let _stableValue = '', _stableCount = 0, _lastAccept = 0, _lockStart = 0;
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
   if (entryInput){
@@ -145,19 +145,14 @@
     try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide');
-      const _roiSync = ()=>{ try{ const rect = cam.getBoundingClientRect(); const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO); cameraWrap.style.setProperty('--roi-side', sidePx + 'px'); }catch(_){ } };
-      _roiSync(); window.addEventListener('resize', _roiSync); window.addEventListener('orientationchange', _roiSync); window._roiSync = _roiSync;
-      scanning = true; scanLoop();
+      cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
     } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
   }
-  async function scanLoop()
-{
+  async function scanLoop(){
     if (!scanning) return;
     try {
       const vw = cam.videoWidth, vh = cam.videoHeight;
       if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
-      // Center square ROI (20% of min side)
       const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
       const sx = Math.floor((vw - side) / 2);
       const sy = Math.floor((vh - side) / 2);
@@ -171,40 +166,28 @@
         const bb = c.boundingBox || c.bounds;
         let fullyInside = true;
         if (bb){
-          const EDGE = Math.floor(0.02 * side); // 2% tolerance
-          fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
+          const EDGE = Math.floor(0.02 * offCanvas.width);
+          fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (offCanvas.width-EDGE) && (bb.y+bb.height) <= (offCanvas.height-EDGE));
         }
         if (fullyInside){
-          const now = Date.now();
-          if (_stableValue === rawValue){
-            _stableCount++;
-          } else {
-            _stableValue = rawValue;
-            _stableCount = 1;
-            _lockStart = now;
-          }
-          if (_stableCount >= STABLE_FRAMES && (now - _lockStart) >= HOLD_MS && (now - _lastAccept) > 600){
-            _lastAccept = now;
-            const id = rawValue;
-            await stopScan();
-            await lookupById(id);
-            return;
-          }
-        } else {
-          _stableCount = 0;
+        const now = Date.now();
+        if (_stableValue === rawValue){ _stableCount++; } else { _stableValue = rawValue; _stableCount = 1; _lockStart = now; }
+        if (_stableCount >= STABLE_FRAMES && (now - _lockStart) >= HOLD_MS && (now - _lastAccept) > 600){
+          _lastAccept = now;
+          const id = rawValue;
+          await stopScan();
+          await lookupById(id);
+          return;
         }
       }
     } catch(e){}
     requestAnimationFrame(scanLoop);
-}
-
+  }
   async function stopScan(){
     scanning = false;
     if (cam) cam.pause();
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     cameraWrap.classList.add('hide');
-    try{ if (window._roiSync){ window.removeEventListener('resize', _roiSync); window.removeEventListener('orientationchange', _roiSync); window._roiSync = null; } }catch(_){}
-        
   }
   if (btnOpenCamera) btnOpenCamera.addEventListener('click', startScan);
   if (btnCloseCamera) btnCloseCamera.addEventListener('click', stopScan);
