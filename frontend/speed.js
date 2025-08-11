@@ -2,6 +2,8 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
+  const submitOverlay = document.getElementById('submitOverlay');
+  const overlayText = document.getElementById('overlayText');
   const entryInput = $('#entryIdInput');
   // Force uppercase typing for ID field
   if (entryInput){
@@ -49,7 +51,8 @@
 
   function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  function hideStep2(){ scoreFormWrap.classList.add('hide'); btnConfirm.disabled = true; }
+  function hideStep2(){ if (document.activeElement && document.activeElement.blur) { try{ document.activeElement.blur(); }catch(_){} }
+    scoreFormWrap.classList.add('hide'); btnConfirm.disabled = true; }
   function showParticipant(){ participantCard.classList.remove('hide'); }
   function hideParticipant(){ participantCard.classList.add('hide'); }
 
@@ -58,6 +61,7 @@
   }
 
   function resetUI(){
+    if (document.activeElement && document.activeElement.blur) { try{ document.activeElement.blur(); }catch(_){} }
     scoreForm.reset();
     clearHidden();
     hideParticipant();
@@ -67,7 +71,8 @@
     entryInput.value = '';
     stopScan();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150);
+    const isTouch = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints > 0);
+    if (!isTouch) { setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150); }
   }
 
   async function lookupById(raw){
@@ -135,16 +140,6 @@
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
       cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
-      // Allow Android/iOS back button to close camera instead of leaving page
-      try{ history.pushState({camera:true}, ''); }catch(_){}
-      const _onPop = (ev)=>{ if (scanning) { try{ ev.preventDefault(); }catch(_){ } stopScan(); } };
-      window.addEventListener('popstate', _onPop, { once:true });
-      // Allow Esc to close camera
-      const _onEsc = (ev)=>{ if (ev.key==='Escape' && scanning) stopScan(); };
-      document.addEventListener('keydown', _onEsc, { once:true });
-      // Store to remove if stopScan called manually
-      window._camHandlers = { _onPop, _onEsc };
-        
     } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
   }
   async function scanLoop(){
@@ -183,6 +178,8 @@
   if (scoreForm){
     scoreForm.addEventListener('submit', async (e)=> {
       e.preventDefault();
+      if (document.activeElement && document.activeElement.blur) { try{ document.activeElement.blur(); }catch(_){} }
+      if (submitOverlay){ overlayText && (overlayText.textContent = 'Sending…'); submitOverlay.classList.remove('hide'); }
       const fd = new FormData(scoreForm);
       const payload = Object.fromEntries(fd.entries());
       // FALSE START: 'YES' when checked, blank when unchecked
@@ -191,6 +188,7 @@
         const out = await apiPost(payload); // provided by app.js
         if (out && (out.ok || out.raw)) {
           if (window.toast) toast('Submitted ✅');
+                    if (submitOverlay){ overlayText && (overlayText.textContent = 'Saved!'); await new Promise(r=>setTimeout(r, 550)); submitOverlay.classList.add('hide'); }
           resetUI();
         } else {
           throw new Error('Server rejected');
