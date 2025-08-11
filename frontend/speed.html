@@ -9,6 +9,7 @@
   <script defer src="./config.js"></script>
   <script defer src="./speed.js"></script>
   <script defer src="./nozoom.js"></script>
+<style>#entryIdInput{text-transform:uppercase;}</style>
 </head>
 <body class="page">
   <header class="topbar">
@@ -22,7 +23,7 @@
       <h2>Step 1 — Identify Participant</h2>
       <div class="scan-row">
         <button id="btnOpenCamera" class="btn">📷 Scan QR</button>
-        <input id="entryIdInput" class="input" placeholder="or type ID manually" inputmode="text" />
+        <input id="entryIdInput" class="input" placeholder="or type ID manually" inputmode="text" / autocapitalize="characters" spellcheck="false" >
       </div>
       <div id="cameraWrap" class="camera hide">
         <video id="cam" playsinline></video>
