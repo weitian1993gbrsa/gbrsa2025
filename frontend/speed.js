@@ -1,7 +1,4 @@
-(function(){
-  const $ = (q, el=document) => el.querySelector(q);
-
-  // Elements
+(async function(){
   const entryInput = $('#entryIdInput');
   const participantCard = $('#participantCard');
   const badgeHeat = $('#badgeHeat');
@@ -17,7 +14,7 @@
   const fNAME3 = $('#fNAME3');
   const fNAME4 = $('#fNAME4');
   const fREP = $('#fREP');
-  const fSTATE = $('#fSTATE'];
+  const fSTATE = $('#fSTATE');
   const fHEAT = $('#fHEAT');
   const fCOURT = $('#fCOURT');
 
@@ -25,7 +22,6 @@
   const scoreFormWrap = $('#scoreFormWrap');
   const scoreForm = $('#scoreForm');
 
-  // Camera bits
   const cam = $('#cam');
   const cameraWrap = $('#cameraWrap');
   const btnOpenCamera = $('#btnOpenCamera');
@@ -34,58 +30,26 @@
   let detector = null;
   let scanning = false;
 
-  const loadingDots = '<span class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>';
-
   function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  function hideStep2(){ scoreFormWrap.classList.add('hide'); btnConfirm.disabled = true; }
-  function showParticipant(){ participantCard.classList.remove('hide'); }
-  function hideParticipant(){ participantCard.classList.add('hide'); }
-
-  function clearHidden(){
-    [fId,fNAME1,fNAME2,fNAME3,fNAME4,fREP,fSTATE,fHEAT,fCOURT].forEach(el => el.value = '');
+  function extractIdFromRaw(raw){
+    let id = (raw||'').trim();
+    try { const u = new URL(id); id = u.searchParams.get('id') || u.searchParams.get('ID') || u.searchParams.get('entryId') || id; } catch {}
+    return id;
   }
 
-  function resetUI(){
-    // Clear everything and **do not** focus ID (keeps mobile keyboard hidden)
-    scoreForm.reset();
-    clearHidden();
-    hideParticipant();
-    hideStep2();
-    pId.textContent = '—'; pNames.innerHTML = '—'; pRep.textContent = '—'; pState.textContent = '—';
-    badgeHeat.textContent = 'HEAT —'; badgeCourt.textContent = 'COURT —';
-    // Ensure the field is blurred so keyboard closes
-    if (document.activeElement && typeof document.activeElement.blur === 'function') {
-      document.activeElement.blur();
-    }
-    entryInput && entryInput.blur && entryInput.blur();
-    entryInput && (entryInput.value = '');
-    stopScan();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  async function lookupById(raw){
-    const id = String(raw||'').trim().toUpperCase();
-    if (!id){ hideParticipant(); hideStep2(); clearHidden(); return; }
-
-    // show loading
-    showParticipant();
+  async function lookupById(id){
+    if (!id) return;
+    // set loading UI
     btnConfirm.disabled = true;
     pId.textContent = 'Loading…';
-    pNames.innerHTML = loadingDots;
-    pRep.textContent = ''; pState.textContent = ''; badgeHeat.textContent = 'HEAT —'; badgeCourt.textContent = 'COURT —';
-
+    pNames.innerHTML = '<span class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>';
     try {
       const data = await apiGet({ cmd:'participant', entryId: id });
-      if (!data || !data.found){
-        hideParticipant(); hideStep2(); clearHidden();
-        window.toast && toast('ID not found.');
-        return;
-      }
+      if (!data || !data.found) { participantCard.classList.add('hide'); toast('ID not found.'); return; }
       const p = data.participant || {};
 
-      const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']]
-        .filter(Boolean).map(escapeHtml).join('<br>');
+      const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']].filter(Boolean).map(escapeHtml).join('<br>');
       const rep = p['REPRESENTATIVE'] || '';
       const state = p['STATE'] || '';
       const heat = p['HEAT'] || '';
@@ -98,83 +62,74 @@
       badgeHeat.textContent = `HEAT ${heat||'—'}`;
       badgeCourt.textContent = `COURT ${court||'—'}`;
 
-      fId.value = id;
-      fNAME1.value = p['NAME1'] || '';
-      fNAME2.value = p['NAME2'] || '';
-      fNAME3.value = p['NAME3'] || '';
-      fNAME4.value = p['NAME4'] || '';
+      // Fill hidden fields
+      const [name1,name2,name3,name4] = [p['NAME1']||'',p['NAME2']||'',p['NAME3']||'',p['NAME4']||''];
+      fId.value = id; fNAME1.value = name1; fNAME2.value = name2; fNAME3.value = name3; fNAME4.value = name4;
       fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fCOURT.value = court;
 
+      participantCard.classList.remove('hide');
       btnConfirm.disabled = false;
-    } catch (err){
-      console.error(err);
-      hideParticipant(); hideStep2(); clearHidden();
-      window.toast && toast('Lookup failed.');
-    }
+    } catch (err) { console.error(err); toast('Lookup failed.'); }
   }
 
-  // Manual input triggers
-  if (entryInput){
-    entryInput.addEventListener('change', e => lookupById(e.target.value));
-    entryInput.addEventListener('keyup', e => { if (e.key === 'Enter') lookupById(entryInput.value); });
-    entryInput.addEventListener('input', e => { if (e.target.value.trim() === ''){ hideParticipant(); hideStep2(); clearHidden(); } });
-  }
+  const debouncedLookup = debounce((v)=> lookupById(v), 300);
 
-  // Camera scan support
+  entryInput.addEventListener('input', (e)=> {
+    const v = e.target.value.trim();
+    if (v.length) { debouncedLookup(v); }
+  });
+  entryInput.addEventListener('change', (e)=> { const v = e.target.value.trim(); if (v.length) lookupById(v); });
+  entryInput.addEventListener('keyup', (e)=> { if (e.key === 'Enter') lookupById(entryInput.value.trim()); });
+
   async function startScan(){
-    if (!('BarcodeDetector' in window)) { window.toast && toast('QR not supported. Type ID.'); return; }
-    try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ window.toast && toast('QR not available.'); return; }
+    if (!('BarcodeDetector' in window)) { toast('QR not supported. Type ID.'); return; }
+    try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ toast('QR not available.'); return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
       cam.srcObject = stream; await cam.play(); cameraWrap.classList.remove('hide'); scanning = true; scanLoop();
-    } catch (e) { console.error(e); window.toast && toast('Cannot open camera.'); }
+    } catch (e) { console.error(e); toast('Cannot open camera.'); }
   }
+
   async function scanLoop(){
     if (!scanning) return;
     try {
       const codes = await detector.detect(cam);
       if (codes && codes.length) {
         const rawValue = (codes[0].rawValue || '').trim();
-        const id = rawValue;
-        entryInput && (entryInput.value = id);
-        await stopScan();
-        await lookupById(id);
+        const id = extractIdFromRaw(rawValue);
+        entryInput.value = id; await stopScan(); await lookupById(id);
       }
     } catch(e){}
     requestAnimationFrame(scanLoop);
   }
+
   async function stopScan(){
     scanning = false;
     if (cam) cam.pause();
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     cameraWrap.classList.add('hide');
   }
-  btnOpenCamera && btnOpenCamera.addEventListener('click', startScan);
-  btnCloseCamera && btnCloseCamera.addEventListener('click', stopScan);
 
-  // Confirm -> show Step 2
-  btnConfirm && btnConfirm.addEventListener('click', ()=> {
+  btnOpenCamera.addEventListener('click', startScan);
+  btnCloseCamera.addEventListener('click', stopScan);
+
+  btnConfirm.addEventListener('click', ()=> {
     scoreFormWrap.classList.remove('hide');
-    window.toast && toast('Ready to enter score.');
+    toast('Ready to enter score.');
     scoreFormWrap.scrollIntoView({behavior:'smooth', block:'start'});
   });
 
-  // Submit
-  scoreForm && scoreForm.addEventListener('submit', async (e)=> {
+  scoreForm.addEventListener('submit', async (e)=> {
     e.preventDefault();
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
     payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '';
     try {
       const out = await apiPost(payload);
-      if (out && (out.ok || out.raw)) { window.toast && toast('Submitted ✅'); resetUI(); }
+      if (out && (out.ok || out.raw)) { toast('Submitted ✅'); scoreForm.reset(); }
       else { throw new Error('Server rejected'); }
     } catch (err) {
-      console.error(err); window.toast && toast('Submit failed — check internet/app script.');
+      console.error(err); toast('Submit failed — check internet/app script.');
     }
   });
-
-  // Initial state
-  hideParticipant();
-  hideStep2();
 })();
