@@ -9,7 +9,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
-.page{min-height:100vh;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.page{min-height:100vh;display:flex;flex-direction:column}
 .topbar{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:#ffffffd9;border-bottom:1px solid var(--border);backdrop-filter:saturate(1.2) blur(4px)}
 .logo{height:48px;max-width:220px;object-fit:contain;object-position:left;flex:0 0 auto}
 .titles h1{margin:0;font-size:1.15rem}.subtitle{margin:.125rem 0 0;color:var(--muted);font-size:.9rem}
