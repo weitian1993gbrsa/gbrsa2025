@@ -50,3 +50,32 @@
 
   window.$=$; window.$$=$$;
 })();
+
+// === Update Check ===
+
+let currentVersion = null;
+
+async function checkForDataUpdates() {
+  try {
+    const response = await apiGet({ action: 'getVersion' }); // Must return { version: "..." }
+    const newVersion = response.version;
+
+    if (currentVersion && newVersion !== currentVersion) {
+      showUpdateToast();
+    }
+    currentVersion = newVersion;
+  } catch (e) {
+    console.warn('Failed to check for updates', e);
+  }
+}
+
+function showUpdateToast() {
+  const toast = document.createElement('div');
+  toast.textContent = 'New data available — click to refresh';
+  toast.className = 'toast update-toast';
+  toast.onclick = () => location.reload();
+  document.body.appendChild(toast);
+}
+
+setInterval(checkForDataUpdates, 30000);
+checkForDataUpdates();
