@@ -11,7 +11,7 @@
   <script defer src="./nozoom.js"></script>
 <style>html, body { touch-action: manipulation; overscroll-behavior: contain; }</style>
 </head>
-<body class="page">
+<body class="page homepage">
   <header class="topbar">
     <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
     <div class="titles">
@@ -39,6 +39,33 @@
   <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE – the simple scoring system</p>
 </div>
 </footer>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('pageshow', function () {
+    // Scroll reset
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+
+    // Remove focus from previously selected buttons/links
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+  });
+</script>
 
 </body>
 </html>

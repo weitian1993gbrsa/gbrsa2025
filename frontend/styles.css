@@ -97,3 +97,41 @@ html, body { touch-action: manipulation; }
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   z-index: 9999;
 }
+
+
+/* Prevent mobile scroll bounce + limit scroll artifacts */
+body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+
+body.homepage {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  min-height: 100dvh;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+
+body:not(.homepage) {
+  max-height: unset;
+  overflow: auto;
+}
+
+
+
+/* Prevent lingering blue focus ring when returning from another page */
+a:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+a:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
