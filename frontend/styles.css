@@ -114,3 +114,9 @@ body.homepage {
   max-height: 100vh;
   overflow: hidden;
 }
+
+
+body:not(.homepage) {
+  max-height: unset;
+  overflow: auto;
+}
