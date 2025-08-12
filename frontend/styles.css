@@ -136,10 +136,7 @@ a:focus-visible {
   box-shadow: none;
 }
 
-.page-speed {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
+
 
 html, body {
   height: 100%;
@@ -147,12 +144,15 @@ html, body {
   overflow-y: auto;
 }
 
+
+
+main.container {
+  flex: 1 0 auto;
+}
+
 .page-speed {
   min-height: 100vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-}
-
-main.container {
-  flex: 1 0 auto;
+  overscroll-behavior-y: contain;
 }
