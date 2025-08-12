@@ -140,3 +140,19 @@ a:focus-visible {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.page-speed {
+  min-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+main.container {
+  flex: 1 0 auto;
+}
