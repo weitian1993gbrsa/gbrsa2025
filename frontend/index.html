@@ -44,11 +44,23 @@
 
 
 
+
+
+
+
+
+
 <script>
   window.addEventListener('pageshow', function () {
+    // Reset scroll
     window.scrollTo(0, 0);
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
+
+    // Remove focus ring from previously clicked link
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
   });
 </script>
 
