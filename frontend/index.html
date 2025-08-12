@@ -67,5 +67,32 @@
   });
 </script>
 
+
+<script>
+  // Pull-to-refresh: Reload homepage if user pulls down from top
+  let startY = 0;
+  let pulling = false;
+
+  document.addEventListener('touchstart', e => {
+    if (window.scrollY === 0) {
+      startY = e.touches[0].clientY;
+      pulling = true;
+    }
+  });
+
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const deltaY = e.touches[0].clientY - startY;
+    if (deltaY > 80) { // threshold in pixels
+      pulling = false;
+      location.reload();
+    }
+  });
+
+  document.addEventListener('touchend', () => {
+    pulling = false;
+  });
+</script>
+
 </body>
 </html>
