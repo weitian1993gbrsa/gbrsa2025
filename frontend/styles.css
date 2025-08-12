@@ -9,7 +9,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
-.page{min-height:100vh;display:flex;flex-direction:column}
+.page{display:flex;flex-direction:column}
 .topbar{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:#ffffffd9;border-bottom:1px solid var(--border);backdrop-filter:saturate(1.2) blur(4px)}
 .logo{height:48px;max-width:220px;object-fit:contain;object-position:left;flex:0 0 auto}
 .titles h1{margin:0;font-size:1.15rem}.subtitle{margin:.125rem 0 0;color:var(--muted);font-size:.9rem}
@@ -20,7 +20,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 @media(min-width:720px){.menu-grid{grid-template-columns:repeat(2,1fr)}}
 .card{display:block;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1rem;text-decoration:none;color:var(--text);box-shadow:0 6px 18px #00000012}
 .card:hover{outline:2px solid var(--accent);outline-offset:2px}.card.disabled{opacity:.75}
-.foot{margin-top:auto;padding:1rem;color:var(--muted);text-align:center}
+.foot{margin-top:2rem;padding:1rem;color:var(--muted);text-align:center}
 
 .container{padding:1rem;max-width:900px;width:100%;margin:0 auto}
 .block{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1rem;margin:1rem 0;box-shadow:0 6px 18px #0000000d}
@@ -135,3 +135,6 @@ a:focus-visible {
   outline: none;
   box-shadow: none;
 }
+
+
+.footer { margin-top: 2rem; position: relative; }
