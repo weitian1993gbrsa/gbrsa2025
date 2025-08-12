@@ -1,14 +1,4 @@
 (function(){
-// Prevent scroll expansion during judging
-document.body.style.overflow = 'hidden';
-document.body.style.height = '100vh';
-
-// Cleanup when leaving the page
-window.addEventListener('beforeunload', () => {
-  document.body.style.overflow = '';
-  document.body.style.height = '';
-});
-
   const $ = (q, el=document) => el.querySelector(q);
 
   // Elements
