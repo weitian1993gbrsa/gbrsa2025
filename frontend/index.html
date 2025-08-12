@@ -50,14 +50,17 @@
 
 
 
+
+
+
 <script>
   window.addEventListener('pageshow', function () {
-    // Reset scroll
+    // Scroll reset
     window.scrollTo(0, 0);
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
 
-    // Remove focus ring from previously clicked link
+    // Remove focus from previously selected buttons/links
     if (document.activeElement && document.activeElement.blur) {
       document.activeElement.blur();
     }
