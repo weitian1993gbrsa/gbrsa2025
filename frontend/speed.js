@@ -86,6 +86,10 @@
     const id = String(raw||'').trim().toUpperCase();
     if (!id){ hideParticipant(); hideStep2(); clearHidden(); return; }
 
+    // reset step 2 when starting a new lookup
+    hideStep2();
+    clearHidden();
+
     // show loading
     showParticipant();
     btnConfirm.disabled = true;
