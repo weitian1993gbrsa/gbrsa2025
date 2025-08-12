@@ -138,28 +138,3 @@ a:focus-visible {
 
 
 .footer { margin-top: 2rem; position: relative; }
-/* Homepage Scroll Cleanup (v5) */
-html, body {
-  overflow-x: hidden;
-}
-
-.home {
-  height: 100svh;
-  overflow: hidden;
-}
-
-.home .foot {
-  margin-top: 1rem;
-  margin-bottom: max(env(safe-area-inset-bottom), 0px);
-}
-
-.home .a2hs-tip {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  max-height: 40vh;
-  overflow-y: auto;
-}
-
-.home .page > *:last-child {
-  margin-bottom: 0;
-}
