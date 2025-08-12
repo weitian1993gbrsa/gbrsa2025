@@ -97,3 +97,12 @@ html, body { touch-action: manipulation; }
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   z-index: 9999;
 }
+
+
+/* Prevent mobile scroll bounce + limit scroll artifacts */
+body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  max-height: 100vh;
+  overflow: hidden;
+}
