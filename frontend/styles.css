@@ -138,3 +138,24 @@ a:focus-visible {
 
 
 .footer { margin-top: 2rem; position: relative; }
+
+/* Home-only tweaks: remove the tiny extra height that causes scrolling */
+.home { 
+  min-height: 100svh;
+  overflow-y: auto;
+}
+
+.home .foot { 
+  margin-top: 1rem;
+  margin-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+
+.home .a2hs-tip { 
+  margin-bottom: 0;
+}
+
+.home .page > *:last-child { 
+  margin-bottom: 0;
+}
+
+html, body { overflow-x: hidden; }
