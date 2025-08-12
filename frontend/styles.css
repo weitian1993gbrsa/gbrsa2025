@@ -111,8 +111,10 @@ body {
 body.homepage {
   overscroll-behavior: none;
   touch-action: manipulation;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100dvh;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 
