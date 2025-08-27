@@ -1,0 +1,114 @@
+/** GBRSA backend with login support */
+
+const SHEET_ID = '1HHcKiZJ28qXgu6Smq8r-UXcnzDUzsrbvAK9E3bsfATQ';  // Login Sheet ID
+const DATA_SHEET = PropertiesService.getScriptProperties().getProperty('DATA_SHEET_NAME') || 'Data';
+const RESULT_SHEET = PropertiesService.getScriptProperties().getProperty('RESULT_SHEET_NAME') || 'Result';
+
+function normalizeId(s) {
+  return String(s == null ? '' : s).trim();
+}
+function stripLeadingZeros(s) {
+  return normalizeId(s).replace(/^0+/, '');
+}
+function sameId(a, b) {
+  const A = normalizeId(a), B = normalizeId(b);
+  if (A === B) return true;
+  if (stripLeadingZeros(A) === stripLeadingZeros(B)) return true;
+  return false;
+}
+
+function doGet(e) {
+  const cmd = (e.parameter.cmd || '').toLowerCase();
+  if (cmd === 'ping') return json({ ok: true, ts: Date.now() });
+
+  if (cmd === 'participant') {
+    const entryId = normalizeId(e.parameter.entryId);
+    if (!entryId) return json({ error: 'Missing entryId' });
+
+    const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(DATA_SHEET);
+    if (!sh) return json({ error: `Data sheet '${DATA_SHEET}' not found` });
+
+    const values = sh.getDataRange().getValues();
+    if (!values.length) return json({ found: false });
+
+    const headers = values[0].map(String);
+    const idCol = headers.findIndex(h => String(h).trim().toUpperCase() === 'ID');
+    if (idCol === -1) return json({ error: "Column 'ID' not found in Data sheet" });
+
+    for (let r = 1; r < values.length; r++) {
+      if (sameId(values[r][idCol], entryId)) {
+        const obj = {};
+        headers.forEach((h, i) => obj[String(h).trim().toUpperCase()] = values[r][i]);
+        return json({ found: true, participant: obj, matchedRow: r + 1 });
+      }
+    }
+    return json({ found: false });
+  }
+
+  if (cmd === 'login') {
+    const userID = normalizeId(e.parameter.userID);
+    const password = normalizeId(e.parameter.password);
+    if (!userID || !password) return json({ error: 'Missing userID or password' });
+
+    const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Logins');
+    if (!sh) return json({ error: "Sheet 'Logins' not found" });
+
+    const data = sh.getDataRange().getValues();
+    if (!data.length) return json({ error: 'No user records found' });
+
+    const headers = data[0].map(h => String(h).trim().toLowerCase());
+    const userCol = headers.indexOf('userid');
+    const passCol = headers.indexOf('password');
+    const roleCol = headers.indexOf('role');
+
+    if (userCol === -1 || passCol === -1) return json({ error: 'Missing userID or password column in sheet' });
+
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowUser = normalizeId(row[userCol]);
+      const rowPass = normalizeId(row[passCol]);
+      if (rowUser === userID && rowPass === password) {
+        const role = roleCol !== -1 ? row[roleCol] : 'user';
+        return json({ ok: true, role });
+      }
+    }
+
+    return json({ error: 'Invalid credentials' });
+  }
+
+  return json({ error: 'Unknown command' });
+}
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(5000);
+    const body = JSON.parse(e.postData.contents || '{}');
+    const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(RESULT_SHEET);
+    if (!sh) return json({ error: `Result sheet '${RESULT_SHEET}' not found` });
+
+    const values = sh.getDataRange().getValues();
+    if (!values.length) return json({ error: 'Result sheet has no header row' });
+    const headers = values[0].map(String);
+
+    const row = headers.map(h => {
+      const key = String(h).trim();
+      if (key.toLowerCase() === 'timestamp') return new Date();
+      if (Object.prototype.hasOwnProperty.call(body, key)) return body[key];
+      const found = Object.keys(body).find(k => k.trim().toLowerCase() === key.toLowerCase());
+      return (found ? body[found] : '');
+    });
+
+    sh.appendRow(row);
+    return json({ ok: true });
+  } catch (err) {
+    return json({ error: String(err) });
+  } finally {
+    if (lock) lock.releaseLock();
+  }
+}
+
+function json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}

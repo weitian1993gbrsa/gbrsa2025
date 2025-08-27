@@ -79,3 +79,57 @@ function showUpdateToast() {
 
 setInterval(checkForDataUpdates, 30000);
 checkForDataUpdates();
+
+// === LOGIN SYSTEM ===
+const scriptURL = "https://SCRIPT_URL_HERE/exec";  // REPLACE with your real Web App URL
+
+function showLogin() {
+  const loginHTML = \`
+    <div class="login-container">
+      <h2>Login</h2>
+      <input id="userIdInput" placeholder="User ID" />
+      <input id="passwordInput" placeholder="Password" type="password" />
+      <button onclick="submitLogin()">Login</button>
+      <p id="loginError" style="color:red;"></p>
+    </div>
+  \`;
+  document.getElementById("loginScreen").innerHTML = loginHTML;
+}
+
+function submitLogin() {
+  const userID = document.getElementById("userIdInput").value.trim();
+  const password = document.getElementById("passwordInput").value.trim();
+
+  if (!userID || !password) {
+    document.getElementById("loginError").textContent = "Please enter both fields.";
+    return;
+  }
+
+  fetch(\`\${scriptURL}?cmd=login&userID=\${encodeURIComponent(userID)}&password=\${encodeURIComponent(password)}\`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok) {
+        localStorage.setItem("gbrsaUser", userID);
+        localStorage.setItem("gbrsaRole", data.role);
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("app").hidden = false;
+      } else {
+        document.getElementById("loginError").textContent = data.error || "Login failed.";
+      }
+    })
+    .catch(err => {
+      document.getElementById("loginError").textContent = "Network error.";
+    });
+}
+
+function checkLogin() {
+  const uid = localStorage.getItem("gbrsaUser");
+  if (uid) {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("app").hidden = false;
+  } else {
+    showLogin();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", checkLogin);
