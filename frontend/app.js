@@ -123,13 +123,10 @@ function submitLogin() {
 }
 
 function checkLogin() {
-  const uid = localStorage.getItem("gbrsaUser");
-  if (uid) {
-    document.getElementById("loginScreen").style.display = "none";
-    document.getElementById("app").hidden = false;
-  } else {
-    showLogin();
-  }
+  // Force login screen every time (for testing)
+  localStorage.removeItem("gbrsaUser");
+  localStorage.removeItem("gbrsaRole");
+  showLogin();
 }
 
 document.addEventListener("DOMContentLoaded", checkLogin);
