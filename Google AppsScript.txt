@@ -1,6 +1,6 @@
-/** GBRSA backend with login support */
+/** GBRSA backend (header-aligned, tolerant ID) — COMPETITION-READY */
 
-const SHEET_ID = '1HHcKiZJ28qXgu6Smq8r-UXcnzDUzsrbvAK9E3bsfATQ';  // Login Sheet ID
+const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg';
 const DATA_SHEET = PropertiesService.getScriptProperties().getProperty('DATA_SHEET_NAME') || 'Data';
 const RESULT_SHEET = PropertiesService.getScriptProperties().getProperty('RESULT_SHEET_NAME') || 'Result';
 
@@ -13,7 +13,7 @@ function stripLeadingZeros(s) {
 function sameId(a, b) {
   const A = normalizeId(a), B = normalizeId(b);
   if (A === B) return true;
-  if (stripLeadingZeros(A) === stripLeadingZeros(B)) return true;
+  if (stripLeadingZeros(A) === stripLeadingZeros(B)) return true; // 0012 vs 12
   return false;
 }
 
@@ -45,44 +45,14 @@ function doGet(e) {
     return json({ found: false });
   }
 
-  if (cmd === 'login') {
-    const userID = normalizeId(e.parameter.userID);
-    const password = normalizeId(e.parameter.password);
-    if (!userID || !password) return json({ error: 'Missing userID or password' });
-
-    const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Logins');
-    if (!sh) return json({ error: "Sheet 'Logins' not found" });
-
-    const data = sh.getDataRange().getValues();
-    if (!data.length) return json({ error: 'No user records found' });
-
-    const headers = data[0].map(h => String(h).trim().toLowerCase());
-    const userCol = headers.indexOf('userid');
-    const passCol = headers.indexOf('password');
-    const roleCol = headers.indexOf('role');
-
-    if (userCol === -1 || passCol === -1) return json({ error: 'Missing userID or password column in sheet' });
-
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      const rowUser = normalizeId(row[userCol]);
-      const rowPass = normalizeId(row[passCol]);
-      if (rowUser === userID && rowPass === password) {
-        const role = roleCol !== -1 ? row[roleCol] : 'user';
-        return json({ ok: true, role });
-      }
-    }
-
-    return json({ error: 'Invalid credentials' });
-  }
-
   return json({ error: 'Unknown command' });
 }
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(5000);
+    lock.waitLock(5000); // wait up to 5 seconds
+
     const body = JSON.parse(e.postData.contents || '{}');
     const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(RESULT_SHEET);
     if (!sh) return json({ error: `Result sheet '${RESULT_SHEET}' not found` });
@@ -104,11 +74,11 @@ function doPost(e) {
   } catch (err) {
     return json({ error: String(err) });
   } finally {
-    if (lock) lock.releaseLock();
+    if (lock) lock.releaseLock(); // Always unlock
   }
 }
 
 function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+    .setMimeType(ContentService.MimeType.JSON); // no setHeader needed
 }
