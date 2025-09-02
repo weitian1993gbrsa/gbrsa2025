@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en">
 <head>
+
+<script>
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  if (!user) {
+    window.location.href = "login.html"; // force login if not authenticated
+  }
+</script>
+
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Speed Judge</title>
