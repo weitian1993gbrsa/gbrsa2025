@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en">
 <head>
+<script>
+  // Redirect to login if no valid session token
+  const token = localStorage.getItem("token");
+  if (!token || token === "undefined" || token === "null") {
+    window.location.href = "index.html";
+  }
+</script>
+
 <meta name="format-detection" content="telephone=no">
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>

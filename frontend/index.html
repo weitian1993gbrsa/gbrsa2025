@@ -2,11 +2,14 @@
 <html lang="en">
 <head>
 <script>
-  // Auto-redirect if already logged in
-  if (localStorage.getItem("token")) {
+  // Only redirect if a valid token exists
+  const token = localStorage.getItem("token");
+  if (token && token !== "undefined" && token !== "null") {
     window.location.href = "home.html";
   }
 </script>
+
+
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,33 +23,6 @@
     <button type="submit">Login</button>
   </form>
 
-  <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbxEOADfwC0ipkslwJTWNcbtMpXkaxZkCTtyvXj4jZbhZVGCF02bOpQk1SlHpRciYoyLEQ/exec";
-
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        action: "login",
-        username,
-        password
-      })
-    });
-
-    const data = await res.json();
-    if (data.status === "success") {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("username", data.username);
-      window.location.href = "home.html"; // redirect to homepage after login
-    } else {
-      alert("Invalid login");
-    }
-  });
-  </script>
+  
 </body>
 </html>
