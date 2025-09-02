@@ -49,5 +49,15 @@ async function submitScore(competitorId, score) {
 }
 </script>
 
+
+<button onclick="logout()">Logout</button>
+<script>
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("username");
+  window.location.href = "index.html"; // go back to login
+}
+</script>
+
 </body>
 </html>
