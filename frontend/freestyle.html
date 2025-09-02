@@ -24,5 +24,30 @@
 
   <footer class="foot"><small>© 2025 GBRSA</small></footer>
 <script>judging = true;</script>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxEOADfwC0ipkslwJTWNcbtMpXkaxZkCTtyvXj4jZbhZVGCF02bOpQk1SlHpRciYoyLEQ/exec";
+const token = localStorage.getItem("token");
+
+async function submitScore(competitorId, score) {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "submitScore",
+      token: token,
+      id: competitorId,
+      score: score
+    })
+  });
+
+  const data = await res.json();
+  if (data.ok) {
+    alert(`✅ Score saved by ${data.judge}`);
+  } else {
+    alert("⚠️ Error: " + (data.message || "failed"));
+  }
+}
+</script>
+
 </body>
 </html>
