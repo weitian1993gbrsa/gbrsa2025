@@ -35,7 +35,7 @@
     if (data.status === "success") {
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", data.username);
-      window.location.href = "home.html"; // redirect after login
+      window.location.href = "home.html"; // redirect to homepage after login
     } else {
       alert("Invalid login");
     }
