@@ -5,5 +5,4 @@ window.CONFIG = {
   RESULT_SHEET_NAME: "Result"
 };
 
-// 👇 alias for backward compatibility
 const API_URL = window.CONFIG.APPS_SCRIPT_URL;
