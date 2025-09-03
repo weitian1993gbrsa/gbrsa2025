@@ -1,92 +1,88 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="format-detection" content="telephone=no">
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <title>GBRSA Score • Scoring</title>
-  <link rel="stylesheet" href="./styles.css"/>
-  <script defer src="./app.js"></script>
-  <script defer src="./config.js"></script>
-  <script defer src="./nozoom.js"></script>
-<style>html, body { touch-action: manipulation; overscroll-behavior: contain; }</style>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b1020">
+  <meta charset="UTF-8">
+  <title>GBRSA Judge App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script> <!-- contains API_URL -->
 </head>
-<body class="page homepage">
-  <header class="topbar">
-    <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
-    <div class="titles">
-      <h1>GBRSA Score</h1>
-      <p class="subtitle">Official Scoring Portal</p>
-    </div>
-  </header>
+<body>
+  <!-- 🔹 Login Section -->
+  <div id="login-section">
+    <h2>Judge Login</h2>
+    <input id="username" placeholder="Username"><br>
+    <input id="password" type="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+    <p id="login-msg" style="color:red;"></p>
+  </div>
 
-  <main class="hero">
-    <section class="hero-content">
-      <h2 class="hero-title">Scan. Score. Sync.</h2>
-      <p class="hero-text">Paperless judging for Speed and Freestyle.</p>
-      <div class="menu-grid">
-        <a class="card" href="./speed.html"><h3>Speed Judge</h3><p>Scan QR → lookup → input score → submit.</p></a>
-        <a class="card disabled" href="./freestyle.html"><h3>Freestyle Judge</h3><p>Coming soon.</p></a>
-      </div>
-    </section>
-  </main>
+  <!-- 🔹 App Section (hidden until login) -->
+  <div id="app-section" style="display:none;">
+    <h1>🏆 GBRSA Jump Rope Judge App</h1>
+    <p>Welcome, <span id="judge-name"></span> 👋</p>
+    
+    <nav>
+      <a href="speed.html">⚡ Speed Event</a> |
+      <a href="freestyle.html">🎨 Freestyle Event</a>
+    </nav>
 
-  <footer class="foot"><small>© 2025 GBRSA</small>
-<div class="a2hs-tip" style="background:#e6faff; padding:6px; font-size:0.7em; line-height:1.4; margin-top:10px; color:#444;">
-  <p><strong>For best experience</strong>, add this web‑app to your homescreen.</p>
-  <p><strong>On Android</strong>, open the menu in your browser (usually three dots next to the search bar) and select an option saying something like “Add to homescreen” or “Install”.</p>
-  <p><strong>On iOS</strong>, tap the “share” button and select “Add to Home Screen”.</p>
-  <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE – the simple scoring system</p>
-</div>
-</footer>
+    <br>
+    <button onclick="logout()">Logout</button>
+  </div>
 
+  <script>
+    // 🔹 Auto-check login state
+    window.onload = () => {
+      const token = localStorage.getItem("token");
+      const judge = localStorage.getItem("judge");
+      if (token && judge) {
+        document.getElementById("login-section").style.display = "none";
+        document.getElementById("app-section").style.display = "block";
+        document.getElementById("judge-name").innerText = judge;
+      }
+    };
 
+    // 🔹 Login function
+    async function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
 
+      if (!username || !password) {
+        document.getElementById("login-msg").innerText = "Please enter both fields.";
+        return;
+      }
 
+      try {
+        const res = await fetch(API_URL + "?cmd=login", {
+          method: "POST",
+          body: JSON.stringify({ username, password }),
+          headers: { "Content-Type": "application/json" }
+        });
 
+        const data = await res.json();
 
+        if (data.success) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("judge", data.judge);
 
-
-
-
-
-
-
-
-<script>
-  window.addEventListener('pageshow', function () {
-    // Scroll reset
-    window.scrollTo(0, 0);
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
-
-    // Remove focus from previously selected buttons/links
-    if (document.activeElement && document.activeElement.blur) {
-      document.activeElement.blur();
+          document.getElementById("login-section").style.display = "none";
+          document.getElementById("app-section").style.display = "block";
+          document.getElementById("judge-name").innerText = data.judge;
+        } else {
+          document.getElementById("login-msg").innerText = data.message || "Login failed!";
+        }
+      } catch (err) {
+        document.getElementById("login-msg").innerText = "Error: " + err.message;
+      }
     }
-  });
-</script>
 
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js").catch(()=>{});
-}
-</script>
-<script>
-(function(){
-  let startY = 0, pulling = false;
-  document.addEventListener('touchstart', e => {
-    if (window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; }
-  }, {passive:true});
-  document.addEventListener('touchmove', e => {
-    if (!pulling) return;
-    const deltaY = e.touches[0].clientY - startY;
-    if (deltaY > 80) { pulling = false; location.reload(); }
-  }, {passive:true});
-  document.addEventListener('touchend', () => { pulling = false; }, {passive:true});
-})();
-</script>
+    // 🔹 Logout function
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("judge");
+      location.reload();
+    }
+  </script>
 </body>
 </html>
