@@ -65,3 +65,22 @@ The app runs as a **Progressive Web App (PWA)**, connected to **Google Sheets** 
 ---
 
 ✅ **Light, fast, judge-friendly** — built for smooth competition scoring.  
+
+## 🔄 App Flow
+
+### 1. Home Page
+When the judge opens the app, they land on the homepage.
+
+The homepage shows a simple menu with two main options:
+- **Speed**
+- **Freestyle**
+
+This acts as the starting point, letting the judge choose which event they are scoring.
+
+---
+
+### 2. Choose Event
+- **Click “Speed”** → navigates to `speed.html`.
+- **Click “Freestyle”** → navigates to `freestyle.html`.
+
+Each event page has its own layout and scoring rules, but they both follow the same general workflow.
