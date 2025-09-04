@@ -78,7 +78,7 @@
     <div class="login-box">
       <h2>Judge Login</h2>
       <form id="loginForm">
-        <input type="text" placeholder="Username" required>
+        <input type="text" placeholder="Username (admin/judge/tester)" required>
         <input type="password" placeholder="Password" required>
         <button type="submit">Login</button>
       </form>
@@ -92,15 +92,45 @@
     document.getElementById("loginForm").addEventListener("submit", function(e) {
       e.preventDefault(); // stop default form submit
 
-      const username = document.querySelector("input[type='text']").value;
+      const username = document.querySelector("input[type='text']").value.trim().toLowerCase();
       const password = document.querySelector("input[type='password']").value;
 
-      // TODO: Replace with your real credential check (Google Apps Script call)
+      // ⚠️ Replace this with real backend validation
       if (username && password) {
-        // ✅ Use sessionStorage instead of localStorage
-        sessionStorage.setItem("loggedIn", "true");
+        let expiry = null;
 
-        // Redirect to homepage or judge page
+        if (username === "admin") {
+          // Admin: never expires → use localStorage
+          localStorage.setItem("loginData", JSON.stringify({
+            user: username,
+            role: "admin",
+            expiry: null
+          }));
+        } 
+        else if (username === "judge") {
+          // Judge: 1 day expiry
+          expiry = Date.now() + (24 * 60 * 60 * 1000);
+          sessionStorage.setItem("loginData", JSON.stringify({
+            user: username,
+            role: "judge",
+            expiry: expiry
+          }));
+        } 
+        else if (username === "tester") {
+          // Tester: 1 hour expiry
+          expiry = Date.now() + (60 * 60 * 1000);
+          sessionStorage.setItem("loginData", JSON.stringify({
+            user: username,
+            role: "tester",
+            expiry: expiry
+          }));
+        } 
+        else {
+          alert("Unknown role. Please use admin, judge, or tester.");
+          return;
+        }
+
+        // Redirect to homepage
         window.location.href = "index.html";
       } else {
         alert("Invalid username or password");

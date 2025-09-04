@@ -14,13 +14,6 @@ The app runs as a **Progressive Web App (PWA)**, connected to **Google Sheets** 
 ## 🎯 Features
 
 ### Frontend
-
-### 🔐 Updated Login System (2025)
-- **Session-based login** using `sessionStorage` instead of `localStorage`.
-- Judges are **automatically logged out** when:
-  - The app is killed/closed.
-- Ensures no one can stay logged in indefinitely without re-authentication.
-
 - **Login gate** (`login.html`) → judges must log in before accessing the homepage.  
 - **Light theme** for readability.  
 - **Debounced competitor ID lookup (300ms)** to avoid slow typing delays.  
@@ -84,14 +77,7 @@ The app runs as a **Progressive Web App (PWA)**, connected to **Google Sheets** 
    const LOGIN_API_URL = "https://script.google.com/macros/s/DEPLOYMENT_ID/exec";
    ```
 
-### Frontend
-
-### 🔐 Updated Login System (2025)
-- **Session-based login** using `sessionStorage` instead of `localStorage`.
-- Judges are **automatically logged out** when:
-  - The app is killed/closed.
-- Ensures no one can stay logged in indefinitely without re-authentication.
- (Netlify)
+### Frontend (Netlify)
 1. Deploy the `frontend/` folder to Netlify.  
 2. Update `config.js` with:  
    - `API_URL` → scoring Apps Script Web App URL  
