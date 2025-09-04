@@ -18,8 +18,7 @@ The app runs as a **Progressive Web App (PWA)**, connected to **Google Sheets** 
 ### 🔐 Updated Login System (2025)
 - **Session-based login** using `sessionStorage` instead of `localStorage`.
 - Judges are **automatically logged out** when:
-  - The app is killed or refreshed.
-  - The user switches away to another app/tab (backgrounded).
+  - The app is killed/closed.
 - Ensures no one can stay logged in indefinitely without re-authentication.
 
 - **Login gate** (`login.html`) → judges must log in before accessing the homepage.  
@@ -90,8 +89,7 @@ The app runs as a **Progressive Web App (PWA)**, connected to **Google Sheets** 
 ### 🔐 Updated Login System (2025)
 - **Session-based login** using `sessionStorage` instead of `localStorage`.
 - Judges are **automatically logged out** when:
-  - The app is killed or refreshed.
-  - The user switches away to another app/tab (backgrounded).
+  - The app is killed/closed.
 - Ensures no one can stay logged in indefinitely without re-authentication.
  (Netlify)
 1. Deploy the `frontend/` folder to Netlify.  
