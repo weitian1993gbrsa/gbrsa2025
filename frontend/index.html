@@ -1,92 +1,124 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-<meta name="format-detection" content="telephone=no">
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <title>GBRSA Score • Scoring</title>
-  <link rel="stylesheet" href="./styles.css"/>
-  <script defer src="./app.js"></script>
-  <script defer src="./config.js"></script>
-  <script defer src="./nozoom.js"></script>
-<style>html, body { touch-action: manipulation; overscroll-behavior: contain; }</style>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b1020">
+  <title>GBRSA Judge App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .hidden { display: none; }
+    button { margin: 5px; padding: 10px 15px; }
+    input { margin: 5px; padding: 8px; }
+  </style>
 </head>
-<body class="page homepage">
-  <header class="topbar">
-    <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
-    <div class="titles">
-      <h1>GBRSA Score</h1>
-      <p class="subtitle">Official Scoring Portal</p>
-    </div>
-  </header>
+<body>
 
-  <main class="hero">
-    <section class="hero-content">
-      <h2 class="hero-title">Scan. Score. Sync.</h2>
-      <p class="hero-text">Paperless judging for Speed and Freestyle.</p>
-      <div class="menu-grid">
-        <a class="card" href="./speed.html"><h3>Speed Judge</h3><p>Scan QR → lookup → input score → submit.</p></a>
-        <a class="card disabled" href="./freestyle.html"><h3>Freestyle Judge</h3><p>Coming soon.</p></a>
-      </div>
-    </section>
-  </main>
+  <!-- 🔐 LOGIN -->
+  <div id="login-section">
+    <h2>Judge Login</h2>
+    <input type="text" id="userId" placeholder="User ID">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="login-message"></p>
+  </div>
 
-  <footer class="foot"><small>© 2025 GBRSA</small>
-<div class="a2hs-tip" style="background:#e6faff; padding:6px; font-size:0.7em; line-height:1.4; margin-top:10px; color:#444;">
-  <p><strong>For best experience</strong>, add this web‑app to your homescreen.</p>
-  <p><strong>On Android</strong>, open the menu in your browser (usually three dots next to the search bar) and select an option saying something like “Add to homescreen” or “Install”.</p>
-  <p><strong>On iOS</strong>, tap the “share” button and select “Add to Home Screen”.</p>
-  <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE – the simple scoring system</p>
-</div>
-</footer>
+  <!-- 🏠 HOME MENU -->
+  <div id="home-section" class="hidden">
+    <h2>Welcome to GBRSA Judge App</h2>
+    <button onclick="showSection('speed-section')">⚡ Speed Scoring</button>
+    <button onclick="showSection('freestyle-section')">🎭 Freestyle Scoring</button>
+    <button onclick="logout()">🚪 Logout</button>
+  </div>
 
+  <!-- ⚡ SPEED SCORING -->
+  <div id="speed-section" class="hidden">
+    <h2>⚡ Speed Scoring</h2>
+    <label>Competitor ID: <input type="text" id="speed-id"></label><br>
+    <label>Score: <input type="number" id="speed-score"></label><br>
+    <button onclick="submitScore('speed')">Submit Speed Score</button>
+    <button onclick="showSection('home-section')">⬅ Back</button>
+    <p id="speed-message"></p>
+  </div>
 
+  <!-- 🎭 FREESTYLE SCORING -->
+  <div id="freestyle-section" class="hidden">
+    <h2>🎭 Freestyle Scoring</h2>
+    <label>Competitor ID: <input type="text" id="free-id"></label><br>
+    <label>Score: <input type="number" id="free-score"></label><br>
+    <button onclick="submitScore('freestyle')">Submit Freestyle Score</button>
+    <button onclick="showSection('home-section')">⬅ Back</button>
+    <p id="free-message"></p>
+  </div>
 
+  <script>
+    const SCRIPT_URL = "YOUR_SCRIPT_URL"; // replace with your Apps Script Web App URL
 
-
-
-
-
-
-
-
-
-
-
-<script>
-  window.addEventListener('pageshow', function () {
-    // Scroll reset
-    window.scrollTo(0, 0);
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
-
-    // Remove focus from previously selected buttons/links
-    if (document.activeElement && document.activeElement.blur) {
-      document.activeElement.blur();
+    // ✅ On load: check login status
+    if (localStorage.getItem("loggedIn") === "true") {
+      showSection("home-section");
+    } else {
+      showSection("login-section");
     }
-  });
-</script>
 
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js").catch(()=>{});
-}
-</script>
-<script>
-(function(){
-  let startY = 0, pulling = false;
-  document.addEventListener('touchstart', e => {
-    if (window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; }
-  }, {passive:true});
-  document.addEventListener('touchmove', e => {
-    if (!pulling) return;
-    const deltaY = e.touches[0].clientY - startY;
-    if (deltaY > 80) { pulling = false; location.reload(); }
-  }, {passive:true});
-  document.addEventListener('touchend', () => { pulling = false; }, {passive:true});
-})();
-</script>
+    function showSection(sectionId) {
+      ["login-section","home-section","speed-section","freestyle-section"].forEach(id => {
+        document.getElementById(id).classList.add("hidden");
+      });
+      document.getElementById(sectionId).classList.remove("hidden");
+    }
+
+    async function login() {
+      const userId = document.getElementById("userId").value;
+      const password = document.getElementById("password").value;
+
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ cmd: "login", userId, password })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        localStorage.setItem("loggedIn", "true");
+        showSection("home-section");
+      } else {
+        document.getElementById("login-message").innerText = "❌ Invalid login.";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      showSection("login-section");
+    }
+
+    async function submitScore(type) {
+      let entryId, score, messageId;
+      if (type === "speed") {
+        entryId = document.getElementById("speed-id").value;
+        score = document.getElementById("speed-score").value;
+        messageId = "speed-message";
+      } else {
+        entryId = document.getElementById("free-id").value;
+        score = document.getElementById("free-score").value;
+        messageId = "free-message";
+      }
+
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          cmd: "submitScore",
+          eventType: type,
+          entryId: entryId,
+          score: score
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        document.getElementById(messageId).innerText = "✅ Score submitted!";
+      } else {
+        document.getElementById(messageId).innerText = "❌ Error: " + result.error;
+      }
+    }
+  </script>
 </body>
 </html>
