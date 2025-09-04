@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GBRSA Judge App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- 🔐 LOGIN -->
+  <div id="login-section">
+    <h2>Judge Login</h2>
+    <input type="text" id="userId" placeholder="User ID">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="login-message"></p>
+  </div>
+
+  <!-- 🏠 HOME MENU -->
+  <div id="home-section" class="hidden">
+    <h2>Welcome to GBRSA Judge App</h2>
+    <button onclick="showSection('speed-section')">⚡ Speed Scoring</button>
+    <button onclick="showSection('freestyle-section')">🎭 Freestyle Scoring</button>
+    <button onclick="logout()">🚪 Logout</button>
+  </div>
+
+  <!-- ⚡ SPEED SCORING -->
+  <div id="speed-section" class="hidden">
+    <iframe src="speed.html" style="width:100%; height:80vh; border:none;"></iframe>
+    <button onclick="showSection('home-section')">⬅ Back</button>
+  </div>
+
+  <!-- 🎭 FREESTYLE SCORING -->
+  <div id="freestyle-section" class="hidden">
+    <iframe src="freestyle.html" style="width:100%; height:80vh; border:none;"></iframe>
+    <button onclick="showSection('home-section')">⬅ Back</button>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "YOUR_SCRIPT_URL"; // replace with your Apps Script URL
+
+    // ✅ On load: check login status
+    if (localStorage.getItem("loggedIn") === "true") {
+      showSection("home-section");
+    } else {
+      showSection("login-section");
+    }
+
+    function showSection(sectionId) {
+      ["login-section","home-section","speed-section","freestyle-section"].forEach(id => {
+        document.getElementById(id).classList.add("hidden");
+      });
+      document.getElementById(sectionId).classList.remove("hidden");
+    }
+
+    async function login() {
+      const userId = document.getElementById("userId").value;
+      const password = document.getElementById("password").value;
+
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ cmd: "login", userId, password })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        localStorage.setItem("loggedIn", "true");
+        showSection("home-section");
+      } else {
+        document.getElementById("login-message").innerText = "❌ Invalid login.";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      showSection("login-section");
+    }
+  </script>
+</body>
+</html>
