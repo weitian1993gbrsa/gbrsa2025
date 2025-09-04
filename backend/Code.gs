@@ -1,23 +1,17 @@
 // backend/Code.gs
 
-// Example users with SHA-256 hashed passwords (Base64 encoded)
+// Simple users with plaintext passwords (for testing only!)
 var USERS = {
-  "admin01": "admin",
-  "user02": "G8tiUrAg2QJc2S2i5W0RZSYUuzFqBb9yKfFOV1K7aFk="
+  "admin01": "admin123",
+  "user01": "user123"
 };
 
-// Hash and compare password
 function checkLogin(username, password) {
-  var storedHash = USERS[username];
-  if (!storedHash) return false;
-
-  var hash = Utilities.base64Encode(
-    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, password)
-  );
-  return storedHash === hash;
+  var storedPass = USERS[username];
+  if (!storedPass) return false;
+  return storedPass === password; // direct compare
 }
 
-// Handle login requests
 function doPost(e) {
   var data = JSON.parse(e.postData.contents);
   var username = data.username;
