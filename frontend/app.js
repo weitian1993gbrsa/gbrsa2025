@@ -1,28 +1,81 @@
-async function login() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+(function () {
+  const $ = (q, el=document) => el.querySelector(q);
+  const $$ = (q, el=document) => [...el.querySelectorAll(q)];
+  window.toast = (msg, timeout=2500) => { const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; document.body.appendChild(el); setTimeout(()=>{ el.remove(); }, timeout); };
 
+  // Simple micro-cache for participant lookups in this session
+  const cache = new Map();
+  window.participantCache = cache;
+
+  // GET helper
+  window.apiGet = async (params) => {
+    const key = JSON.stringify(params);
+    if (cache.has(key)) return cache.get(key);
+    const url = new URL(window.CONFIG.APPS_SCRIPT_URL);
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+    const res = await fetch(url.toString(), { cache:'no-store' });
+    if(!res.ok) throw new Error('GET failed');
+    const data = await res.json();
+    cache.set(key, data);
+    return data;
+  };
+
+  // POST helper (no Content-Type -> avoid preflight)
+  window.apiPost = async (payload) => {
+    const res = await fetch(window.CONFIG.APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload), keepalive:true });
+    const txt = await res.text();
+    let data; try{ data=JSON.parse(txt);}catch{ data={ raw:txt, ok:res.ok }; }
+    if(!res.ok) throw new Error('POST failed');
+    return data;
+  };
+
+  // Debounce helper
+  window.debounce = (fn, ms=300) => {
+    let t, lastArg, lastRunId = 0;
+    return (...args) => {
+      lastArg = args;
+      clearTimeout(t);
+      const runId = ++lastRunId;
+      t = setTimeout(() => { if (runId === lastRunId) fn(...lastArg); }, ms);
+    };
+  };
+
+  // Tiny loading markup factory
+  window.loadingDots = () => {
+    const span = document.createElement('span');
+    span.className = 'loading';
+    span.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+    return span;
+  };
+
+  window.$=$; window.$$=$$;
+})();
+
+// === Update Check ===
+
+let currentVersion = null;
+
+async function checkForDataUpdates() {
   try {
-    const res = await fetch("https://script.google.com/macros/s/AKfycbz5X-byHqxgSdyO26ibUrnb60rn6YXdkSxUXY0OzdMrs19dlcKXcJaR6nU9i3VziBXbXw/exec", {
-      method: "POST",
-      body: JSON.stringify({ username, password })
-    });
+    const response = await apiGet({ action: 'getVersion' }); // Must return { version: "..." }
+    const newVersion = response.version;
 
-    const result = await res.json();
-    if (result.success) {
-      localStorage.setItem("loggedIn", "true");
-      window.location.href = "index.html"; // redirect to protected page
-    } else {
-      document.getElementById("error").innerText = "Invalid login!";
+    if (currentVersion && newVersion !== currentVersion) {
+      showUpdateToast();
     }
-  } catch (err) {
-    document.getElementById("error").innerText = "Error connecting to server.";
+    currentVersion = newVersion;
+  } catch (e) {
+    console.warn('Failed to check for updates', e);
   }
 }
 
-// Protect pages
-if (window.location.pathname.includes("speed.html")) {
-  if (localStorage.getItem("loggedIn") !== "true") {
-    window.location.href = "index.html";
-  }
+function showUpdateToast() {
+  const toast = document.createElement('div');
+  toast.textContent = 'New data available — click to refresh';
+  toast.className = 'toast update-toast';
+  toast.onclick = () => location.reload();
+  document.body.appendChild(toast);
 }
+
+setInterval(checkForDataUpdates, 30000);
+checkForDataUpdates();
