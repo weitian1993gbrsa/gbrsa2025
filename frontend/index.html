@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="format-detection" content="telephone=no">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>GBRSA Score • Scoring</title>
+  <link rel="stylesheet" href="./styles.css"/>
+  <script defer src="./app.js"></script>
+  <script defer src="./config.js"></script>
+  <script defer src="./nozoom.js"></script>
+<style>html, body { touch-action: manipulation; overscroll-behavior: contain; }</style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b1020">
+</head>
+<body class="page homepage">
+  <header class="topbar">
+    <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
+    <div class="titles">
+      <h1>GBRSA Score</h1>
+      <p class="subtitle">Official Scoring Portal</p>
+    </div>
+  </header>
+
+  <main class="hero">
+    <section class="hero-content">
+      <h2 class="hero-title">Scan. Score. Sync.</h2>
+      <p class="hero-text">Paperless judging for Speed and Freestyle.</p>
+      <div class="menu-grid">
+        <a class="card" href="./speed.html"><h3>Speed Judge</h3><p>Scan QR → lookup → input score → submit.</p></a>
+        <a class="card disabled" href="./freestyle.html"><h3>Freestyle Judge</h3><p>Coming soon.</p></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot"><small>© 2025 GBRSA</small>
+<div class="a2hs-tip" style="background:#e6faff; padding:6px; font-size:0.7em; line-height:1.4; margin-top:10px; color:#444;">
+  <p><strong>For best experience</strong>, add this web‑app to your homescreen.</p>
+  <p><strong>On Android</strong>, open the menu in your browser (usually three dots next to the search bar) and select an option saying something like “Add to homescreen” or “Install”.</p>
+  <p><strong>On iOS</strong>, tap the “share” button and select “Add to Home Screen”.</p>
+  <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE – the simple scoring system</p>
+</div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('pageshow', function () {
+    // Scroll reset
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+
+    // Remove focus from previously selected buttons/links
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+  });
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js").catch(()=>{});
+}
+</script>
+<script>
+(function(){
+  let startY = 0, pulling = false;
+  document.addEventListener('touchstart', e => {
+    if (window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; }
+  }, {passive:true});
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const deltaY = e.touches[0].clientY - startY;
+    if (deltaY > 80) { pulling = false; location.reload(); }
+  }, {passive:true});
+  document.addEventListener('touchend', () => { pulling = false; }, {passive:true});
+})();
+</script>
+</body>
+</html>
