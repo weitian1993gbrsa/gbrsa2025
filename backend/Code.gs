@@ -19,6 +19,8 @@ function sameId(a, b) {
 
 function doGet(e) {
   const cmd = (e.parameter.cmd || '').toLowerCase();
+
+  // === If called as API ===
   if (cmd === 'ping') return json({ ok: true, ts: Date.now() });
 
   if (cmd === 'participant') {
@@ -45,8 +47,8 @@ function doGet(e) {
     return json({ found: false });
   }
 
-  // fallback
-  return json({ error: 'Unknown command' });
+  // === If no API command → show login page ===
+  return HtmlService.createHtmlOutputFromFile('index');
 }
 
 function doPost(e) {

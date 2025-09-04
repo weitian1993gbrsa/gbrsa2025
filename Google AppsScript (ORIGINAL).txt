@@ -45,7 +45,6 @@ function doGet(e) {
     return json({ found: false });
   }
 
-  // fallback
   return json({ error: 'Unknown command' });
 }
 
@@ -82,31 +81,4 @@ function doPost(e) {
 function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON); // no setHeader needed
-}
-
-/**
- * === LOGIN SYSTEM EXTENSION ===
- * New functions for user login validation
- */
-
-// Validate login credentials
-function checkLogin(userID, password) {
-  var ss = SpreadsheetApp.openById(SHEET_ID);  // use the same spreadsheet
-  var sheet = ss.getSheetByName("Users");      // new Users tab you created
-  if (!sheet) {
-    throw new Error("Users sheet not found!");
-  }
-
-  var data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues(); // skip header row
-  for (var i = 0; i < data.length; i++) {
-    if (data[i][0] === userID && data[i][1] === password) {
-      return { success: true, user: userID };
-    }
-  }
-  return { success: false };
-}
-
-// Expose login function for frontend
-function login(userID, password) {
-  return checkLogin(userID, password);
 }
