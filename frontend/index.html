@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>GBRSA Score • Scoring</title>
   <link rel="stylesheet" href="./styles.css"/>
+
+  <!-- 🔒 Protection script -->
+  <script>
+    if (!localStorage.getItem("judgeUser")) {
+      window.location.href = "login.html"; // redirect to login if not logged in
+    }
+  </script>
+
   <script defer src="./app.js"></script>
   <script defer src="./config.js"></script>
   <script defer src="./nozoom.js"></script>
@@ -35,25 +43,12 @@
 
   <footer class="foot"><small>© 2025 GBRSA</small>
 <div class="a2hs-tip" style="background:#e6faff; padding:6px; font-size:0.7em; line-height:1.4; margin-top:10px; color:#444;">
-  <p><strong>For best experience</strong>, add this web‑app to your homescreen.</p>
+  <p><strong>For best experience</strong>, add this web-app to your homescreen.</p>
   <p><strong>On Android</strong>, open the menu in your browser (usually three dots next to the search bar) and select an option saying something like “Add to homescreen” or “Install”.</p>
   <p><strong>On iOS</strong>, tap the “share” button and select “Add to Home Screen”.</p>
   <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE – the simple scoring system</p>
 </div>
 </footer>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <script>
   window.addEventListener('pageshow', function () {

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Judge Login - GBRSA Score</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    .login-box {
+      max-width: 350px;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Judge Login</h2>
+    <form onsubmit="return login(event)">
+      <input type="text" id="userid" placeholder="User ID" required><br>
+      <input type="password" id="password" placeholder="Password" required><br>
+      <button type="submit">Login</button>
+    </form>
+    <div id="error" class="error"></div>
+  </div>
+
+  <script>
+    // Replace with your deployed Apps Script Web App URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbxEOADfwC0ipkslwJTWNcbtMpXkaxZkCTtyvXj4jZbhZVGCF02bOpQk1SlHpRciYoyLEQ/exec"; 
+
+    async function login(e) {
+      e.preventDefault();
+
+      const userid = document.getElementById("userid").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      const payload = { cmd: "login", userid, password };
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(payload),
+          headers: { "Content-Type": "application/json" }
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+          // Store session in browser
+          localStorage.setItem("judgeUser", data.userid);
+          // Redirect to main app
+          window.location.href = "index.html";
+        } else {
+          document.getElementById("error").textContent = data.error || "Login failed";
+        }
+      } catch (err) {
+        document.getElementById("error").textContent = "Error: " + err;
+      }
+    }
+  </script>
+</body>
+</html>
