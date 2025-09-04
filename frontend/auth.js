@@ -10,8 +10,3 @@ function logout() {
   sessionStorage.removeItem("loggedIn");
   window.location.href = "login.html";
 }
-
-// 📴 Auto-logout when app/tab is closed or refreshed
-window.addEventListener("beforeunload", () => {
-  sessionStorage.removeItem("loggedIn");
-});
