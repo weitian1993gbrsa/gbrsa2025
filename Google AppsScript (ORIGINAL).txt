@@ -1,9 +1,10 @@
-/** GBRSA backend (header-aligned, tolerant ID) — COMPETITION-READY */
+/** GBRSA backend (optimized, header-aligned, TextFinder lookup) — COMPETITION-READY */
 
 const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg';
 const DATA_SHEET = PropertiesService.getScriptProperties().getProperty('DATA_SHEET_NAME') || 'Data';
 const RESULT_SHEET = PropertiesService.getScriptProperties().getProperty('RESULT_SHEET_NAME') || 'Result';
 
+/** --- Utility functions --- **/
 function normalizeId(s) {
   return String(s == null ? '' : s).trim();
 }
@@ -12,73 +13,101 @@ function stripLeadingZeros(s) {
 }
 function sameId(a, b) {
   const A = normalizeId(a), B = normalizeId(b);
-  if (A === B) return true;
-  if (stripLeadingZeros(A) === stripLeadingZeros(B)) return true; // 0012 vs 12
-  return false;
+  return (A === B || stripLeadingZeros(A) === stripLeadingZeros(B));
 }
 
+/** --- GET endpoint (participant lookup, health check) --- **/
 function doGet(e) {
   const cmd = (e.parameter.cmd || '').toLowerCase();
-  if (cmd === 'ping') return json({ ok: true, ts: Date.now() });
+
+  if (cmd === 'ping') {
+    return json({ ok: true, data: { ts: Date.now() }, error: null });
+  }
 
   if (cmd === 'participant') {
     const entryId = normalizeId(e.parameter.entryId);
-    if (!entryId) return json({ error: 'Missing entryId' });
+    if (!entryId) return json({ ok: false, data: null, error: 'Missing entryId' });
 
     const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(DATA_SHEET);
-    if (!sh) return json({ error: `Data sheet '${DATA_SHEET}' not found` });
+    if (!sh) return json({ ok: false, data: null, error: `Data sheet '${DATA_SHEET}' not found` });
 
-    const values = sh.getDataRange().getValues();
-    if (!values.length) return json({ found: false });
+    const lastRow = sh.getLastRow();
+    const lastCol = sh.getLastColumn();
+    if (lastRow < 2) return json({ ok: false, data: null, error: 'No participants found' });
 
-    const headers = values[0].map(String);
-    const idCol = headers.findIndex(h => String(h).trim().toUpperCase() === 'ID');
-    if (idCol === -1) return json({ error: "Column 'ID' not found in Data sheet" });
+    // ✅ read header row
+    const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
 
-    for (let r = 1; r < values.length; r++) {
-      if (sameId(values[r][idCol], entryId)) {
-        const obj = {};
-        headers.forEach((h, i) => obj[String(h).trim().toUpperCase()] = values[r][i]);
-        return json({ found: true, participant: obj, matchedRow: r + 1 });
-      }
-    }
-    return json({ found: false });
+    // ✅ assume ID must be in first column
+    const idHeader = headers[0].trim().toUpperCase();
+    if (idHeader !== 'ID') return json({ ok: false, data: null, error: "Column 'ID' must be in A1" });
+
+    // ✅ use TextFinder on ID column only
+    const idRange = sh.getRange(2, 1, lastRow - 1, 1);
+    const finder = idRange.createTextFinder(entryId).matchEntireCell(true);
+    const cell = finder.findNext();
+
+    if (!cell) return json({ ok: false, data: null, error: 'Participant not found' });
+
+    const rowIndex = cell.getRow();
+    const rowVals = sh.getRange(rowIndex, 1, 1, lastCol).getValues()[0];
+    const obj = {};
+    headers.forEach((h, i) => obj[h.trim().toUpperCase()] = rowVals[i]);
+
+    return json({ ok: true, data: { participant: obj, matchedRow: rowIndex }, error: null });
   }
 
-  return json({ error: 'Unknown command' });
+  return json({ ok: false, data: null, error: 'Unknown command' });
 }
 
+/** --- POST endpoint (save results) --- **/
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(5000); // wait up to 5 seconds
 
-    const body = JSON.parse(e.postData.contents || '{}');
+    // ✅ Parse request body
+    let body = {};
+    try {
+      body = JSON.parse(e.postData && e.postData.contents ? e.postData.contents : '{}');
+    } catch (err) {
+      return json({ ok: false, data: null, error: "Invalid JSON in request body" });
+    }
+
+    if (typeof body !== 'object' || Array.isArray(body)) {
+      return json({ ok: false, data: null, error: "Request body must be a JSON object" });
+    }
+
+    // ✅ Open Result sheet
     const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(RESULT_SHEET);
-    if (!sh) return json({ error: `Result sheet '${RESULT_SHEET}' not found` });
+    if (!sh) return json({ ok: false, data: null, error: `Result sheet '${RESULT_SHEET}' not found` });
 
-    const values = sh.getDataRange().getValues();
-    if (!values.length) return json({ error: 'Result sheet has no header row' });
-    const headers = values[0].map(String);
+    const lastRow = sh.getLastRow();
+    if (lastRow < 1) return json({ ok: false, data: null, error: "Result sheet has no header row" });
 
+    const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
+
+    // ✅ Build row based on headers
     const row = headers.map(h => {
-      const key = String(h).trim();
+      const key = h.trim();
       if (key.toLowerCase() === 'timestamp') return new Date();
       if (Object.prototype.hasOwnProperty.call(body, key)) return body[key];
-      const found = Object.keys(body).find(k => k.trim().toLowerCase() === key.toLowerCase());
-      return (found ? body[found] : '');
+      const foundKey = Object.keys(body).find(k => k.trim().toLowerCase() === key.toLowerCase());
+      return foundKey ? body[foundKey] : '';
     });
 
     sh.appendRow(row);
-    return json({ ok: true });
+
+    return json({ ok: true, data: { saved: true }, error: null });
   } catch (err) {
-    return json({ error: String(err) });
+    return json({ ok: false, data: null, error: String(err) });
   } finally {
-    if (lock) lock.releaseLock(); // Always unlock
+    if (lock) lock.releaseLock();
   }
 }
 
+/** --- JSON Response helper --- **/
 function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON); // no setHeader needed
+    .setMimeType(ContentService.MimeType.JSON);
 }
