@@ -4,3 +4,5 @@ window.CONFIG = {
   DATA_SHEET_NAME: "Data",
   RESULT_SHEET_NAME: "Result"
 };
+// Login backend URL
+const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbzq3LYbSAoFRjt8wIbomxwehCOdAdGo4eCkpHlhj_ncTm27tpQJyMhzQHRQTfhKQ6WJ/exec";
