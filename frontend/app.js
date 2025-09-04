@@ -11,7 +11,7 @@ async function login() {
     const result = await res.json();
     if (result.success) {
       localStorage.setItem("loggedIn", "true");
-      window.location.href = "speed.html"; // redirect to protected page
+      window.location.href = "index.html"; // redirect to protected page
     } else {
       document.getElementById("error").innerText = "Invalid login!";
     }
