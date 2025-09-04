@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Judge Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #e0e0e0;
+      background: #f5f6fa;
       margin: 0;
       height: 100vh;
       display: flex;
@@ -16,37 +18,40 @@
 
     .login-box {
       background: #fff;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-      width: 300px;
+      padding: 30px 20px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
       text-align: center;
     }
 
     .login-box h2 {
-      margin-bottom: 20px;
-      font-size: 22px;
-      color: #333;
+      margin-bottom: 25px;
+      font-size: 24px;
+      color: #222;
     }
 
     .login-box input[type="text"],
     .login-box input[type="password"] {
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
+      padding: 14px;
+      margin: 12px 0;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
     }
 
     .login-box button {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       background: #007bff;
       color: #fff;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
       cursor: pointer;
       transition: background 0.3s;
     }
