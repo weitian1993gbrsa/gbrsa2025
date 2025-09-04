@@ -2,7 +2,7 @@
 
 // Example users with SHA-256 hashed passwords (Base64 encoded)
 var USERS = {
-  "admin01": "B+qvfeaa7rP9QGcT+3Uyh5Zyl3vF4hmR/N5NQ7B5qU4=",
+  "admin01": "admin",
   "user02": "G8tiUrAg2QJc2S2i5W0RZSYUuzFqBb9yKfFOV1K7aFk="
 };
 
