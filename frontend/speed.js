@@ -108,14 +108,13 @@
         if (window.toast) toast('ID not found.');
         return;
       }
-      const p = data.participant || {};
+      const p = data.data.participant || {};
 
       const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']]
         .filter(Boolean).map(escapeHtml).join('<br>');
       const rep = p['REPRESENTATIVE'] || '';
       const state = p['STATE'] || '';
       const heat = p['HEAT'] || '';
-      const court = p['COURT'] || '';
       const event = p['EVENT'] || '';
       const division = p['DIVISION'] || '';
       const court = p['COURT'] || '';
