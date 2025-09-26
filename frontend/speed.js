@@ -103,7 +103,7 @@
 
     try {
       const data = await apiGet({ cmd:'participant', entryId: id }); // provided by app.js
-      if (!data || !data.found){
+      if (!data || !data.data || !data.data.participant){
         hideParticipant(); hideStep2(); clearHidden();
         if (window.toast) toast('ID not found.');
         return;
