@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Judge Form - GBRSA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-lg bg-white rounded-2xl shadow p-6 space-y-4">
+    <h2 class="text-xl font-bold mb-2">Step 1 – Identify Participant</h2>
+
+    <!-- Input -->
+    <div class="flex items-center space-x-2 mb-4">
+      <button onclick="loadParticipant(document.getElementById('entryId').value)" 
+        class="flex items-center space-x-1 px-3 py-2 border rounded bg-gray-100 hover:bg-gray-200">
+        <span>📷</span><span>Scan / Search</span>
+      </button>
+      <input id="entryId" type="text" placeholder="Enter ID" 
+        class="flex-1 border rounded p-2 text-sm focus:outline-none focus:ring focus:ring-blue-400" />
+    </div>
+
+    <!-- Participant card -->
+    <div id="participantCard" class="hidden bg-gray-50 rounded-2xl border shadow-inner p-4 space-y-2">
+      <div class="text-sm text-gray-500">
+        ID: <span id="pId" class="font-medium"></span>
+      </div>
+
+      <div>
+        <h3 class="font-semibold">Names</h3>
+        <ul id="pNames" class="list-disc list-inside text-sm space-y-1 break-words"></ul>
+      </div>
+
+      <div class="text-sm">
+        <span class="font-semibold">Representative:</span>
+        <span id="pRep"></span>
+      </div>
+
+      <div class="text-sm">
+        <span class="font-semibold">State:</span>
+        <span id="pState"></span>
+      </div>
+    </div>
+
+    <button id="confirmBtn" class="hidden mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">
+      Confirm & Start Scoring
+    </button>
+  </div>
+
+<script>
+async function loadParticipant(entryId) {
+  if (!entryId) return alert("Please enter an ID");
+
+  try {
+    const res = await fetch(`?cmd=participant&entryId=${encodeURIComponent(entryId)}`);
+    const json = await res.json();
+
+    if (json.ok && json.data) {
+      const d = json.data;
+      document.getElementById("pId").textContent = d.id;
+
+      const ul = document.getElementById("pNames");
+      ul.innerHTML = "";
+      d.names.forEach(name => {
+        const li = document.createElement("li");
+        li.textContent = name;
+        ul.appendChild(li);
+      });
+
+      document.getElementById("pRep").textContent = d.representative || "-";
+      document.getElementById("pState").textContent = d.state || "-";
+      document.getElementById("participantCard").classList.remove("hidden");
+      document.getElementById("confirmBtn").classList.remove("hidden");
+    } else {
+      alert("Participant not found");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error fetching participant");
+  }
+}
+</script>
+
+</body>
+</html>
