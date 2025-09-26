@@ -103,12 +103,12 @@
 
     try {
       const data = await apiGet({ cmd:'participant', entryId: id }); // provided by app.js
-      if (!data || !data.data || !data.data.participant){
+      if (!data || !data.participant){
         hideParticipant(); hideStep2(); clearHidden();
         if (window.toast) toast('ID not found.');
         return;
       }
-      const p = data.data.participant || {};
+      const p = data.participant || {};
 
       const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']]
         .filter(Boolean).map(escapeHtml).join('<br>');
