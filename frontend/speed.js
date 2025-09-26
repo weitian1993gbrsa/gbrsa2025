@@ -41,7 +41,7 @@
   const fREP = $('#fREP');
   const fSTATE = $('#fSTATE');
   const fHEAT = $('#fHEAT');
-  const fCOURT = $('#fCOURT');
+  const fSTATION = $('#fSTATION');
   const fEVENT = $('#fEVENT');
   const fDIVISION = $('#fDIVISION');
 
@@ -68,7 +68,7 @@
   function hideParticipant(){ participantCard.classList.add('hide'); }
 
   function clearHidden(){
-    [fId,fNAME1,fNAME2,fNAME3,fNAME4,fREP,fSTATE,fHEAT,fCOURT].forEach(el => el.value = '');
+    [fId,fNAME1,fNAME2,fNAME3,fNAME4,fREP,fSTATE,fHEAT,fSTATION].forEach(el => el.value = '');
   }
 
   function resetUI(){
@@ -117,7 +117,7 @@
       const heat = p['HEAT'] || '';
       const event = p['EVENT'] || '';
       const division = p['DIVISION'] || '';
-      const court = p['COURT'] || '';
+      const station = p['STATION'] || '';
 
       // Fill visible
       pId.textContent = id;
@@ -125,7 +125,7 @@
       pRep.textContent = rep || '—';
       pState.textContent = state || '—';
       badgeHeat.textContent = `HEAT ${heat||'—'}`;
-      badgeStation.textContent = `STATION ${court||'—'}`;
+      badgeStation.textContent = `STATION ${station||'—'}`;
       badgeEvent.textContent = `EVENT ${event||'—'}`;
       badgeDivision.textContent = `DIVISION ${division||'—'}`;
 
@@ -135,7 +135,7 @@
       fNAME2.value = p['NAME2'] || '';
       fNAME3.value = p['NAME3'] || '';
       fNAME4.value = p['NAME4'] || '';
-      fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fCOURT.value = court; fEVENT.value = event; fDIVISION.value = division;
+      fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fSTATION.value = station; fEVENT.value = event; fDIVISION.value = division;
 
       btnConfirm.disabled = false;
     } catch (err){
