@@ -16,7 +16,7 @@ function sameId(a, b) {
   return (A === B || stripLeadingZeros(A) === stripLeadingZeros(B));
 }
 
-/** --- GET endpoint (participant lookup, health check) --- **/
+/** --- GET endpoint --- **/
 function doGet(e) {
   const cmd = (e.parameter.cmd || '').toLowerCase();
 
@@ -25,48 +25,48 @@ function doGet(e) {
   }
 
   if (cmd === 'participant') {
-    const entryId = normalizeId(e.parameter.entryId);
-    if (!entryId) return json({ ok: false, data: null, error: 'Missing entryId' });
-
-    const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(DATA_SHEET);
-    if (!sh) return json({ ok: false, data: null, error: `Data sheet '${DATA_SHEET}' not found` });
-
-    const lastRow = sh.getLastRow();
-    const lastCol = sh.getLastColumn();
-    if (lastRow < 2) return json({ ok: false, data: null, error: 'No participants found' });
-
-    // ✅ read header row
-    const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
-
-    // ✅ assume ID must be in first column
-    const idHeader = headers[0].trim().toUpperCase();
-    if (idHeader !== 'ID') return json({ ok: false, data: null, error: "Column 'ID' must be in A1" });
-
-    // ✅ use TextFinder on ID column only
-    const idRange = sh.getRange(2, 1, lastRow - 1, 1);
-    const finder = idRange.createTextFinder(entryId).matchEntireCell(true);
-    const cell = finder.findNext();
-
-    if (!cell) return json({ ok: false, data: null, error: 'Participant not found' });
-
-    const rowIndex = cell.getRow();
-    const rowVals = sh.getRange(rowIndex, 1, 1, lastCol).getValues()[0];
-    const obj = {};
-    headers.forEach((h, i) => obj[h.trim().toUpperCase()] = rowVals[i]);
-
-    return json({ ok: true, data: { participant: obj, matchedRow: rowIndex }, error: null });
+    return getParticipant(e); // ✅ delegate to helper
   }
 
-  return json({ ok: false, data: null, error: 'Unknown command' });
+  // Default → serve the UI
+  return HtmlService.createTemplateFromFile('judge_form_ui')
+    .evaluate()
+    .setTitle("GBRSA Judge Form")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/** --- Participant lookup helper --- **/
+function getParticipant(e) {
+  const entryId = normalizeId(e.parameter.entryId);
+  if (!entryId) return json({ ok: false, data: null, error: 'Missing entryId' });
+
+  const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(DATA_SHEET);
+  const values = sh.getDataRange().getValues();
+
+  const row = values.find(r => sameId(r[0], entryId));
+  if (!row) return json({ ok: false, data: null, error: 'Not found' });
+
+  // Adjust column indexes to match your sheet
+  const names = [row[1], row[2], row[3], row[4]].filter(Boolean);
+
+  return json({
+    ok: true,
+    data: {
+      id: entryId,
+      names: names,
+      representative: row[5],
+      state: row[6]
+    },
+    error: null
+  });
 }
 
 /** --- POST endpoint (save results) --- **/
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(5000); // wait up to 5 seconds
+    lock.waitLock(5000);
 
-    // ✅ Parse request body
     let body = {};
     try {
       body = JSON.parse(e.postData && e.postData.contents ? e.postData.contents : '{}');
@@ -78,16 +78,11 @@ function doPost(e) {
       return json({ ok: false, data: null, error: "Request body must be a JSON object" });
     }
 
-    // ✅ Open Result sheet
     const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(RESULT_SHEET);
     if (!sh) return json({ ok: false, data: null, error: `Result sheet '${RESULT_SHEET}' not found` });
 
-    const lastRow = sh.getLastRow();
-    if (lastRow < 1) return json({ ok: false, data: null, error: "Result sheet has no header row" });
-
     const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
 
-    // ✅ Build row based on headers
     const row = headers.map(h => {
       const key = h.trim();
       if (key.toLowerCase() === 'timestamp') return new Date();
@@ -106,7 +101,7 @@ function doPost(e) {
   }
 }
 
-/** --- JSON Response helper --- **/
+/** --- JSON helper --- **/
 function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
