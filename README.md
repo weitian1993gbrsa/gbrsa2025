@@ -1,185 +1,124 @@
-# GBRSA Jump Rope Judge App — *Light + Fast*
+# GBRSA 2025 — Jump Rope Judge & Scoring App
+
+## 🔑 Quick Facts
+- **Type**: Progressive Web App (PWA)  
+- **Frontend**: HTML / JavaScript / CSS (Netlify hosted)  
+- **Backend**: Google Apps Script Web App (linked to Google Sheets)  
+- **Purpose**: Judge & scoring system for jump rope competitions  
+- **Key Features**: Login, Speed judging, Freestyle judging, Live scoring  
+
+---
 
 ## 📖 Overview
-This is a **web-based judging and scoring system** for jump rope competitions.  
-It is designed to be **simple, fast, and reliable** so judges can focus on the athletes, not the software.  
+GBRSA 2025 is a lightweight, mobile-friendly **judging and scoring app**.  
+It is optimized for **speed, simplicity, and reliability**.  
 
-The app runs as a **Progressive Web App (PWA)**, connected to **Google Sheets** for live data.  
-- **Frontend**: Lightweight HTML/JS/CSS (runs in browser, works well on tablets/phones).  
-- **Backend**: Google Apps Script Web App (fetches competitor data and saves results).  
-- **Login System**: Judges must log in with credentials stored in a separate Google Sheet before scoring.  
+- Judges **log in securely** (credentials stored in Google Sheets).  
+- Scores are **submitted in real time** to Google Sheets.  
+- Runs offline (PWA) and works well on tablets/phones.  
 
 ---
 
 ## 🎯 Features
+- 🔐 **Secure login system**  
+  - Session-based (auto logout when app closes).  
+  - No localStorage (safer).  
 
-### Frontend
+- ⚡ **Fast performance**  
+  - Debounced competitor lookup.  
+  - In-memory cache for repeat lookups.  
 
-### 🔐 Updated Login System (2025)
-- **Session-based login** using `sessionStorage` instead of `localStorage`.
-- Judges are **automatically logged out** when:
-  - The app is killed/closed.
-- Ensures no one can stay logged in indefinitely without re-authentication.
+- 📱 **Optimized UI**  
+  - Fullscreen mobile layout.  
+  - No-zoom, touch-friendly.  
+  - Light theme for readability.  
 
-- **Login gate** (`login.html`) → judges must log in before accessing the homepage.  
-- **Light theme** for readability.  
-- **Debounced competitor ID lookup (300ms)** to avoid slow typing delays.  
-- **In-memory cache** for instant repeat lookups.  
-- **Loading dots** to show judges when the system is fetching data.  
-- **Vertical competitor names** for clear score sheets.  
-- **False start toggle** (“YES” = checked, blank = unchecked).  
-- Separate pages for:
-  - `speed.html` → Speed event scoring.  
-  - `freestyle.html` → Freestyle event scoring.  
-- **PWA ready**: `manifest.json` + service worker.  
-- Deployable to **Netlify**.  
-
-### Backend (Apps Script — Scoring)
-- **Fast ID lookup** using `TextFinder` on column `A` of the **Data sheet**.  
-- Competitor IDs normalized (handles leading zeros).  
-- **Endpoints**:
-  - `GET ?cmd=participant&entryId=...` → returns competitor info.  
-  - `POST` (JSON body) → appends judge’s result to the **Result sheet**, with timestamp.  
-  - `GET ?cmd=ping` → health check.  
-- Fully integrated with **Google Sheets**:  
-  - `Data` sheet → competitor info.  
-  - `Result` sheet → scores and judging records.  
-
-### Backend (Apps Script — Login)
-- Separate **Login Apps Script project** connected to a **Judges sheet**.  
-- Judges sheet must have:
-  ```
-  Username | Password
-  judge1   | 1234
-  judge2   | abcd
-  ```
-- **Endpoint**:
-  - `POST { "cmd": "login", "username": "judge1", "password": "1234" }`  
-  → returns `{ "ok": true, "token": "..." }` if valid.  
-- Tokens cached temporarily for session handling.  
-- Protects access to the judging system by requiring login before scoring.  
+- 🏆 **Judging modes**  
+  - **Speed**: count repetitions.  
+  - **Freestyle**: performance scoring.  
 
 ---
 
-## 🚀 Deployment
+## 📂 Project Structure
+```
+frontend/              → Netlify frontend
+  index.html           → Main scoring UI
+  login.html           → Judge login page
+  freestyle.html       → Freestyle judging
+  speed.html           → Speed judging
+  app.js               → Core logic
+  auth.js              → Session enforcement
+  config.js            → Backend API + Sheet IDs
+  styles.css           → UI theme
+  manifest.json        → PWA metadata
+  service-worker.js    → PWA install handler
+  nozoom.js            → Mobile UX helper
 
-### Backend (Google Apps Script — Scoring)
-1. Copy `backend/Code.gs` into a new Apps Script project.  
-2. Set script properties for:
-   - `SHEET_ID` → Google Sheet ID.  
-   - `DATA_SHEET_NAME` (default `"Data"`).  
-   - `RESULT_SHEET_NAME` (default `"Result"`).  
-3. Deploy as a **Web App** (accessible via URL).  
+Google AppScript login form.txt   → Login validator backend
+Google AppScript judge form.txt   → Scoring handler backend
+README.md                         → Project documentation
+```
 
-### Backend (Google Apps Script — Login)
-1. Create a new Google Sheet called **Judges** with columns: `Username`, `Password`.  
-2. Copy the login backend script (`Login.gs`) into a new Apps Script project.  
-3. Set:
-   ```js
-   const LOGIN_SHEET_ID = "YOUR_JUDGES_SHEET_ID";
+---
+
+## ⚙️ Setup Instructions
+
+### 1. Deploy Backend (Google Apps Script)
+1. Open [Google Apps Script](https://script.google.com/).  
+2. Create a new project.  
+3. Paste code from:  
+   - `Google AppScript login form.txt`  
+   - `Google AppScript judge form.txt`  
+4. Link to your **Google Sheets** (judge credentials + scoring).  
+5. Deploy → **Web App**:  
+   - Execute as: *Me*  
+   - Access: *Anyone with link*  
+6. Copy the deployed **Web App URL**.  
+
+---
+
+### 2. Configure Frontend
+Edit `frontend/config.js`:
+
+```js
+window.CONFIG = {
+  APPS_SCRIPT_URL: "YOUR_DEPLOYED_WEBAPP_URL",
+  SHEET_ID: "YOUR_GOOGLE_SHEET_ID",
+  DATA_SHEET_NAME: "Data",
+  RESULT_SHEET_NAME: "Result"
+};
+```
+
+---
+
+### 3. Deploy Frontend (Netlify)
+1. Push this repo to **GitHub**.  
+2. In [Netlify](https://app.netlify.com/):  
+   - Add new site → Import from GitHub.  
+   - Select repo → Deploy.  
+   - (No build step needed — static files only).  
+3. Netlify provides a URL, e.g.:  
    ```
-4. Deploy as a **Web App** (accessible via URL, set to *Anyone*).  
-5. Copy the deployment URL into your `frontend/config.js`:  
-   ```js
-   const LOGIN_API_URL = "https://script.google.com/macros/s/DEPLOYMENT_ID/exec";
+   https://gbrsa2025.netlify.app
    ```
 
-### Frontend
+---
 
-### 🔐 Updated Login System (2025)
-- **Session-based login** using `sessionStorage` instead of `localStorage`.
-- Judges are **automatically logged out** when:
-  - The app is killed/closed.
-- Ensures no one can stay logged in indefinitely without re-authentication.
- (Netlify)
-1. Deploy the `frontend/` folder to Netlify.  
-2. Update `config.js` with:  
-   - `API_URL` → scoring Apps Script Web App URL  
-   - `LOGIN_API_URL` → login Apps Script Web App URL  
+## 👥 Usage
+1. Judges open the Netlify site on a device.  
+2. Log in with credentials.  
+3. Choose **Speed** or **Freestyle** judging.  
+4. Scores auto-save to Google Sheets.  
 
 ---
 
-# 🏗️ System Architecture
-
-The system is designed as a **lightweight 3-tier app**:
-
-## 1. **Frontend (Judge’s Device)**
-Runs as a **Progressive Web App (PWA)** on tablets/phones.  
-- **Pages**:
-  - `login.html` → Judge login  
-  - `index.html` → Home/start (protected by login)  
-  - `speed.html` → Speed event scoring (active)  
-  - `freestyle.html` → Freestyle scoring (planned)  
-- **Core Scripts**:
-  - `app.js` → utilities (toast notifications, caching, API wrappers)  
-  - `speed.js` → speed event scoring logic (ID stabilization, result submission)  
-  - `auth.js` → login/session protection  
-- **Key Features**:
-  - Judge authentication required before scoring  
-  - Competitor ID lookup (debounced + cached)  
-  - Quick judge inputs (score fields, false start toggle)  
-  - Toast confirmations after submissions  
-  - Offline/PWA support (via `manifest.json` + `service-worker.js`)  
-
-**Deployment** → Hosted on **Netlify**.  
-Judges access via a secure URL on their device.
+## 🛡 Security Notes
+- Sessions reset automatically when app closes.  
+- No sensitive data in localStorage.  
+- Backend always validates login before saving scores.  
 
 ---
 
-## 2. **Backend (Google Apps Script Web App)**
-Acts as the **API server**, running in Google’s cloud.  
-
-### Endpoints:
-- `GET ?cmd=ping` → Health check  
-- `GET ?cmd=participant&entryId=...` → Look up competitor info  
-- `POST { ... }` → Save a judge’s score  
-
-### Features:
-- **Normalization**: Handles leading zeros in competitor IDs.  
-- **Data Access**:
-  - Reads from **Data sheet** (`competitor info`)  
-  - Writes to **Result sheet** (`judge submissions`)  
-- **Timestamping**: Each submission includes a time marker.  
-
-**Deployment** → Published as a **Web App** in Google Apps Script.  
-
----
-
-## 3. **Login Backend (Google Apps Script Web App)**
-Dedicated script for judge authentication.  
-- Reads credentials from **Judges sheet**.  
-- Verifies username/password match.  
-- Issues temporary token.  
-- Integrated into `login.html` frontend.  
-
----
-
-## 4. **Database Layer (Google Sheets)**
-The central “database” is just Google Sheets with three tabs:  
-- **Data** → Competitor info (ID, Name, Country, Division, etc.)  
-- **Result** → Judge submissions (ID, Score, Judge, Timestamp, Flags)  
-- **Judges** → User accounts (Username, Password)  
-
-Advantages:
-- No separate DB setup needed  
-- Judges’ results are instantly visible to organizers  
-- Easy export to CSV/Excel for event summaries  
-
----
-
-# 🔄 Data Flow Example
-
-**Judge login and scoring:**
-1. Judge opens `login.html` → enters **username + password**.  
-2. Frontend sends → `POST { cmd: "login", username, password }`.  
-3. Login backend checks **Judges sheet** → returns `{ ok: true }` if valid.  
-4. Judge redirected to `index.html`.  
-5. Judge navigates to `speed.html` → enters **competitor ID**.  
-6. Frontend calls → `GET ?cmd=participant&entryId=123`.  
-7. Scoring backend finds competitor row in **Data sheet** → returns JSON.  
-8. Judge enters score → presses Submit.  
-9. Frontend sends → `POST { entryId, score }`.  
-10. Backend appends row in **Result sheet** with timestamp.  
-11. Toast confirmation → judge moves to next competitor.  
-
----
+✅ This README is now:  
+- **Human-readable** (clear guide for developers & judges).  
+- **AI-readable** (structured sections, keywords, file mappings).  
