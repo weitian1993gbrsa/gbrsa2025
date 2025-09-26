@@ -25,7 +25,9 @@
 
   const participantCard = $('#participantCard');
   const badgeHeat = $('#badgeHeat');
-  const badgeCourt = $('#badgeCourt');
+  const badgeStation = $('#badgeStation');
+  const badgeEvent = $('#badgeEvent');
+  const badgeDivision = $('#badgeDivision');
   const pId = $('#pId');
   const pNames = $('#pNames');
   const pRep = $('#pRep');
@@ -40,6 +42,8 @@
   const fSTATE = $('#fSTATE');
   const fHEAT = $('#fHEAT');
   const fCOURT = $('#fCOURT');
+  const fEVENT = $('#fEVENT');
+  const fDIVISION = $('#fDIVISION');
 
   const btnConfirm = $('#btnConfirm');
   const scoreFormWrap = $('#scoreFormWrap');
@@ -74,7 +78,7 @@
     hideParticipant();
     hideStep2();
     pId.textContent = '—'; pNames.innerHTML = '—'; pRep.textContent = '—'; pState.textContent = '—';
-    badgeHeat.textContent = 'HEAT —'; badgeCourt.textContent = 'COURT —';
+    badgeHeat.textContent = 'HEAT —'; badgeStation.textContent = 'STATION —'; badgeEvent.textContent = 'EVENT —'; badgeDivision.textContent = 'DIVISION —';
     entryInput.value = '';
     stopScan();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -95,7 +99,7 @@
     btnConfirm.disabled = true;
     pId.textContent = 'Loading…';
     pNames.innerHTML = loadingDots;
-    pRep.textContent = ''; pState.textContent = ''; badgeHeat.textContent = 'HEAT —'; badgeCourt.textContent = 'COURT —';
+    pRep.textContent = ''; pState.textContent = ''; badgeHeat.textContent = 'HEAT —'; badgeStation.textContent = 'STATION —'; badgeEvent.textContent = 'EVENT —'; badgeDivision.textContent = 'DIVISION —';
 
     try {
       const data = await apiGet({ cmd:'participant', entryId: id }); // provided by app.js
@@ -112,6 +116,9 @@
       const state = p['STATE'] || '';
       const heat = p['HEAT'] || '';
       const court = p['COURT'] || '';
+      const event = p['EVENT'] || '';
+      const division = p['DIVISION'] || '';
+      const court = p['COURT'] || '';
 
       // Fill visible
       pId.textContent = id;
@@ -119,7 +126,9 @@
       pRep.textContent = rep || '—';
       pState.textContent = state || '—';
       badgeHeat.textContent = `HEAT ${heat||'—'}`;
-      badgeCourt.textContent = `COURT ${court||'—'}`;
+      badgeStation.textContent = `STATION ${court||'—'}`;
+      badgeEvent.textContent = `EVENT ${event||'—'}`;
+      badgeDivision.textContent = `DIVISION ${division||'—'}`;
 
       // Fill hidden fields
       fId.value = id;
@@ -127,7 +136,7 @@
       fNAME2.value = p['NAME2'] || '';
       fNAME3.value = p['NAME3'] || '';
       fNAME4.value = p['NAME4'] || '';
-      fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fCOURT.value = court;
+      fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fCOURT.value = court; fEVENT.value = event; fDIVISION.value = division;
 
       btnConfirm.disabled = false;
     } catch (err){
