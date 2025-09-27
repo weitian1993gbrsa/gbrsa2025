@@ -62,31 +62,45 @@ function getParticipant(e) {
   });
 }
 
-/** --- LOGIN helper --- **/
+/** --- LOGIN helper (patched with extra guards) --- **/
 function doLogin(body) {
-  const userId = (body.userId || "").trim();
-  const password = (body.password || "").trim();
+  const userId = String(body.userId || "").trim();
+  const password = String(body.password || "").trim();
+
+  if (!userId || !password) {
+    return { ok: false, data: null, error: "Missing credentials" };
+  }
 
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(JUDGES_SHEET);
   if (!sh) return { ok: false, data: null, error: "Judges sheet not found" };
 
   const values = sh.getDataRange().getValues();
-  const headers = values[0];
-  const userIndex = headers.indexOf("UserID");
-  const passIndex = headers.indexOf("Password");
+  const headers = values[0].map(String);
+  const userIndex = headers.findIndex(h => h.trim().toLowerCase() === "userid");
+  const passIndex = headers.findIndex(h => h.trim().toLowerCase() === "password");
 
   if (userIndex === -1 || passIndex === -1) {
     return { ok: false, data: null, error: "Judges sheet must have 'UserID' and 'Password' columns" };
   }
 
-  const found = values.slice(1).some(row => {
-    return row[userIndex] && row[userIndex].toString().trim() === userId &&
-           row[passIndex] && row[passIndex].toString().trim() === password;
-  });
+  if (values.length <= 1) {
+    return { ok: false, data: null, error: "No users registered" };
+  }
 
-  return found
-    ? { ok: true, data: { userId: userId }, error: null }
-    : { ok: false, data: null, error: "Invalid credentials" };
+  for (let r = 1; r < values.length; r++) {
+    const sheetUser = String(values[r][userIndex] || "").trim();
+    const sheetPass = String(values[r][passIndex] || "").trim();
+
+    if (!sheetUser || !sheetPass) {
+      continue; // 🚨 skip blank rows
+    }
+
+    if (userId === sheetUser && password === sheetPass) {
+      return { ok: true, data: { userId }, error: null };
+    }
+  }
+
+  return { ok: false, data: null, error: "Invalid credentials" };
 }
 
 /** --- POST endpoint (save results / login) --- **/
