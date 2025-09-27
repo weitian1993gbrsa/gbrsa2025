@@ -62,45 +62,31 @@ function getParticipant(e) {
   });
 }
 
-/** --- LOGIN helper (patched with extra guards) --- **/
+/** --- LOGIN helper --- **/
 function doLogin(body) {
-  const userId = String(body.userId || "").trim();
-  const password = String(body.password || "").trim();
-
-  if (!userId || !password) {
-    return { ok: false, data: null, error: "Missing credentials" };
-  }
+  const userId = (body.userId || "").trim();
+  const password = (body.password || "").trim();
 
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(JUDGES_SHEET);
   if (!sh) return { ok: false, data: null, error: "Judges sheet not found" };
 
   const values = sh.getDataRange().getValues();
-  const headers = values[0].map(String);
-  const userIndex = headers.findIndex(h => h.trim().toLowerCase() === "userid");
-  const passIndex = headers.findIndex(h => h.trim().toLowerCase() === "password");
+  const headers = values[0];
+  const userIndex = headers.indexOf("UserID");
+  const passIndex = headers.indexOf("Password");
 
   if (userIndex === -1 || passIndex === -1) {
     return { ok: false, data: null, error: "Judges sheet must have 'UserID' and 'Password' columns" };
   }
 
-  if (values.length <= 1) {
-    return { ok: false, data: null, error: "No users registered" };
-  }
+  const found = values.slice(1).some(row => {
+    return row[userIndex] && row[userIndex].toString().trim() === userId &&
+           row[passIndex] && row[passIndex].toString().trim() === password;
+  });
 
-  for (let r = 1; r < values.length; r++) {
-    const sheetUser = String(values[r][userIndex] || "").trim();
-    const sheetPass = String(values[r][passIndex] || "").trim();
-
-    if (!sheetUser || !sheetPass) {
-      continue; // 🚨 skip blank rows
-    }
-
-    if (userId === sheetUser && password === sheetPass) {
-      return { ok: true, data: { userId }, error: null };
-    }
-  }
-
-  return { ok: false, data: null, error: "Invalid credentials" };
+  return found
+    ? { ok: true, data: { userId: userId }, error: null }
+    : { ok: false, data: null, error: "Invalid credentials" };
 }
 
 /** --- POST endpoint (save results / login) --- **/
@@ -154,6 +140,23 @@ function doPost(e) {
 
 /** --- JSON helper --- **/
 function json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*")
+    .setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+    .setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+// Added doOptions handler for CORS preflight
+function doOptions(e) {
+  return ContentService.createTextOutput("")
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*")
+    .setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+    .setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+function json(obj_old) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
