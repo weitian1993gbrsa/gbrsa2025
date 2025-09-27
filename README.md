@@ -112,6 +112,35 @@ window.CONFIG = {
 
 ---
 
+
+
+---
+
+### 🆕 Tailwind Judge Form UI
+
+We now include a **mobile-optimized Tailwind UI** for the Judge Form.
+
+- **File**: `judge_form_ui.html`  
+- **Purpose**: Provides a responsive participant lookup and scoring start page.  
+- **Integration**: Loaded by default in `doGet` when no `cmd` parameter is passed.  
+- **Dynamic data**: Fetches participant data from Google Sheets using `?cmd=participant&entryId=...`.  
+- **Flexible**: Displays all participant names for a team (not limited to 4).  
+
+### ⚙️ Updated Backend Notes
+- Only **one `doGet(e)`** should exist.  
+- Endpoints:  
+  - `?cmd=ping` → health check  
+  - `?cmd=participant&entryId=XYZ` → returns JSON with team details  
+  - No `cmd` → serves the Tailwind UI (`judge_form_ui.html`)  
+- Backend ensures participant names are returned as an array and rendered responsively in the UI.  
+
+### 🚀 How to Deploy (Judge Form)
+1. In Apps Script:  
+   - Create a **Script file** → paste code from `Google AppScript judge form.txt` (corrected backend).  
+   - Create a **HTML file** → paste contents of `judge_form_ui.html`.  
+2. Deploy as **Web App**.  
+3. Test on mobile devices — layout is now fully responsive with TailwindCSS.  
+
 ## 🛡 Security Notes
 - Sessions reset automatically when app closes.  
 - No sensitive data in localStorage.  
