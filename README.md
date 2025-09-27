@@ -5,7 +5,7 @@
 - **Frontend**: HTML / JavaScript / CSS (Netlify hosted)  
 - **Backend**: Google Apps Script Web App (linked to Google Sheets)  
 - **Purpose**: Judge & scoring system for jump rope competitions  
-- **Key Features**: Login, Speed judging, Freestyle judging, Live scoring  
+- **Key Features**: Speed judging, Freestyle judging, Live scoring  
 
 ---
 
@@ -13,17 +13,13 @@
 GBRSA 2025 is a lightweight, mobile-friendly **judging and scoring app**.  
 It is optimized for **speed, simplicity, and reliability**.  
 
-- Judges **log in securely** (credentials stored in Google Sheets).  
+- Judges open the homepage and select **Speed** or **Freestyle** judging.  
 - Scores are **submitted in real time** to Google Sheets.  
 - Runs offline (PWA) and works well on tablets/phones.  
 
 ---
 
 ## 🎯 Features
-- 🔐 **Secure login system**  
-  - Session-based (auto logout when app closes).  
-  - No localStorage (safer).  
-
 - ⚡ **Fast performance**  
   - Debounced competitor lookup.  
   - In-memory cache for repeat lookups.  
@@ -34,29 +30,27 @@ It is optimized for **speed, simplicity, and reliability**.
   - Light theme for readability.  
 
 - 🏆 **Judging modes**  
-  - **Speed**: count repetitions.  
-  - **Freestyle**: performance scoring.  
+  - **Speed**: scan QR → lookup → input score → submit.  
+  - **Freestyle**: (coming soon).  
 
 ---
 
 ## 📂 Project Structure
 ```
 frontend/              → Netlify frontend
-  index.html           → Main scoring UI
-  login.html           → Judge login page
+  index.html           → Homepage (choose judging mode)
   freestyle.html       → Freestyle judging
   speed.html           → Speed judging
   app.js               → Core logic
-  auth.js              → Session enforcement
   config.js            → Backend API + Sheet IDs
   styles.css           → UI theme
   manifest.json        → PWA metadata
   service-worker.js    → PWA install handler
   nozoom.js            → Mobile UX helper
 
-Google AppScript login form.txt   → Login validator backend
-Google AppScript judge form.txt   → Scoring handler backend
-README.md                         → Project documentation
+judge_form_ui.html     → Tailwind Judge Form (participant lookup & scoring)
+Google AppScript judge form.txt   → Backend scoring handler
+README.md              → Project documentation
 ```
 
 ---
@@ -67,9 +61,8 @@ README.md                         → Project documentation
 1. Open [Google Apps Script](https://script.google.com/).  
 2. Create a new project.  
 3. Paste code from:  
-   - `Google AppScript login form.txt`  
    - `Google AppScript judge form.txt`  
-4. Link to your **Google Sheets** (judge credentials + scoring).  
+4. Link to your **Google Sheets** (competition data + scoring).  
 5. Deploy → **Web App**:  
    - Execute as: *Me*  
    - Access: *Anyone with link*  
@@ -106,13 +99,9 @@ window.CONFIG = {
 
 ## 👥 Usage
 1. Judges open the Netlify site on a device.  
-2. Log in with credentials.  
-3. Choose **Speed** or **Freestyle** judging.  
+2. From homepage, choose **Speed** or **Freestyle** judging.  
+3. Input scores as required.  
 4. Scores auto-save to Google Sheets.  
-
----
-
-
 
 ---
 
@@ -122,37 +111,10 @@ We now include a **mobile-optimized Tailwind UI** for the Judge Form.
 
 - **File**: `judge_form_ui.html`  
 - **Purpose**: Provides a responsive participant lookup and scoring start page.  
-- **Integration**: Loaded by default in `doGet` when no `cmd` parameter is passed.  
+- **Integration**: Loaded by default in backend `doGet` when no `cmd` parameter is passed.  
 - **Dynamic data**: Fetches participant data from Google Sheets using `?cmd=participant&entryId=...`.  
 - **Flexible**: Displays all participant names for a team (not limited to 4).  
 
-### ⚙️ Updated Backend Notes
-- Only **one `doGet(e)`** should exist.  
-- Endpoints:  
-  - `?cmd=ping` → health check  
-  - `?cmd=participant&entryId=XYZ` → returns JSON with team details  
-  - No `cmd` → serves the Tailwind UI (`judge_form_ui.html`)  
-- Backend ensures participant names are returned as an array and rendered responsively in the UI.  
-
-### 🚀 How to Deploy (Judge Form)
-1. In Apps Script:  
-   - Create a **Script file** → paste code from `Google AppScript judge form.txt` (corrected backend).  
-   - Create a **HTML file** → paste contents of `judge_form_ui.html`.  
-2. Deploy as **Web App**.  
-3. Test on mobile devices — layout is now fully responsive with TailwindCSS.  
-
-## 🛡 Security Notes
-- Sessions reset automatically when app closes.  
-- No sensitive data in localStorage.  
-- Backend always validates login before saving scores.  
-
 ---
 
-✅ This README is now:  
-- **Human-readable** (clear guide for developers & judges).  
-- **AI-readable** (structured sections, keywords, file mappings).  
-
-
-## Update (2025)
-- Login system has been removed.
-- The homepage (`frontend/index.html`) now links directly to the Judge Form (`judge_form_ui.html`).
+✅ This README matches the **no-login** setup and the actual homepage → judge flow.  
