@@ -3,7 +3,6 @@
 const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg';
 const DATA_SHEET = PropertiesService.getScriptProperties().getProperty('DATA_SHEET_NAME') || 'Data';
 const RESULT_SHEET = PropertiesService.getScriptProperties().getProperty('RESULT_SHEET_NAME') || 'Result';
-const JUDGES_SHEET = "Judges"; // 🔑 sheet for login
 
 /** --- Utility functions --- **/
 function normalizeId(s) {
@@ -62,8 +61,6 @@ function getParticipant(e) {
   });
 }
 
-/** --- LOGIN helper --- **/
-function doLogin(body) {
   const userId = (body.userId || "").trim();
   const password = (body.password || "").trim();
 
@@ -89,7 +86,6 @@ function doLogin(body) {
     : { ok: false, data: null, error: "Invalid credentials" };
 }
 
-/** --- POST endpoint (save results / login) --- **/
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
@@ -108,8 +104,6 @@ function doPost(e) {
 
     const cmd = (body.cmd || "").toLowerCase();
 
-    if (cmd === "login") {
-      return json(doLogin(body));
     }
 
     if (cmd === "save") {

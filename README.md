@@ -151,3 +151,8 @@ We now include a **mobile-optimized Tailwind UI** for the Judge Form.
 ✅ This README is now:  
 - **Human-readable** (clear guide for developers & judges).  
 - **AI-readable** (structured sections, keywords, file mappings).  
+
+
+## Update (2025)
+- Login system has been removed.
+- The homepage (`frontend/index.html`) now links directly to the Judge Form (`judge_form_ui.html`).
