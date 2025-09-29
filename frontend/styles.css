@@ -1,6 +1,12 @@
 
 /* Mobile input fixes */
-input, textarea, select, button { font-size: 16px; -webkit-text-size-adjust: 100%; -webkit-appearance: none; }
+/* Mobile input fixes: apply to text/number inputs, selects, textareas and buttons - do NOT remove checkbox appearance */
+input[type='text'], input[type='number'], input[type='search'], input[type='tel'], input[type='email'], textarea, select, button {
+  font-size: 16px; -webkit-text-size-adjust: 100%; -webkit-appearance: none;
+}
+input[type='checkbox'], input[type='radio'] { -webkit-appearance: checkbox; appearance: auto; }
+.scrollable { -webkit-overflow-scrolling: touch; }
+
 .scrollable { -webkit-overflow-scrolling: touch; }
 :root{
   --bg:#f5f7fb;
