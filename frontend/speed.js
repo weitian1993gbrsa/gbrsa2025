@@ -155,39 +155,83 @@
 
   // Camera scan support
   async function startScan(){
-    if (!('BarcodeDetector' in window)) { if (window.toast) toast('QR not supported. Type ID.'); return; }
-    try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e){ if (window.toast) toast('QR not available.'); return; }
+    // Initialize camera and QR scanning; prefer BarcodeDetector when available, otherwise fallback to jsQR
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
+      const constraints = { video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio: false };
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
       cam.srcObject = stream;
-      try { cam.setAttribute('playsinline',''); cam.muted = true; } catch(_) {}
-      await cam.play(); 
-      // Add close button to camera overlay if not present
-      if (!document.getElementById('closeScanBtn')) {
-        const btn = document.createElement('button');
-        btn.id = 'closeScanBtn';
-        btn.textContent = '×';
-        btn.style.position = 'absolute';
-        btn.style.top = '8px';
-        btn.style.right = '12px';
-        btn.style.fontSize = '28px';
-        btn.style.color = 'white';
-        btn.style.background = 'rgba(0,0,0,0.4)';
-        btn.style.border = 'none';
-        btn.style.padding = '0 12px';
-        btn.style.borderRadius = '6px';
-        btn.style.cursor = 'pointer';
-        btn.style.zIndex = '1000';
-        btn.addEventListener('click', stopScan);
-        cameraWrap.appendChild(btn);
-      }
+      try { cam.setAttribute('playsinline',''); cam.muted = true; cam.playsInline = true; } catch(_) {}
+      await cam.play();
+    } catch(err){
+      console.error(err);
+      if (window.toast) toast('Camera unavailable. Type ID.');
+      return;
+    }
 
-cameraWrap.classList.remove('hide');
-      const _roiSync = ()=>{ try{ const rect = cam.getBoundingClientRect(); const sidePx = Math.floor(Math.min(rect.width, rect.height) * ROI_RATIO); cameraWrap.style.setProperty('--roi-side', sidePx + 'px'); }catch(_){ } };
-      _roiSync(); window.addEventListener('resize', _roiSync); window.addEventListener('orientationchange', _roiSync); window._roiSync = _roiSync;
-      scanning = true; scanLoop();
-    } catch (e) { console.error(e); if (window.toast) toast('Cannot open camera.'); }
+    // Create offscreen canvas for frame processing if needed
+    if (!offCanvas){
+      offCanvas = document.createElement('canvas');
+      offCtx = offCanvas.getContext('2d');
+    }
+
+    // Use native BarcodeDetector if available (Chrome/Edge). Fallback to jsQR for browsers like iOS Safari.
+    if ('BarcodeDetector' in window) {
+      try {
+        detector = new BarcodeDetector({ formats: ['qr_code'] });
+      } catch(e) {
+        detector = null;
+      }
+    } else {
+      detector = null; // force jsQR fallback
+    }
+
+    scanning = true;
+    cameraWrap.classList.remove('hide');
+
+    if (detector) {
+      // BarcodeDetector loop
+      (async function bdLoop(){
+        while (scanning && cam.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA){
+          try {
+            const detections = await detector.detect(cam);
+            if (detections && detections.length){
+              const code = detections[0].rawValue || detections[0].rawPayload || '';
+              if (code){
+                scanning = false;
+                await stopScan();
+                await lookupById(code);
+                return;
+              }
+            }
+          } catch(e){ /* ignore detection errors */ }
+          await new Promise(r => setTimeout(r, 150));
+        }
+      })();
+    } else {
+      // jsQR fallback: repeatedly capture frames and decode
+      (async function jsqrLoop(){
+        while (scanning && cam.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA){
+          try {
+            // draw video frame to offscreen canvas
+            offCanvas.width = cam.videoWidth || cam.clientWidth;
+            offCanvas.height = cam.videoHeight || cam.clientHeight;
+            if (offCanvas.width === 0 || offCanvas.height === 0){ await new Promise(r=>setTimeout(r,100)); continue; }
+            offCtx.drawImage(cam, 0, 0, offCanvas.width, offCanvas.height);
+            const imageData = offCtx.getImageData(0,0,offCanvas.width, offCanvas.height);
+            const code = (typeof jsQR !== 'undefined') ? jsQR(imageData.data, imageData.width, imageData.height) : null;
+            if (code && code.data){
+              scanning = false;
+              await stopScan();
+              await lookupById(code.data);
+              return;
+            }
+          } catch(e){ /* ignore frame errors */ }
+          await new Promise(r => setTimeout(r, 150));
+        }
+      })();
+    }
   }
+
   async function scanLoop()
 {
     if (!scanning) return;
