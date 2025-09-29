@@ -1,18 +1,11 @@
 (function(){
   const $ = (q, el=document) => el.querySelector(q);
   const entryInput = $('#entryIdInput');
-  const submitOverlay = document.getElementById('submitOverlay');
-  const overlayText   = document.getElementById('overlayText');
 
   function submitEntryId(id) {
     if (!id) return;
-    overlayText.textContent = "Submitting " + id + "...";
-    submitOverlay.style.display = 'flex';
-    // TODO: integrate with backend submission if required
-    setTimeout(() => {
-      submitOverlay.style.display = 'none';
-      entryInput.value = "";
-    }, 800);
+    // Redirect directly to judge form with entryId parameter
+    window.location.href = "../judge_form_ui.html?entryId=" + encodeURIComponent(id);
   }
 
   entryInput.addEventListener('keydown', e => {
