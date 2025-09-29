@@ -1,4 +1,3 @@
-// DEPLOYMENT: Ensure Apps Script web app is deployed to 'Anyone, even anonymous' for frontend fetches
 /** GBRSA backend (optimized, header-aligned, TextFinder lookup) — COMPETITION-READY */
 
 const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg';
