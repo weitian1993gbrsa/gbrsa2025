@@ -291,3 +291,9 @@ cameraWrap.classList.remove('hide');
   hideParticipant();
   hideStep2();
 })();
+
+function forceRepaint() {
+  document.body.classList.add("hidden");
+  void document.body.offsetHeight;
+  document.body.classList.remove("hidden");
+}

@@ -6,3 +6,10 @@ window.CONFIG = {
 };
 // Login backend URL
 const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbzq3LYbSAoFRjt8wIbomxwehCOdAdGo4eCkpHlhj_ncTm27tpQJyMhzQHRQTfhKQ6WJ/exec";
+
+
+function forceRepaint() {
+  document.body.classList.add("hidden");
+  void document.body.offsetHeight;
+  document.body.classList.remove("hidden");
+}

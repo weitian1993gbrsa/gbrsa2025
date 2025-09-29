@@ -11,3 +11,9 @@
   }, { passive: false });
   document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
 })();
+
+function forceRepaint() {
+  document.body.classList.add("hidden");
+  void document.body.offsetHeight;
+  document.body.classList.remove("hidden");
+}

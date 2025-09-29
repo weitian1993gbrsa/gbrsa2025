@@ -79,3 +79,10 @@ function showUpdateToast() {
 
 setInterval(checkForDataUpdates, 30000);
 checkForDataUpdates();
+
+
+function forceRepaint() {
+  document.body.classList.add("hidden");
+  void document.body.offsetHeight;
+  document.body.classList.remove("hidden");
+}
