@@ -1,4 +1,17 @@
 
+/* iOS zoom prevention: ensure inputs don't trigger auto-zoom */
+html, body { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+input[type='text'], input[type='number'], input[type='search'], input[type='tel'], input[type='email'], textarea, select, button {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+}
+/* Keep checkboxes and radios native */
+input[type='checkbox'], input[type='radio'] { -webkit-appearance: checkbox; appearance: auto; }
+/* Make focused inputs stable */
+input:focus, textarea:focus, select:focus { font-size: 16px !important; outline: none; }
+
+
 /* Mobile input fixes */
 /* Mobile input fixes: apply to text/number inputs, selects, textareas and buttons - do NOT remove checkbox appearance */
 input[type='text'], input[type='number'], input[type='search'], input[type='tel'], input[type='email'], textarea, select, button {

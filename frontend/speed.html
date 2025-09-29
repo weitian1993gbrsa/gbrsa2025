@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>Speed Judge</title>
   <link rel="stylesheet" href="./styles.css"/>
   <script defer src="./app.js"></script>
@@ -10,6 +10,18 @@
   <script defer src="./speed.js"></script>
   <script defer src="./nozoom.js"></script>
 <style>#entryIdInput{text-transform:uppercase;}</style>
+
+<script>
+// iOS focus fix: ensure font-size is 16px on focused inputs to avoid auto-zoom
+(function(){
+  function ensureSize(el){
+    try{ if(!el) return; var t=el.tagName.toLowerCase(); if(t==='input' || t==='textarea' || t==='select'){ el.style.fontSize='16px'; el.style.webkitTextSizeAdjust='100%'; } }catch(e){}
+  }
+  document.addEventListener('focusin', function(e){ ensureSize(e.target); }, true);
+  document.addEventListener('focusout', function(e){ try{ e.target.style.fontSize=''; e.target.style.webkitTextSizeAdjust=''; }catch(e){} }, true);
+})();
+</script>
+
 </head>
 <body class="page">
   <header class="topbar">

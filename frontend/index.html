@@ -3,7 +3,7 @@
 <head>
 <meta name="format-detection" content="telephone=no">
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>GBRSA Score • Scoring</title>
   <link rel="stylesheet" href="./styles.css"/>
   <script defer src="./app.js"></script>
@@ -12,6 +12,18 @@
 <style>html, body { touch-action: manipulation; }</style>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b1020">
+
+<script>
+// iOS focus fix: ensure font-size is 16px on focused inputs to avoid auto-zoom
+(function(){
+  function ensureSize(el){
+    try{ if(!el) return; var t=el.tagName.toLowerCase(); if(t==='input' || t==='textarea' || t==='select'){ el.style.fontSize='16px'; el.style.webkitTextSizeAdjust='100%'; } }catch(e){}
+  }
+  document.addEventListener('focusin', function(e){ ensureSize(e.target); }, true);
+  document.addEventListener('focusout', function(e){ try{ e.target.style.fontSize=''; e.target.style.webkitTextSizeAdjust=''; }catch(e){} }, true);
+})();
+</script>
+
 </head>
 <body class="page homepage">
   <header class="topbar">
