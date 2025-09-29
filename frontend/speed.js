@@ -12,7 +12,6 @@
     setTimeout(() => {
       submitOverlay.style.display = 'none';
       entryInput.value = "";
-      alert("Score submitted for: " + id);
     }, 800);
   }
 
