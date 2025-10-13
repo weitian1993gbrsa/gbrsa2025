@@ -23,12 +23,6 @@
     entryInput.addEventListener('blur', (e) => { e.target.value = (e.target.value || '').toUpperCase(); });
   }
 
-  const btnLookup = document.getElementById('btnLookup');
-  if (btnLookup && entryInput){
-    btnLookup.addEventListener('click', ()=> lookupById(entryInput.value));
-  }
-
-
   const participantCard = $('#participantCard');
   const badgeHeat = $('#badgeHeat');
   const badgeStation = $('#badgeStation');
@@ -160,15 +154,17 @@
   }
 
   // Camera scan support
-  async function startScan(){ if (window.toast) try{ toast('QR scanning disabled.'); }catch(_){} return; }
+  async function startScan(){ if (window.toast) try{ toast('QR scanning disabled.'); }catch(_){ } return; }
 
-  async function stopScan(){ try{ const xbtn = document.getElementById('closeScanBtn'); if (xbtn) xbtn.remove(); }catch(_){}
-  scanning = false;
-  try{ if (cam) cam.pause(); }catch(_){}
-  try{ if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }catch(_){}
-  try{ if (cameraWrap) cameraWrap.classList.add('hide'); }catch(_){}
+  async function stopScan(){
+  try{ const xbtn = document.getElementById('closeScanBtn'); if (xbtn) xbtn.remove(); }catch(_){}
+  try{ if (typeof scanning!=='undefined') scanning = false; }catch(_){}
+  try{ if (typeof cam!=='undefined' && cam && cam.pause) cam.pause(); }catch(_){}
+  try{ if (typeof stream!=='undefined' && stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }catch(_){}
+  try{ if (typeof cameraWrap!=='undefined' && cameraWrap && cameraWrap.classList) cameraWrap.classList.add('hide'); }catch(_){}
   try{ if (window._roiSync){ window.removeEventListener('resize', _roiSync); window.removeEventListener('orientationchange', _roiSync); window._roiSync = null; } }catch(_){}
 }
+
     cameraWrap.classList.add('hide');
     try{ if (window._roiSync){ window.removeEventListener('resize', _roiSync); window.removeEventListener('orientationchange', _roiSync); window._roiSync = null; } }catch(_){}
         

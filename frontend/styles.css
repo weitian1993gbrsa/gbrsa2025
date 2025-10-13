@@ -165,8 +165,8 @@ a:focus-visible {
 
 /* === Mobile responsiveness fixes (2025-09-26) === */
 .scan-row { display:flex; flex-direction:column; gap:.5rem; }
-.scan-row { display:flex; flex-direction:column; gap:.5rem; }
-.scan-row { display:flex; flex-direction:column; gap:.5rem; }
+.scan-row .input { width: 100%; }
+.scan-row .btn { width: 100%; }
 
 /* Participant badges wrap on small screens */
 .badges {
@@ -205,7 +205,7 @@ a:focus-visible {
 
 @media (min-width: 640px) {
   .scan-row { display:flex; flex-direction:column; gap:.5rem; }
-  .scan-row { display:flex; flex-direction:column; gap:.5rem; }
+  .scan-row .btn { width: auto; }
   .info { grid-template-columns: 1fr 1fr; }
   .block .btn.primary { width: auto; }
 }
