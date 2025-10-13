@@ -26,11 +26,15 @@
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
 <style>
+  /* Hide QR camera UI */
   #btnOpenCamera { display: none !important; }
   #cameraWrap { display: none !important; }
+  /* Keep input and optional button aligned nicely */
   .scan-row { display: flex; gap: .75rem; align-items: center; }
   .scan-row .input { flex: 1; }
-  #btnLookup { white-space: nowrap; }
+  /* Refresh button styles */
+  .refresh-btn { margin-left: auto; padding: .5rem .9rem; border-radius: .6rem; border: 1px solid rgba(0,0,0,.1); background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .refresh-btn:active { transform: translateY(1px); }
 </style>
 
 </head>
@@ -39,6 +43,7 @@
     <a class="back" href="./index.html" aria-label="Back">←</a>
     <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
     <div class="titles"><h1>Speed Judge</h1></div>
+    <button id="btnRefresh" class="refresh-btn" title="Refresh">↻ Refresh</button>
   </header>
 
   <main class="container">
@@ -113,13 +118,31 @@
 <script>judging = true;</script>
 
 <script>
-  (function btnLookupClickInit(){
+  (function iosHelpersInit(){
     try{
+      // Hard refresh: unregister service workers, clear caches, reload
+      async function hardRefresh(){
+        try{
+          if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (const r of regs){ try{ await r.unregister(); }catch(_){} }
+          }
+          if (window.caches && caches.keys){
+            const keys = await caches.keys();
+            for (const k of keys){ try{ await caches.delete(k); }catch(_){} }
+          }
+        }catch(_){}
+        location.reload(true);
+      }
+      window.hardRefresh = hardRefresh;
+      var btnRefresh = document.getElementById('btnRefresh');
+      if (btnRefresh){ btnRefresh.addEventListener('click', hardRefresh); }
+
+      // Optional: Search button triggers existing Enter handler on the input
       var entryInput = document.getElementById('entryIdInput');
-      var btn = document.getElementById('btnLookup');
-      if (btn && entryInput){
-        btn.addEventListener('click', function(){
-          // simulate Enter keyup so existing handler in speed.js runs
+      var btnLookup = document.getElementById('btnLookup');
+      if (btnLookup && entryInput){
+        btnLookup.addEventListener('click', function(){
           var evt = new KeyboardEvent('keyup', {key:'Enter', bubbles:true});
           entryInput.dispatchEvent(evt);
         });
