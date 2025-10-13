@@ -23,6 +23,12 @@
     entryInput.addEventListener('blur', (e) => { e.target.value = (e.target.value || '').toUpperCase(); });
   }
 
+  const btnLookup = document.getElementById('btnLookup');
+  if (btnLookup && entryInput){
+    btnLookup.addEventListener('click', ()=> lookupById(entryInput.value));
+  }
+
+
   const participantCard = $('#participantCard');
   const badgeHeat = $('#badgeHeat');
   const badgeStation = $('#badgeStation');
