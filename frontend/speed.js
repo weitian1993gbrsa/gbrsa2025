@@ -162,7 +162,6 @@
   try{ if (typeof cam!=='undefined' && cam && cam.pause) cam.pause(); }catch(_){}
   try{ if (typeof stream!=='undefined' && stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }catch(_){}
   try{ if (typeof cameraWrap!=='undefined' && cameraWrap && cameraWrap.classList) cameraWrap.classList.add('hide'); }catch(_){}
-  try{ if (window._roiSync){ window.removeEventListener('resize', _roiSync); window.removeEventListener('orientationchange', _roiSync); window._roiSync = null; } }catch(_){}
 }
 
     cameraWrap.classList.add('hide');
