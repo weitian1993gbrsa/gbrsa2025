@@ -154,16 +154,140 @@
   }
 
   // Camera scan support
-  async function startScan(){ if (window.toast) try{ toast('QR scanning disabled.'); }catch(_){ } return; }
+  async function startScan(){
+    // Initialize camera and QR scanning; prefer BarcodeDetector when available, otherwise fallback to jsQR
+    try {
+      const constraints = { video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio: false };
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      cam.srcObject = stream;
+      try { cam.setAttribute('playsinline',''); cam.muted = true; cam.playsInline = true; } catch(_) {}
+      await cam.play();
+    } catch(err){
+      console.error(err);
+      if (window.toast) toast('Camera unavailable. Type ID.');
+      return;
+    }
 
-  async function stopScan(){
-  try{ const xbtn = document.getElementById('closeScanBtn'); if (xbtn) xbtn.remove(); }catch(_){}
-  try{ if (typeof scanning!=='undefined') scanning = false; }catch(_){}
-  try{ if (typeof cam!=='undefined' && cam && cam.pause) cam.pause(); }catch(_){}
-  try{ if (typeof stream!=='undefined' && stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }catch(_){}
-  try{ if (typeof cameraWrap!=='undefined' && cameraWrap && cameraWrap.classList) cameraWrap.classList.add('hide'); }catch(_){}
+    // Create offscreen canvas for frame processing if needed
+    if (!offCanvas){
+      offCanvas = document.createElement('canvas');
+      offCtx = offCanvas.getContext('2d');
+    }
+
+    // Use native BarcodeDetector if available (Chrome/Edge). Fallback to jsQR for browsers like iOS Safari.
+    if ('BarcodeDetector' in window) {
+      try {
+        detector = new BarcodeDetector({ formats: ['qr_code'] });
+      } catch(e) {
+        detector = null;
+      }
+    } else {
+      detector = null; // force jsQR fallback
+    }
+
+    scanning = true;
+    cameraWrap.classList.remove('hide');
+
+    if (detector) {
+      // BarcodeDetector loop
+      (async function bdLoop(){
+        while (scanning && cam.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA){
+          try {
+            const detections = await detector.detect(cam);
+            if (detections && detections.length){
+              const code = detections[0].rawValue || detections[0].rawPayload || '';
+              if (code){
+                scanning = false;
+                await stopScan();
+                await lookupById(code);
+                return;
+              }
+            }
+          } catch(e){ /* ignore detection errors */ }
+          await new Promise(r => setTimeout(r, 150));
+        }
+      })();
+    } else {
+      // jsQR fallback: repeatedly capture frames and decode
+      (async function jsqrLoop(){
+        while (scanning && cam.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA){
+          try {
+            // draw video frame to offscreen canvas
+            offCanvas.width = cam.videoWidth || cam.clientWidth;
+            offCanvas.height = cam.videoHeight || cam.clientHeight;
+            if (offCanvas.width === 0 || offCanvas.height === 0){ await new Promise(r=>setTimeout(r,100)); continue; }
+            offCtx.drawImage(cam, 0, 0, offCanvas.width, offCanvas.height);
+            const imageData = offCtx.getImageData(0,0,offCanvas.width, offCanvas.height);
+            const code = (typeof jsQR !== 'undefined') ? jsQR(imageData.data, imageData.width, imageData.height) : null;
+            if (code && code.data){
+              scanning = false;
+              await stopScan();
+              await lookupById(code.data);
+              return;
+            }
+          } catch(e){ /* ignore frame errors */ }
+          await new Promise(r => setTimeout(r, 150));
+        }
+      })();
+    }
+  }
+
+  async function scanLoop()
+{
+    if (!scanning) return;
+    try {
+      const vw = cam.videoWidth, vh = cam.videoHeight;
+      if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
+      // Center square ROI (20% of min side)
+      const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
+      const sx = Math.floor((vw - side) / 2);
+      const sy = Math.floor((vh - side) / 2);
+      if (!offCanvas){ offCanvas = document.createElement('canvas'); offCtx = offCanvas.getContext('2d', { willReadFrequently:true }); }
+      if (offCanvas.width !== side || offCanvas.height !== side){ offCanvas.width = side; offCanvas.height = side; }
+      offCtx.drawImage(cam, sx, sy, side, side, 0, 0, side, side);
+      const codes = await detector.detect(offCanvas);
+      if (codes && codes.length) {
+        const c = codes[0];
+        const rawValue = (c.rawValue || '').trim();
+        const bb = c.boundingBox || c.bounds;
+        let fullyInside = true;
+        if (bb){
+          const EDGE = Math.floor(0.02 * side); // 2% tolerance
+          fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
+        }
+        if (!bb || bb.x < 0 || bb.y < 0 || (bb.x+bb.width) > side || (bb.y+bb.height) > side) {
+          fullyInside = false;
+        }
+        if (fullyInside){
+          const now = Date.now();
+          if (_stableValue === rawValue){
+            _stableCount++;
+          } else {
+            _stableValue = rawValue;
+            _stableCount = 1;
+            _lockStart = now;
+          }
+          if (_stableCount >= STABLE_FRAMES && (now - _lockStart) >= HOLD_MS && (now - _lastAccept) > 1500){
+            _lastAccept = now;
+            const id = rawValue;
+            await stopScan();
+            await lookupById(id);
+            return;
+          }
+        } else {
+          _stableCount = 0;
+        }
+      }
+    } catch(e){}
+    requestAnimationFrame(scanLoop);
 }
 
+  async function stopScan(){
+    const xbtn = document.getElementById('closeScanBtn'); if (xbtn) xbtn.remove();
+
+    scanning = false;
+    if (cam) cam.pause();
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     cameraWrap.classList.add('hide');
     try{ if (window._roiSync){ window.removeEventListener('resize', _roiSync); window.removeEventListener('orientationchange', _roiSync); window._roiSync = null; } }catch(_){}
         

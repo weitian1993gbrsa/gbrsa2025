@@ -213,5 +213,3 @@ a:focus-visible {
   .info { grid-template-columns: 1fr 1fr; }
   .block .btn.primary { width: auto; }
 }
-
-#cameraWrap{display:none!important}
