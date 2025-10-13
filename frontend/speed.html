@@ -24,7 +24,15 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<style>#btnOpenCamera{display:none!important} #cameraWrap{display:none!important}</style>
+
+<style>
+  #btnOpenCamera { display: none !important; }
+  #cameraWrap { display: none !important; }
+  .scan-row { display: flex; gap: .75rem; align-items: center; }
+  .scan-row .input { flex: 1; }
+  #btnLookup { white-space: nowrap; }
+</style>
+
 </head>
 <body class="page">
   <header class="topbar">
@@ -39,6 +47,7 @@
       <div class="scan-row">
         <button id="btnOpenCamera" class="btn">📷 Scan QR</button>
         <input id="entryIdInput" class="input" placeholder="or type ID manually" inputmode="text" / autocapitalize="characters" spellcheck="false" >
+        <button id="btnLookup" class="btn">Search ID</button>
       </div>
       <div id="cameraWrap" class="camera hide">
         <video id="cam" playsinline playsinline autoplay muted>></video>
@@ -102,5 +111,22 @@
   </div>
 
 <script>judging = true;</script>
+
+<script>
+  (function btnLookupClickInit(){
+    try{
+      var entryInput = document.getElementById('entryIdInput');
+      var btn = document.getElementById('btnLookup');
+      if (btn && entryInput){
+        btn.addEventListener('click', function(){
+          // simulate Enter keyup so existing handler in speed.js runs
+          var evt = new KeyboardEvent('keyup', {key:'Enter', bubbles:true});
+          entryInput.dispatchEvent(evt);
+        });
+      }
+    }catch(e){}
+  })();
+</script>
+
 </body>
 </html>
