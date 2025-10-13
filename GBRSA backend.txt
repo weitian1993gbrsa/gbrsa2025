@@ -1,0 +1,63 @@
+/** GBRSA backend (optimized, header-aligned, TextFinder lookup) — COMPETITION-READY */
+
+const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg';
+const DATA_SHEET = PropertiesService.getScriptProperties().getProperty('DATA_SHEET_NAME') || 'Data';
+const RESULT_SHEET = PropertiesService.getScriptProperties().getProperty('RESULT_SHEET_NAME') || 'Result';
+const JUDGES_SHEET = "Judges"; // 🔑 sheet for login
+
+/** --- Utility functions --- **/
+function normalizeId(s) {
+  return String(s == null ? '' : s).trim();
+}
+function stripLeadingZeros(s) {
+  return normalizeId(s).replace(/^0+/, '');
+}
+function sameId(a, b) {
+  const A = normalizeId(a), B = normalizeId(b);
+  return (A === B || stripLeadingZeros(A) === stripLeadingZeros(B));
+}
+
+/** --- GET endpoint --- **/
+function doGet(e) {
+  const cmd = (e.parameter.cmd || '').toLowerCase();
+
+  if (cmd === 'ping') {
+    return json({ ok: true, data: { ts: Date.now() }, error: null });
+  }
+
+  if (cmd === 'participant') {
+    return getParticipant(e); // ✅ delegate to helper
+  }
+
+  // Default → serve the UI
+  return HtmlService.createTemplateFromFile('judge_form_ui')
+    .evaluate()
+    .setTitle("GBRSA Judge Form")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/** --- Participant lookup helper --- **/
+function getParticipant(e) {
+  const entryId = normalizeId(e.parameter.entryId);
+  if (!entryId) return json({ ok: false, data: null, error: 'Missing entryId' });
+
+  const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(DATA_SHEET);
+  const values = sh.getDataRange().getValues();
+
+  const row = values.find(r => sameId(r[0], entryId));
+  if (!row) return json({ ok: false, data: null, error: 'Not found' });
+
+  // Adjust column indexes to match your sheet
+  const names = [row[1], row[2], row[3], row[4]].filter(Boolean);
+
+  return json({
+    ok: true,
+    data: {
+      id: entryId,
+      names: names,
+      representative: row[5],
+      state: row[6]
+    },
+    error: null
+  });
+}
