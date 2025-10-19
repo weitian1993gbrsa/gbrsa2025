@@ -1,0 +1,64 @@
+// --- ADDON: Freestyle mode (shared DATA, writes to RESULT_F) ---
+// Paste the following into your Apps Script project (Code.gs) or merge into existing code.
+// 1) Add these constants and helpers:
+
+const MODES = Object.freeze({
+  speed: { DATA_SHEET: (typeof DATA_SHEET !== 'undefined'? DATA_SHEET : 'Data'), RESULT_SHEET: (typeof RESULT_SHEET !== 'undefined'? RESULT_SHEET : 'Result') },
+  freestyle: { DATA_SHEET: (typeof DATA_SHEET !== 'undefined'? DATA_SHEET : 'Data'), RESULT_SHEET: 'RESULT_F' },
+});
+
+function getMode_(raw){ const m = String(raw||'').toLowerCase(); return (m==='freestyle')?'freestyle':'speed'; }
+function getSheetsForMode_(mode){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const cfg = MODES[mode];
+  return { data: ss.getSheetByName(cfg.DATA_SHEET), result: ss.getSheetByName(cfg.RESULT_SHEET) };
+}
+function headerMap_(sheet){
+  const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const map = {}; headers.forEach((h,i)=>map[String(h).trim()]=i+1); return map;
+}
+
+function apiGetParticipantById_(mode, id){
+  const { data } = getSheetsForMode_(mode);
+  if (!data) throw new Error('Data sheet not found: '+mode);
+  const map = headerMap_(data);
+  const idCol = map['ID'] || map['Id'] || map['id'];
+  if (!idCol) throw new Error('No ID column in DATA sheet');
+  const numRows = Math.max(0, data.getLastRow()-1);
+  if (numRows===0) return null;
+  const values = data.getRange(2,1,numRows,data.getLastColumn()).getValues();
+  const row = values.find(r => sameId(r[idCol-1], id));
+  if (!row) return null;
+  const headers = Object.keys(map); const obj = {};
+  headers.forEach(h => obj[h] = row[map[h]-1]);
+  // Normalize minimal shape for frontend convenience
+  const names = [obj['Name'], obj['NAME1'], obj['NAME2'], obj['NAME3']].filter(Boolean);
+  return { id: id, names: names, representative: obj['REPRESENTATIVE'] || obj['Representative'] || '', state: obj['STATE'] || obj['State'] || '' };
+}
+
+function validateFreestylePayload_(p){
+  const need = ['ID','MISSES','BREAKS','DIFF','Missed RE'];
+  const miss = need.filter(k => p[k] === undefined || p[k] === '');
+  if (miss.length) throw new Error('Missing fields: ' + miss.join(', '));
+  ['MISSES','BREAKS','Missed RE'].forEach(k => { if (isNaN(+p[k]) || +p[k] < 0) throw new Error(k+' must be non-negative'); });
+  if (isNaN(+p['DIFF'])) throw new Error('DIFF must be a number');
+}
+
+function apiSubmitResult_(mode, payload){
+  const { result } = getSheetsForMode_(mode);
+  if (!result) throw new Error('Result sheet not found: '+mode);
+  if (mode === 'freestyle') validateFreestylePayload_(payload);
+  const map = headerMap_(result);
+  const headers = Object.keys(map);
+  const row = new Array(headers.length).fill('');
+  headers.forEach(h => {
+    if (String(h).toUpperCase() === 'TIMESTAMP') row[map[h]-1] = new Date();
+    else row[map[h]-1] = (payload[h] !== undefined ? payload[h] : '');
+  });
+  result.appendRow(row);
+  return { ok: true };
+}
+
+// 2) Update doGet / doPost routing to pass mode (examples):
+// doGet(e): if (fn==='getParticipant'){ const mode=getMode_(q.mode); const id=q.id||''; const data=apiGetParticipantById_(mode, id); return json({ok:true,data}); }
+// doPost(e): if (fn==='submitresult'){ const mode=getMode_(q.mode); const res=apiSubmitResult_(mode, body); return json(res); }

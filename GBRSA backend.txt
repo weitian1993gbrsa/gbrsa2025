@@ -1,63 +1,275 @@
-/** GBRSA backend (optimized, header-aligned, TextFinder lookup) — COMPETITION-READY */
+/** GBRSA backend — header-aware, robust, competition-ready **/
 
-const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg';
-const DATA_SHEET = PropertiesService.getScriptProperties().getProperty('DATA_SHEET_NAME') || 'Data';
-const RESULT_SHEET = PropertiesService.getScriptProperties().getProperty('RESULT_SHEET_NAME') || 'Result';
-const JUDGES_SHEET = "Judges"; // 🔑 sheet for login
+/** --- Config helpers --- **/
+function getConfig() {
+  const SP = PropertiesService.getScriptProperties();
+  const cfg = {
+    SHEET_ID:    SP.getProperty('SHEET_ID')          || '1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg',
+    DATA_SHEET:  SP.getProperty('DATA_SHEET_NAME')   || 'DATA',
+    // Speed result tab (kept for backward compatibility)
+    RESULT_SHEET_SPEED:  SP.getProperty('RESULT_SHEET_NAME') || 'RESULT',
+    // NEW: Freestyle result tab
+    RESULT_SHEET_FREESTYLE: SP.getProperty('RESULT_F_SHEET_NAME') || 'RESULT_F',
+  };
+  console.log('[CFG]', JSON.stringify(cfg));
+  return cfg;
+}
 
 /** --- Utility functions --- **/
-function normalizeId(s) {
-  return String(s == null ? '' : s).trim();
-}
-function stripLeadingZeros(s) {
-  return normalizeId(s).replace(/^0+/, '');
-}
+function normalizeId(s) { return String(s == null ? '' : s).trim(); }
+function stripLeadingZeros(s) { return normalizeId(s).replace(/^0+/, ''); }
 function sameId(a, b) {
   const A = normalizeId(a), B = normalizeId(b);
   return (A === B || stripLeadingZeros(A) === stripLeadingZeros(B));
 }
+function json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+function safeGet(v) { return v == null ? '' : v; }
+function getKey(obj, names, fallback) {
+  for (const n of names) { if (n in obj) return obj[n]; }
+  return fallback;
+}
+
+/** --- Header tools --- **/
+function lowerHeaders(row) { return row.map(v => String(v || '').trim().toLowerCase()); }
+function buildHeaderMap(headerRow) {
+  const H = lowerHeaders(headerRow);
+  function findOne(candidates, { contains = false } = {}) {
+    for (let i = 0; i < H.length; i++) {
+      const h = H[i];
+      for (const c of candidates) {
+        if (!contains && h === c) return i;
+        if (contains && h.includes(c)) return i;
+      }
+    }
+    return -1;
+  }
+
+  // ID column
+  let idCol = findOne(['id', 'entry id', 'entryid', 'participant id', 'bib']);
+  if (idCol < 0) {
+    const tsCol = findOne(['timestamp']);
+    if (tsCol === 0 && H.length > 1) idCol = 1; // A=timestamp, B=id
+  }
+  if (idCol < 0) idCol = 0;
+
+  // Name columns
+  const nameCols = [];
+  for (let i = 0; i < H.length; i++) {
+    const h = H[i];
+    if (h === 'name' || /^name\d+$/.test(h) || h.includes('participant') || h.includes('member')) {
+      nameCols.push(i);
+    }
+  }
+  if (nameCols.length === 0) [5,6,7,8].forEach(i => { if (i < H.length) nameCols.push(i); });
+
+  let repCol = findOne(['representative', 'rep'], { contains: true });
+  let stateCol = findOne(['state']);
+  let heatCol = findOne(['heat']);
+  let stationCol = findOne(['station']);
+  let eventCol = findOne(['event']);
+  let divisionCol= findOne(['division']);
+
+  // Practical fallbacks for your layout
+  if (repCol   < 0 && 9  < H.length) repCol   = 9;  // J
+  if (stateCol < 0 && 10 < H.length) stateCol = 10; // K
+
+  return { idCol, nameCols, repCol, stateCol, heatCol, stationCol, eventCol, divisionCol, headerLower: H };
+}
 
 /** --- GET endpoint --- **/
 function doGet(e) {
-  const cmd = (e.parameter.cmd || '').toLowerCase();
+  const cmd = (e && e.parameter && (e.parameter.cmd || '') || '').toLowerCase();
+  if (cmd === 'ping')       return json({ ok: true, data: { ts: Date.now() }, error: null });
+  if (cmd === 'participant')return getParticipant(e);
 
-  if (cmd === 'ping') {
-    return json({ ok: true, data: { ts: Date.now() }, error: null });
-  }
+  // diagnostics (optional)
+  if (cmd === 'columns')    return debugColumns();
+  if (cmd === 'config')     return debugConfig();
 
-  if (cmd === 'participant') {
-    return getParticipant(e); // ✅ delegate to helper
-  }
-
-  // Default → serve the UI
-  return HtmlService.createTemplateFromFile('judge_form_ui')
-    .evaluate()
-    .setTitle("GBRSA Judge Form")
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  return json({ ok: true, data: { msg: 'GBRSA backend online. Use ?cmd=participant&entryId=...' }, error: null });
 }
 
-/** --- Participant lookup helper --- **/
-function getParticipant(e) {
-  const entryId = normalizeId(e.parameter.entryId);
-  if (!entryId) return json({ ok: false, data: null, error: 'Missing entryId' });
+function debugConfig() {
+  const SP = PropertiesService.getScriptProperties();
+  return json({ ok: true, data: { props: {
+    SHEET_ID: SP.getProperty('SHEET_ID'),
+    DATA_SHEET_NAME: SP.getProperty('DATA_SHEET_NAME'),
+    RESULT_SHEET_NAME: SP.getProperty('RESULT_SHEET_NAME'),
+    RESULT_F_SHEET_NAME: SP.getProperty('RESULT_F_SHEET_NAME'),
+  }}, error: null });
+}
 
+function debugColumns() {
+  const { SHEET_ID, DATA_SHEET } = getConfig();
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(DATA_SHEET);
+  if (!sh) return json({ ok: false, error: 'Sheet "' + DATA_SHEET + '" not found' });
   const values = sh.getDataRange().getValues();
+  if (!values || values.length === 0) return json({ ok: false, error: 'No data' });
+  const map = buildHeaderMap(values[0]);
+  return json({ ok: true, data: { sheet: DATA_SHEET, header: values[0], map }, error: null });
+}
 
-  const row = values.find(r => sameId(r[0], entryId));
-  if (!row) return json({ ok: false, data: null, error: 'Not found' });
+/** --- Participant lookup (UI expects "participant" object) --- **/
+function getParticipant(e) {
+  const { SHEET_ID, DATA_SHEET } = getConfig();
+  const entryId = normalizeId((e && e.parameter && (e.parameter.entryId || e.parameter.id)) || '');
+  if (!entryId) return json({ ok: false, error: 'Missing entryId' });
 
-  // Adjust column indexes to match your sheet
-  const names = [row[1], row[2], row[3], row[4]].filter(Boolean);
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sh = ss.getSheetByName(DATA_SHEET);
+  if (!sh) return json({ ok: false, error: 'Sheet "' + DATA_SHEET + '" not found' });
 
-  return json({
-    ok: true,
-    data: {
-      id: entryId,
-      names: names,
-      representative: row[5],
-      state: row[6]
-    },
-    error: null
-  });
+  const values = sh.getDataRange().getValues();
+  if (!values || values.length < 2) return json({ ok: false, error: 'No data (or missing header)' });
+
+  const header = values[0];
+  const map = buildHeaderMap(header);
+
+  let hit = null;
+  for (let r = 1; r < values.length; r++) {
+    if (sameId(values[r][map.idCol], entryId)) { hit = values[r]; break; }
+  }
+  if (!hit) return json({ ok: false, error: 'ID ' + entryId + ' not found' });
+
+  const names = (map.nameCols || [])
+    .map(c => String(safeGet(hit[c])).trim())
+    .filter(Boolean);
+
+  const participant = {
+    ID: entryId,
+    NAME1: names[0] || '',
+    NAME2: names[1] || '',
+    NAME3: names[2] || '',
+    NAME4: names[3] || '',
+    REPRESENTATIVE: map.repCol   >= 0 ? safeGet(hit[map.repCol])   : '',
+    STATE:          map.stateCol >= 0 ? safeGet(hit[map.stateCol]) : '',
+    HEAT:           map.heatCol  >= 0 ? safeGet(hit[map.heatCol])  : '',
+    STATION:        map.stationCol>= 0 ? safeGet(hit[map.stationCol]): '',
+    EVENT:          map.eventCol >= 0 ? safeGet(hit[map.eventCol]) : '',
+    DIVISION:       map.divisionCol>=0 ? safeGet(hit[map.divisionCol]): ''
+  };
+
+  return json({ ok: true, participant, error: null });
+}
+
+/** --- WRITE RESULT: handle POST from Speed & Freestyle forms --- **/
+function doPost(e) {
+  try {
+    const raw = (e && e.postData && e.postData.contents) ? e.postData.contents : '';
+    const payload = raw ? JSON.parse(raw) : {};
+
+    // allow frontend to specify _form = 'speed' | 'freestyle'
+    const declaredForm = (payload && (payload._form || payload.form || payload.mode) || '').toLowerCase();
+
+    const isFreestyle =
+      declaredForm === 'freestyle' ||
+      ('MISSES' in payload) || ('BREAKS' in payload) ||
+      ('DIFF_J1' in payload) || ('DIFF J1' in payload);
+
+    if (isFreestyle) {
+      return json(writeFreestyle(payload));
+    } else {
+      return json(writeSpeed(payload));
+    }
+  } catch (err) {
+    console.error('doPost error:', err);
+    return json({ ok: false, error: String(err && err.message || err) });
+  }
+}
+
+/** --- Writers --- **/
+function writeSpeed(payload) {
+  const { SHEET_ID, RESULT_SHEET_SPEED } = getConfig();
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sh = ss.getSheetByName(RESULT_SHEET_SPEED) || ss.insertSheet(RESULT_SHEET_SPEED);
+
+  const header = [
+    'TIMESTAMP','ID','SCORE','FALSE START','REMARK',
+    'NAME1','NAME2','NAME3','NAME4',
+    'REPRESENTATIVE','STATE','HEAT','STATION','EVENT','DIVISION'
+  ];
+  ensureHeader(sh, header);
+
+  const row = [
+    new Date(),
+    safeGet(payload['ID']),
+    safeGet(getKey(payload, ['SCORE'], '')),
+    safeGet(getKey(payload, ['FALSE START', 'FALSE_START', 'FALSESTART'], '')),
+    safeGet(payload['REMARK']),
+    safeGet(payload['NAME1']),
+    safeGet(payload['NAME2']),
+    safeGet(payload['NAME3']),
+    safeGet(payload['NAME4']),
+    safeGet(payload['REPRESENTATIVE']),
+    safeGet(payload['STATE']),
+    safeGet(payload['HEAT']),
+    safeGet(payload['STATION']),
+    safeGet(payload['EVENT']),
+    safeGet(payload['DIVISION'])
+  ];
+  sh.appendRow(row);
+  return { ok: true, data: { inserted: 1, sheet: RESULT_SHEET_SPEED }, error: null };
+}
+
+function writeFreestyle(payload) {
+  const { SHEET_ID, RESULT_SHEET_FREESTYLE } = getConfig();
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sh = ss.getSheetByName(RESULT_SHEET_FREESTYLE) || ss.insertSheet(RESULT_SHEET_FREESTYLE);
+
+  const header = [
+    'TIMESTAMP','ID','MISSES','BREAKS','DIFF','Missed RE','DIFF J1','DIFF J2',
+    'REMARK','NAME1','REPRESENTATIVE','STATE','HEAT','STATION','EVENT','DIVISION'
+  ];
+  ensureHeader(sh, header);
+
+  // --- helpers (parse/average/format) ---
+  function toNum(v) { if (v == null || v === '') return null; var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
+  function avg2(a, b) {
+    var x = toNum(a), y = toNum(b), arr = [];
+    if (x != null) arr.push(x);
+    if (y != null) arr.push(y);
+    if (arr.length === 0) return 0;
+    var sum = arr.reduce(function(acc, v){ return acc + v; }, 0);
+    return sum / arr.length;
+  }
+  function f2(n) { return Utilities.formatString('%.2f', n); }
+
+  // accept either "DIFF J1"/"DIFF_J1" and "DIFF J2"/"DIFF_J2"
+  var j1 = (payload['DIFF J1'] != null) ? payload['DIFF J1'] : payload['DIFF_J1'];
+  var j2 = (payload['DIFF J2'] != null) ? payload['DIFF J2'] : payload['DIFF_J2'];
+
+  var diffAvg = f2(avg2(j1, j2));                 // computed DIFF (2dp)
+  var j1Out   = (toNum(j1) == null) ? '' : f2(toNum(j1));
+  var j2Out   = (toNum(j2) == null) ? '' : f2(toNum(j2));
+
+  const row = [
+    new Date(),
+    safeGet(payload['ID']),
+    safeGet(getKey(payload, ['MISSES'], '')),
+    safeGet(getKey(payload, ['BREAKS'], '')),
+    diffAvg,                                              // DIFF = average(J1, J2)
+    safeGet(getKey(payload, ['MISSED_RE','Missed RE','MISSED RE'], '')),
+    j1Out,                                                // DIFF J1 (2dp if present)
+    j2Out,                                                // DIFF J2 (2dp if present)
+    safeGet(payload['REMARK']),
+    safeGet(payload['NAME1']),
+    safeGet(payload['REPRESENTATIVE']),
+    safeGet(payload['STATE']),
+    safeGet(payload['HEAT']),
+    safeGet(payload['STATION']),
+    safeGet(payload['EVENT']),
+    safeGet(payload['DIVISION'])
+  ];
+
+  sh.appendRow(row);
+  return { ok: true, data: { inserted: 1, sheet: RESULT_SHEET_FREESTYLE }, error: null };
+}
+
+function ensureHeader(sh, header) {
+  const existing = sh.getRange(1,1,1,header.length).getValues()[0];
+  const hasHeader = existing && existing.some(v => String(v||'').trim() !== '');
+  if (!hasHeader) sh.getRange(1,1,1,header.length).setValues([header]);
 }
