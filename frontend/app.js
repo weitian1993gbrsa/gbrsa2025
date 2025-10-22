@@ -1,7 +1,13 @@
 (function () {
   const $ = (q, el=document) => el.querySelector(q);
   const $$ = (q, el=document) => [...el.querySelectorAll(q)];
-  window.toast = (msg, timeout=2500) => { const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; document.body.appendChild(el); setTimeout(()=>{ el.remove(); }, timeout); };
+  window.toast = (msg, timeout=2500) => { 
+    const el = document.createElement('div'); 
+    el.className = 'toast'; 
+    el.textContent = msg; 
+    document.body.appendChild(el); 
+    setTimeout(()=>{ el.remove(); }, timeout); 
+  };
 
   // Simple micro-cache for participant lookups in this session
   const cache = new Map();
@@ -24,7 +30,8 @@
   window.apiPost = async (payload) => {
     const res = await fetch(window.CONFIG.APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload), keepalive:true });
     const txt = await res.text();
-    let data; try{ data=JSON.parse(txt);}catch{ data={ raw:txt, ok:res.ok }; }
+    let data; 
+    try{ data=JSON.parse(txt);}catch{ data={ raw:txt, ok:res.ok }; }
     if(!res.ok) throw new Error('POST failed');
     return data;
   };
@@ -49,6 +56,18 @@
   };
 
   window.$=$; window.$$=$$;
+
+  // === 🔥 PRE-WARM BACKEND CACHE FOR FIRST FAST ID LOOKUP ===
+  // This triggers your backend's ?cmd=warm endpoint to build the ID index
+  (async ()=>{
+    try {
+      await apiGet({ cmd: 'warm' });
+      console.log('GBRSA cache pre-warmed');
+    } catch(e){
+      console.warn('Warm-up failed (ignored):', e);
+    }
+  })();
+
 })();
 
 // === Update Check ===
@@ -79,7 +98,6 @@ function showUpdateToast() {
 
 setInterval(checkForDataUpdates, 30000);
 checkForDataUpdates();
-
 
 function forceRepaint() {
   document.body.classList.add("hidden");
