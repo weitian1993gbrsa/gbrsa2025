@@ -112,7 +112,7 @@
 
       const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']]
         .filter(Boolean).map(escapeHtml).join('<br>');
-      const rep = p['REPRESENTATIVE'] || '';
+      const rep = p['TEAM'] || '';
       const state = p['STATE'] || '';
       const heat = p['HEAT'] || '';
       const event = p['EVENT'] || '';

@@ -12,7 +12,7 @@ This repository contains the judge frontend (PWA) and the Google Apps Script bac
 - **Entry / Scan UI** (`index.html`, `speed.html`, `speed.js`):
   - QR camera scanning with robust camera initialization and `playsinline` support for iOS.
   - Manual ID input fallback (with `inputmode` where appropriate) when camera is unavailable.
-  - Participant lookup and card view with metadata (names, representative, state, tags).
+  - Participant lookup and card view with metadata (names, team, state, tags).
   - Score entry form with **FALSE START** checkbox (native checkbox restored and touch-optimized).
   - Submit results to backend with validation and friendly to mobile networks.
 

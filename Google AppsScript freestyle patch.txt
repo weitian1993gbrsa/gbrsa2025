@@ -33,7 +33,7 @@ function apiGetParticipantById_(mode, id){
   headers.forEach(h => obj[h] = row[map[h]-1]);
   // Normalize minimal shape for frontend convenience
   const names = [obj['Name'], obj['NAME1'], obj['NAME2'], obj['NAME3']].filter(Boolean);
-  return { id: id, names: names, representative: obj['REPRESENTATIVE'] || obj['Representative'] || '', state: obj['STATE'] || obj['State'] || '' };
+  return { id: id, names: names, team: obj['TEAM'] || obj['Team'] || '', state: obj['STATE'] || obj['State'] || '' };
 }
 
 function validateFreestylePayload_(p){

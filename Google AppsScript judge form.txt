@@ -55,7 +55,7 @@ function getParticipant(e) {
     data: {
       id: entryId,
       names: names,
-      representative: row[5],
+      team: row[5],
       state: row[6]
     },
     error: null

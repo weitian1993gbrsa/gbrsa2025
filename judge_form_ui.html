@@ -45,7 +45,7 @@
       </div>
 
       <div class="text-sm">
-        <span class="font-semibold">Representative:</span>
+        <span class="font-semibold">Team:</span>
         <span id="pRep"></span>
       </div>
 
@@ -80,7 +80,7 @@ async function loadParticipant(entryId) {
         ul.appendChild(li);
       });
 
-      document.getElementById("pRep").textContent = d.representative || "-";
+      document.getElementById("pRep").textContent = d.team || "-";
       document.getElementById("pState").textContent = d.state || "-";
       document.getElementById("participantCard").classList.remove("hidden");
       document.getElementById("confirmBtn").classList.remove("hidden");

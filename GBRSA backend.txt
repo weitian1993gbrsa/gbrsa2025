@@ -65,7 +65,8 @@ function buildHeaderMap(headerRow) {
   }
   if (nameCols.length === 0) [5,6,7,8].forEach(i => { if (i < H.length) nameCols.push(i); });
 
-  let repCol = findOne(['representative', 'rep'], { contains: true });
+  // TEAM column (was "representative")
+  let teamCol = findOne(['team', 'representative', 'rep'], { contains: true });
   let stateCol = findOne(['state']);
   let heatCol = findOne(['heat']);
   let stationCol = findOne(['station']);
@@ -73,10 +74,10 @@ function buildHeaderMap(headerRow) {
   let divisionCol= findOne(['division']);
 
   // Practical fallbacks for your layout
-  if (repCol   < 0 && 9  < H.length) repCol   = 9;  // J
+  if (teamCol   < 0 && 9  < H.length) teamCol   = 9;  // J
   if (stateCol < 0 && 10 < H.length) stateCol = 10; // K
 
-  return { idCol, nameCols, repCol, stateCol, heatCol, stationCol, eventCol, divisionCol, headerLower: H };
+  return { idCol, nameCols, teamCol, stateCol, heatCol, stationCol, eventCol, divisionCol, headerLower: H };
 }
 
 /** --- GET endpoint --- **/
@@ -138,13 +139,17 @@ function getParticipant(e) {
     .map(c => String(safeGet(hit[c])).trim())
     .filter(Boolean);
 
+  const teamValue = map.teamCol >= 0 ? safeGet(hit[map.teamCol]) : '';
+
   const participant = {
     ID: entryId,
     NAME1: names[0] || '',
     NAME2: names[1] || '',
     NAME3: names[2] || '',
     NAME4: names[3] || '',
-    REPRESENTATIVE: map.repCol   >= 0 ? safeGet(hit[map.repCol])   : '',
+    TEAM: teamValue,
+    // kept for backward compatibility – remove later if not needed
+    REPRESENTATIVE: teamValue,
     STATE:          map.stateCol >= 0 ? safeGet(hit[map.stateCol]) : '',
     HEAT:           map.heatCol  >= 0 ? safeGet(hit[map.heatCol])  : '',
     STATION:        map.stationCol>= 0 ? safeGet(hit[map.stationCol]): '',
@@ -189,7 +194,7 @@ function writeSpeed(payload) {
   const header = [
     'TIMESTAMP','ID','SCORE','FALSE START','REMARK',
     'NAME1','NAME2','NAME3','NAME4',
-    'REPRESENTATIVE','STATE','HEAT','STATION','EVENT','DIVISION'
+    'TEAM','STATE','HEAT','STATION','EVENT','DIVISION'
   ];
   ensureHeader(sh, header);
 
@@ -203,7 +208,8 @@ function writeSpeed(payload) {
     safeGet(payload['NAME2']),
     safeGet(payload['NAME3']),
     safeGet(payload['NAME4']),
-    safeGet(payload['REPRESENTATIVE']),
+    // accept TEAM or REPRESENTATIVE from the payload
+    safeGet(getKey(payload, ['TEAM', 'REPRESENTATIVE'], '')),
     safeGet(payload['STATE']),
     safeGet(payload['HEAT']),
     safeGet(payload['STATION']),
@@ -221,7 +227,7 @@ function writeFreestyle(payload) {
 
   const header = [
     'TIMESTAMP','ID','MISSES','BREAKS','DIFF','Missed RE','DIFF J1','DIFF J2',
-    'REMARK','NAME1','REPRESENTATIVE','STATE','HEAT','STATION','EVENT','DIVISION'
+    'REMARK','NAME1','TEAM','STATE','HEAT','STATION','EVENT','DIVISION'
   ];
   ensureHeader(sh, header);
 
@@ -256,7 +262,8 @@ function writeFreestyle(payload) {
     j2Out,                                                // DIFF J2 (2dp if present)
     safeGet(payload['REMARK']),
     safeGet(payload['NAME1']),
-    safeGet(payload['REPRESENTATIVE']),
+    // accept TEAM or REPRESENTATIVE from the payload
+    safeGet(getKey(payload, ['TEAM', 'REPRESENTATIVE'], '')),
     safeGet(payload['STATE']),
     safeGet(payload['HEAT']),
     safeGet(payload['STATION']),

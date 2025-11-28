@@ -127,7 +127,7 @@
 
       const names = [p['NAME1'], p['NAME2'], p['NAME3'], p['NAME4']]
         .filter(Boolean).map(escapeHtml).join('<br>');
-      const rep = p['REPRESENTATIVE'] || '';
+      const rep = p['TEAM'] || '';
       const state = p['STATE'] || '';
       const heat = p['HEAT'] || '';
       const event = p['EVENT'] || '';
@@ -221,7 +221,7 @@
       // ensure participant context is present
       if (!payload.ID && fId) payload.ID = fId.value || '';
       if (!payload.NAME1 && fNAME1) payload.NAME1 = fNAME1.value || '';
-      if (!payload.REPRESENTATIVE && fREP) payload.REPRESENTATIVE = fREP.value || '';
+      if (!payload.TEAM && fREP) payload.TEAM = fREP.value || '';
       if (!payload.STATE && fSTATE) payload.STATE = fSTATE.value || '';
       if (!payload.HEAT && fHEAT) payload.HEAT = fHEAT.value || '';
       if (!payload.STATION && fSTATION) payload.STATION = fSTATION.value || '';
