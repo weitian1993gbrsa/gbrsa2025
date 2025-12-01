@@ -47,6 +47,7 @@
       <div class="name">${formatNames(p)}</div>
 
       <div class="team">${esc(p.team)}</div>
+      <div class="event">${esc(p.event)}</div>     <!-- ⭐ ADDED EVENT LINE -->
 
       <div class="status">${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}</div>
     `;
@@ -64,7 +65,7 @@
       + `&state=${encodeURIComponent(p.state || "")}`
       + `&heat=${encodeURIComponent(p.heat || "")}`
       + `&station=${encodeURIComponent(station)}`
-      + `&event=${encodeURIComponent(p.event || "")}`
+      + `&event=${encodeURIComponent(p.event || "")}`   // ⭐ PASS EVENT TO NEXT PAGE
       + `&division=${encodeURIComponent(p.division || "")}`;
 
     card.addEventListener("click", () => {
