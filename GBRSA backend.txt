@@ -1,9 +1,8 @@
 /** ============================================================
- *            GBRSA BACKEND 2025 – FINAL VERSION
- *  Supports: Speed, Freestyle, Station Flow, Today-only logic
+ *  GBRSA BACKEND 2025 – FINAL OPTIMIZED VERSION (MALAYSIA TIME)
  * ============================================================ **/
 
-/** --- CONFIG --- **/
+/** CONFIG **/
 function getConfig() {
   const SP = PropertiesService.getScriptProperties();
   return {
@@ -11,21 +10,31 @@ function getConfig() {
     DATA_SHEET: SP.getProperty("DATA_SHEET_NAME") || "DATA",
     RESULT_SHEET_SPEED: SP.getProperty("RESULT_SHEET_NAME") || "RESULT",
     RESULT_SHEET_FREESTYLE: SP.getProperty("RESULT_F_SHEET_NAME") || "RESULT_F",
+    TZ: "Asia/Kuala_Lumpur"
   };
 }
 
-/** --- HELPERS --- **/
+/** UTILITIES **/
 function json(o){ return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 function normalize(s){ return String(s || "").trim(); }
-function safeGet(v){ return (v == null ? "" : v); }
-function lowerHeaders(row){ return row.map(v => String(v||"").trim().toLowerCase()); }
+function safe(v){ return v == null ? "" : v; }
+function lowerHeaders(row){ return row.map(v=>String(v||"").toLowerCase().trim()); }
+
+function toDate(val, tz){
+  if (val instanceof Date) return val;
+  try {
+    const d = new Date(Utilities.formatDate(new Date(val), tz, "yyyy-MM-dd'T'HH:mm:ss"));
+    if (!isNaN(d)) return d;
+  } catch(e){}
+  return null;
+}
 
 /** HEADER MAP **/
 function buildHeaderMap(header){
   const H = lowerHeaders(header);
 
   const find = (names) => {
-    for (let i = 0; i < H.length; i++){
+    for (let i=0; i<H.length; i++){
       if (names.includes(H[i])) return i;
     }
     return -1;
@@ -42,56 +51,51 @@ function buildHeaderMap(header){
     heat: find(["heat"]),
     station: find(["station"]),
     event: find(["event"]),
-    division: find(["division"])
+    division: find(["division"]),
   };
 }
 
-/** ============================================================
- *                         ROUTER
- * ============================================================ **/
+/** ROUTER **/
 function doGet(e){
   const cmd = (e.parameter.cmd || "").toLowerCase();
-
   if (cmd === "participant") return getParticipant(e);
   if (cmd === "stationlist") return getStationList(e);
   if (cmd === "ping") return json({ok:true, ts:Date.now()});
-
-  return json({ok:true, msg:"GBRSA backend online."});
+  return json({ok:true, msg:"GBRSA backend online"});
 }
 
 function doPost(e){
   try{
-    let payload = {};
-
+    let p = {};
     if (e.postData && e.postData.contents){
-      try { payload = JSON.parse(e.postData.contents); }
-      catch { payload = e.parameter; }
-    } else payload = e.parameter;
+      try { p = JSON.parse(e.postData.contents); }
+      catch { p = e.parameter; }
+    } else p = e.parameter;
 
-    const type = (payload._form || "").toLowerCase();
-
-    if (type === "freestyle") return json(writeFreestyle(payload));
-    return json(writeSpeed(payload));
+    const form = (p._form || "").toLowerCase();
+    if (form === "freestyle") return json(writeFreestyle(p));
+    return json(writeSpeed(p));
 
   }catch(err){
     return json({ok:false, error:String(err)});
   }
 }
 
-/** ============================================================
- *                 PARTICIPANT LOOKUP
- * ============================================================ **/
+/** PARTICIPANT LOOKUP **/
 function getParticipant(e){
   const {SHEET_ID, DATA_SHEET} = getConfig();
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const sh = ss.getSheetByName(DATA_SHEET);
-  const values = sh.getDataRange().getValues();
+
+  const last = sh.getLastRow();
+  const values = sh.getRange(1,1,last,20).getValues();
 
   const header = values[0];
   const map = buildHeaderMap(header);
+
   const id = normalize(e.parameter.entryId);
 
-  for (let r = 1; r < values.length; r++){
+  for (let r=1; r<values.length; r++){
     if (normalize(values[r][map.id]) === id){
       const row = values[r];
       return json({
@@ -107,7 +111,7 @@ function getParticipant(e){
           HEAT:row[map.heat],
           STATION:row[map.station],
           EVENT:row[map.event],
-          DIVISION:row[map.division],
+          DIVISION:row[map.division]
         }
       });
     }
@@ -116,82 +120,81 @@ function getParticipant(e){
   return json({ok:false, error:"ID not found"});
 }
 
-/** ============================================================
- *                STATION LIST (TODAY-ONLY LOGIC)
- * ============================================================ **/
+/** =========================
+ * STATION LIST (TODAY ONLY)
+ * ========================= **/
 function getStationList(e){
-  const {SHEET_ID, DATA_SHEET, RESULT_SHEET_SPEED} = getConfig();
+  const {SHEET_ID, DATA_SHEET, RESULT_SHEET_SPEED, TZ} = getConfig();
   const station = normalize(e.parameter.station);
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
 
-  /** --- DATA sheet entries --- **/
-  const sh = ss.getSheetByName(DATA_SHEET);
-  const rows = sh.getDataRange().getValues();
-  const header = rows[0];
-  const map = buildHeaderMap(header);
+  /** DATA SHEET **/
+  const dataSh = ss.getSheetByName(DATA_SHEET);
+  const dLast = dataSh.getLastRow();
+  const dVals = dataSh.getRange(1,1,dLast,20).getValues();
+  const map = buildHeaderMap(dVals[0]);
 
   let entries = [];
 
-  for (let r = 1; r < rows.length; r++){
-    if (normalize(rows[r][map.station]) !== station) continue;
+  for (let r=1; r<dVals.length; r++){
+    if (normalize(dVals[r][map.station]) !== station) continue;
 
-    const entryId = normalize(rows[r][map.id]);
-    if (!entryId) continue;
+    const id = normalize(dVals[r][map.id]);
+    if (!id) continue;
 
-    const names = [rows[r][map.name1], rows[r][map.name2], rows[r][map.name3], rows[r][map.name4]]
-                  .filter(Boolean).join(" ");
+    const fullName = [dVals[r][map.name1], dVals[r][map.name2], dVals[r][map.name3], dVals[r][map.name4]]
+                      .filter(Boolean).join(" ");
 
     entries.push({
-      entryId,
-      heat: rows[r][map.heat],
-      displayName: names,
-      team: rows[r][map.team],
+      entryId:id,
+      heat:dVals[r][map.heat],
+      displayName:fullName,
+      team:dVals[r][map.team],
       status:"pending"
     });
   }
 
-  /** --- RESULT sheet — ONLY COUNT TODAY --- **/
+  /** RESULT SHEET **/
   const resultSh = ss.getSheetByName(RESULT_SHEET_SPEED);
+  const judgedToday = new Set();
 
-  const judged = new Set();
   if (resultSh){
-    const res = resultSh.getDataRange().getValues();
-    const rh = lowerHeaders(res[0]);
+    const rLast = resultSh.getLastRow();
+    const rv = resultSh.getRange(1,1,rLast,15).getValues();
+    const rh = lowerHeaders(rv[0]);
 
     const idC = rh.indexOf("id");
     const stC = rh.indexOf("station");
     const tsC = 0;
 
-    const today = new Date();
+    const now = toDate(new Date(), TZ);
 
-    for (let r = 1; r < res.length; r++){
-      const ts = res[r][tsC];
-      if (!(ts instanceof Date)) continue;
+    for (let r=1; r<rv.length; r++){
+      const tsVal = toDate(rv[r][tsC], TZ);
+      if (!tsVal) continue;
 
       const sameDay =
-        ts.getFullYear() === today.getFullYear() &&
-        ts.getMonth() === today.getMonth() &&
-        ts.getDate() === today.getDate();
+        tsVal.getFullYear() === now.getFullYear() &&
+        tsVal.getMonth() === now.getMonth() &&
+        tsVal.getDate() === now.getDate();
 
       if (!sameDay) continue;
-      if (normalize(res[r][stC]) !== station) continue;
+      if (normalize(rv[r][stC]) !== station) continue;
 
-      judged.add(normalize(res[r][idC]));
+      judgedToday.add(normalize(rv[r][idC]));
     }
   }
 
   /** APPLY STATUS **/
   entries.forEach(e=>{
-    e.status = judged.has(e.entryId) ? "done" : "pending";
+    if (judgedToday.has(e.entryId)) e.status = "done";
   });
 
   return json({ok:true, station, entries});
 }
 
-/** ============================================================
- *                 WRITE SPEED RESULTS
- * ============================================================ **/
+/** WRITE SPEED **/
 function writeSpeed(p){
   const {SHEET_ID, RESULT_SHEET_SPEED} = getConfig();
   const ss = SpreadsheetApp.openById(SHEET_ID);
@@ -202,7 +205,6 @@ function writeSpeed(p){
     "NAME1","NAME2","NAME3","NAME4",
     "TEAM","STATE","HEAT","STATION","EVENT","DIVISION"
   ];
-
   ensureHeader(sh, header);
 
   sh.appendRow([
@@ -215,9 +217,7 @@ function writeSpeed(p){
   return {ok:true};
 }
 
-/** ============================================================
- *                WRITE FREESTYLE RESULTS
- * ============================================================ **/
+/** WRITE FREESTYLE **/
 function writeFreestyle(p){
   const {SHEET_ID, RESULT_SHEET_FREESTYLE} = getConfig();
   const ss = SpreadsheetApp.openById(SHEET_ID);
@@ -228,7 +228,6 @@ function writeFreestyle(p){
     "DIFF J1","DIFF J2",
     "REMARK","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION"
   ];
-
   ensureHeader(sh, header);
 
   sh.appendRow([
@@ -241,9 +240,7 @@ function writeFreestyle(p){
   return {ok:true};
 }
 
-/** ============================================================
- *                HEADER ENSURE
- * ============================================================ **/
+/** ENSURE HEADER **/
 function ensureHeader(sh, header){
   const row = sh.getRange(1,1,1,header.length).getValues()[0];
   if (!row[0]) sh.getRange(1,1,1,header.length).setValues([header]);
