@@ -13,7 +13,6 @@
 
   <style>
     html,body { touch-action:manipulation; }
-
     .back-btn {
       border:1px solid #000;
       padding:6px 15px;
@@ -32,7 +31,7 @@
   <button class="back-btn" onclick="history.back()">← Back</button>
   <div class="titles">
     <h1>Speed Judge</h1>
-    <p class="subtitle">Enter result & submit.</p>
+    <p class="subtitle">Enter score & submit.</p>
   </div>
 </header>
 
@@ -58,14 +57,14 @@
       <input name="REMARK" class="input"/>
     </label>
 
-    <!-- Hidden fields populated from URL -->
+    <!-- Hidden fields (populated from URL parameters) -->
     <input type="hidden" name="ID" id="fID"/>
-    <input type="hidden" name="NAME1"/>
-    <input type="hidden" name="NAME2"/>
-    <input type="hidden" name="NAME3"/>
-    <input type="hidden" name="NAME4"/>
-    <input type="hidden" name="TEAM"/>
-    <input type="hidden" name="STATE"/>
+    <input type="hidden" name="NAME1" id="fNAME1"/>
+    <input type="hidden" name="NAME2" id="fNAME2"/>
+    <input type="hidden" name="NAME3" id="fNAME3"/>
+    <input type="hidden" name="NAME4" id="fNAME4"/>
+    <input type="hidden" name="TEAM" id="fTEAM"/>
+    <input type="hidden" name="STATE" id="fSTATE"/>
     <input type="hidden" name="HEAT" id="fHEAT"/>
     <input type="hidden" name="STATION" id="fSTATION"/>
     <input type="hidden" name="EVENT" id="fEVENT"/>
