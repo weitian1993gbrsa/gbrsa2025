@@ -23,22 +23,13 @@
   }
 
   /** ============================================================
-   *  SMART NAME FORMATTER (1–4 names)
+   *  FIXED NAME FORMATTER — ALWAYS ONE LINE
    * ============================================================ **/
   function formatNames(p) {
     const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
-      .filter((n) => n && String(n).trim() !== "");
+      .filter(n => n && String(n).trim() !== "");
 
-    if (names.length === 0) return "—";
-
-    if (names.length === 1) return esc(names[0]);
-
-    if (names.length === 2)
-      return `${esc(names[0])}, ${esc(names[1])}`;
-
-    const line1 = `${esc(names[0])}, ${esc(names[1])}`;
-    const line2 = names.slice(2).map(esc).join(", ");
-    return `${line1}<br>${line2}`;
+    return names.map(esc).join(", ");
   }
 
   /** ============================================================
