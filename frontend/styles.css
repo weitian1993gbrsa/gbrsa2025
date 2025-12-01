@@ -221,19 +221,56 @@ body:not(.homepage) {
   opacity: .9;
 }
 
-/* ⭐⭐ NEW — EVENT RIGHT ALIGN ⭐⭐ */
-.station-card .event-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 4px;
+/* ---------------------------------
+   JUDGE PAGE OVERLAY
+----------------------------------- */
+#submitOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #ffffffcc;
+  backdrop-filter: blur(3px);
 }
 
-.station-card .event {
-  font-size: 13px;
-  opacity: .95;
-  font-weight: 600;
-  text-align: right;
+#submitOverlay.hide {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.overlay-card {
+  background: #fff;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px #0002;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+}
+
+.overlay-text {
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Loading animation */
+.loading { display: inline-flex; align-items: center; gap: .5rem; }
+.loading .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9ca3af;
+  animation: blink 1s infinite ease-in-out;
+}
+.loading .dot:nth-child(2){ animation-delay:.15s }
+.loading .dot:nth-child(3){ animation-delay:.3s }
+
+@keyframes blink {
+  0%,80%,100%{ transform:scale(0); opacity:.3 }
+  40%{ transform:scale(1); opacity:1 }
 }
 
 /* ---------------------------------
@@ -326,18 +363,23 @@ body:not(.homepage) {
 }
 
 /* ============================================================
-   FIXED NAME FORMATTING
-============================================================ */
+   FIXED NAME FORMATTING FOR STATION CARDS
+   Prevent ugly wrapping after comma / ensure smooth layout
+   ============================================================ */
+
 .station-card .name {
   white-space: normal;
   word-break: keep-all;
   line-height: 1.4;
 }
 
+/* Add commas automatically */
 .station-card .name-part::after {
   content: ", ";
 }
 
+/* Remove comma from last name */
 .station-card .name-part:last-child::after {
   content: "";
 }
+
