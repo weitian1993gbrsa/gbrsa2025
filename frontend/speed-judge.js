@@ -1,46 +1,34 @@
-(function(){
-  const $ = (q,el=document)=>el.querySelector(q);
+(function () {
 
+  const $ = (q) => document.querySelector(q);
   const params = new URLSearchParams(location.search);
 
-  // Read all participant details from URL
-  const id       = params.get("id");
-  const name1    = params.get("name1");
-  const name2    = params.get("name2");
-  const name3    = params.get("name3");
-  const name4    = params.get("name4");
-  const team     = params.get("team");
-  const state    = params.get("state");
-  const heat     = params.get("heat");
-  const station  = params.get("station");
-  const event    = params.get("event");
-  const division = params.get("division");
+  const returnURL = `station.html?station=${params.get("station")}`;
 
-  // Fill hidden fields
-  $('#fID').value      = id;
-  $('#fNAME1').value   = name1;
-  $('#fNAME2').value   = name2;
-  $('#fNAME3').value   = name3;
-  $('#fNAME4').value   = name4;
-  $('#fTEAM').value    = team;
-  $('#fSTATE').value   = state;
-  $('#fHEAT').value    = heat;
-  $('#fSTATION').value = station;
-  $('#fEVENT').value   = event;
-  $('#fDIVISION').value= division;
+  // Load all participant fields from URL
+  const set = (id, val) => { const el = $(id); if (el) el.value = val || ""; };
 
-  const scoreForm = $('#scoreForm');
-  const submitOverlay = $('#submitOverlay');
-  const overlayText = $('#overlayText');
+  set("#fID", params.get("id"));
+  set("#fNAME1", params.get("name1"));
+  set("#fNAME2", params.get("name2"));
+  set("#fNAME3", params.get("name3"));
+  set("#fNAME4", params.get("name4"));
+  set("#fTEAM", params.get("team"));
+  set("#fSTATE", params.get("state"));
+  set("#fHEAT", params.get("heat"));
+  set("#fSTATION", params.get("station"));
+  set("#fEVENT", params.get("event"));
+  set("#fDIVISION", params.get("division"));
 
-  const returnURL = `station.html?station=${station}`;
+  const scoreForm = $("#scoreForm");
+  const overlay = $("#submitOverlay");
+  const overlayText = $("#overlayText");
 
-  /** On Submit */
-  scoreForm.addEventListener("submit", async (e)=>{
+  scoreForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    submitOverlay.classList.remove("hide");
-    overlayText.textContent = "Sending…";
+    overlay.classList.remove("hide");
+    overlayText.textContent = "Submitting…";
 
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
@@ -48,18 +36,18 @@
     payload["FALSE START"] = fd.get("FALSE START") ? "YES" : "";
     payload._form = "speed";
 
-    try{
-      await apiPost(payload);
+    try {
+      const out = await apiPost(payload);
+      overlayText.textContent = "Saved ✔";
 
-      overlayText.textContent = "Saved!";
-      if (window.toast) toast("Submitted ✔");
+      setTimeout(() => {
+        location.href = returnURL;
+      }, 600);
 
-      setTimeout(()=>{ location.href = returnURL; }, 600);
-
-    } catch(err){
+    } catch (err) {
       console.error(err);
-      toast("Submit failed");
-      submitOverlay.classList.add("hide");
+      overlayText.textContent = "Submit failed";
+      setTimeout(() => overlay.classList.add("hide"), 800);
     }
   });
 
