@@ -1,99 +1,54 @@
 (function () {
+
   const $ = (q) => document.querySelector(q);
   const params = new URLSearchParams(location.search);
-  const station = params.get("station") || "1";
 
-  const listBox = $("#entriesBox");
-  const titleBox = $("#titleStation");
+  const returnURL = `station.html?station=${params.get("station")}`;
 
-  titleBox.textContent = `Entries for this Station`;
+  // Load all participant fields from URL
+  const set = (id, val) => { const el = $(id); if (el) el.value = val || ""; };
 
-  // Escape HTML
-  function esc(s) {
-    return String(s || "").replace(/[&<>"']/g, (m) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    }[m]));
-  }
+  set("#fID", params.get("id"));
+  set("#fNAME1", params.get("name1"));
+  set("#fNAME2", params.get("name2"));
+  set("#fNAME3", params.get("name3"));
+  set("#fNAME4", params.get("name4"));
+  set("#fTEAM", params.get("team"));
+  set("#fSTATE", params.get("state"));
+  set("#fHEAT", params.get("heat"));
+  set("#fSTATION", params.get("station"));
+  set("#fEVENT", params.get("event"));
+  set("#fDIVISION", params.get("division"));
 
-  // Render one station card
-  function renderCard(p) {
-    const names = [p.name1, p.name2, p.name3, p.name4].filter(Boolean);
+  const scoreForm = $("#scoreForm");
+  const overlay = $("#submitOverlay");
+  const overlayText = $("#overlayText");
 
-    // Build name HTML using spans to prevent bad line breaks
-    const nameHTML = names
-      .map((n) => `<span class="name-part">${esc(n)}</span>`)
-      .join("");
+  scoreForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    const sClass = p.status === "done" ? "done" : "pending";
-    const statusLabel = p.status === "done" ? "DONE (SUBMITTED)" : "NEW";
+    overlay.classList.remove("hide");
+    overlayText.textContent = "Submitting…";
 
-    const html = `
-      <button class="station-card ${sClass}" 
-        onclick="location.href='speed-judge.html?id=${encodeURIComponent(
-          p.entryId
-        )}&name1=${encodeURIComponent(
-      p.name1 || ""
-    )}&name2=${encodeURIComponent(
-      p.name2 || ""
-    )}&name3=${encodeURIComponent(
-      p.name3 || ""
-    )}&name4=${encodeURIComponent(
-      p.name4 || ""
-    )}&team=${encodeURIComponent(
-      p.team || ""
-    )}&state=${encodeURIComponent(
-      p.state || ""
-    )}&heat=${encodeURIComponent(
-      p.heat || ""
-    )}&station=${encodeURIComponent(
-      p.station || ""
-    )}&event=${encodeURIComponent(
-      p.event || ""
-    )}&division=${encodeURIComponent(p.division || "")}'">
+    const fd = new FormData(scoreForm);
+    const payload = Object.fromEntries(fd.entries());
 
-        <div class="top-row">
-          <span>Heat ${esc(p.heat)}</span>
-          <span>#${esc(p.index)} • ${esc(p.entryId)}</span>
-        </div>
-
-        <div class="name">${nameHTML}</div>
-
-        <div class="team">${esc(p.team)}</div>
-        <div class="status">${statusLabel}</div>
-      </button>
-    `;
-    return html;
-  }
-
-  async function loadStationList() {
-    listBox.innerHTML = `<div class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+    payload["FALSE START"] = fd.get("FALSE START") ? "YES" : "";
+    payload._form = "speed";
 
     try {
-      const out = await apiGet(`?cmd=stationlist&station=${station}`);
-      if (!out.ok) throw new Error(out.error);
+      const out = await apiPost(payload);
+      overlayText.textContent = "Saved ✔";
 
-      const entries = out.entries || [];
-      let html = "";
-
-      let index = 1;
-      for (const p of entries) {
-        p.index = index++;
-        html += renderCard(p);
-      }
-
-      listBox.innerHTML = html || `<p>No entries found for this station.</p>`;
+      setTimeout(() => {
+        location.href = returnURL;
+      }, 600);
 
     } catch (err) {
       console.error(err);
-      listBox.innerHTML = `<p style="color:red;">Failed to load station entries.</p>`;
+      overlayText.textContent = "Submit failed";
+      setTimeout(() => overlay.classList.add("hide"), 800);
     }
-  }
+  });
 
-  loadStationList();
-
-  $("#btnRefresh").addEventListener("click", loadStationList);
 })();
