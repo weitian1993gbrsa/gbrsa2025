@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
 <meta name="format-detection" content="telephone=no">
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <title>GBRSA Score • Scoring</title>
-  <link rel="stylesheet" href="./styles.css"/>
-  <script defer src="./app.js"></script>
-  <script defer src="./config.js"></script>
-  <script defer src="./nozoom.js"></script>
-  <style>html, body { touch-action: manipulation; }</style>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b1020">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>GBRSA Score • Scoring</title>
+<link rel="stylesheet" href="./styles.css"/>
+<script defer src="./app.js"></script>
+<script defer src="./config.js"></script>
+<script defer src="./nozoom.js"></script>
+<style>html, body { touch-action: manipulation; }</style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1020">
 
 <script>
-// iOS focus fix: ensure font-size is 16px on focused inputs to avoid auto-zoom
+// iOS focus fix
 (function(){
   function ensureSize(el){
     try{
@@ -26,8 +26,8 @@
       }
     }catch(e){}
   }
-  document.addEventListener('focusin', function(e){ ensureSize(e.target); }, true);
-  document.addEventListener('focusout', function(e){
+  document.addEventListener('focusin', e => ensureSize(e.target), true);
+  document.addEventListener('focusout', e => {
     try{
       e.target.style.fontSize='';
       e.target.style.webkitTextSizeAdjust='';
@@ -38,73 +38,125 @@
 
 </head>
 <body class="page homepage">
-  <header class="topbar">
-    <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
-    <div class="titles">
-      <h1>GBRSA Score</h1>
-      <p class="subtitle">Official Scoring Portal</p>
-    </div>
-  </header>
+<header class="topbar">
+  <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
+  <div class="titles">
+    <h1>GBRSA Score</h1>
+    <p class="subtitle">Official Scoring Portal</p>
+  </div>
+</header>
 
-  <main class="hero">
-    <section class="hero-content">
-      <h2 class="hero-title">Input ID. Score. Sync.</h2>
-      <p class="hero-text">Paperless judging for Speed Events.</p>
+<main class="hero">
+  <section class="hero-content">
+    <h2 class="hero-title">Input ID. Score. Sync.</h2>
+    <p class="hero-text">Paperless judging for Speed Events.</p>
 
-      <div class="menu-grid">
-        <a class="card" href="./speed.html">
-          <h3>Speed Judge</h3>
-          <p>ID → lookup → input score → submit.</p>
-        </a>
+    <div class="menu-grid">
 
-        <a class="card" href="./freestyle.html">
-          <h3>Freestyle Judge</h3>
-          <p>ID → lookup → input MISSES/BREAKS/DIFF/Missed RE → submit.</p>
-        </a>
+      <!-- Speed Judge -->
+      <a class="card" href="./speed.html">
+        <h3>Speed Judge</h3>
+        <p>ID → lookup → input score → submit.</p>
+      </a>
 
-        <!-- New: Station 1 page -->
-        <a class="card" href="./station.html?station=1">
-          <h3>Speed Station 1</h3>
-          <p>Card list for Station&nbsp;1 → tap to judge.</p>
-        </a>
+      <!-- Freestyle Judge -->
+      <a class="card" href="./freestyle.html">
+        <h3>Freestyle Judge</h3>
+        <p>ID → lookup → input MISSES/BREAKS/DIFF/Missed RE → submit.</p>
+      </a>
+
+      <!-- ⭐ NEW: Judge Login (PRIVATE STATION ACCESS) -->
+      <div class="card judge-login">
+        <h3>Judge Access</h3>
+        <p class="judge-desc">Enter your assigned access code to open your station.</p>
+
+        <div class="login-field">
+          <input id="judgeKey" class="input" placeholder="Enter access code">
+          <button class="btn primary" id="btnJudgeLogin">Enter</button>
+        </div>
+
+        <p id="keyError" class="judge-error">Invalid access code.</p>
       </div>
-    </section>
-  </main>
 
-  <footer class="foot">
-    <small>© 2025 GBRSA</small>
-    <div class="a2hs-tip" style="background:#e6faff; padding:6px; font-size:0.7em; line-height:1.4; margin-top:10px; color:#444;">
-      <p><strong>For best experience</strong>, add this web-app to your homescreen.</p>
-      <p><strong>On Android</strong>, open the menu in your browser (usually three dots next to the search bar) and select an option saying something like “Add to homescreen” or “Install”.</p>
-      <p><strong>On iOS</strong>, tap the “share” button and select “Add to Home Screen”.</p>
-      <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE – the simple scoring system</p>
     </div>
-  </footer>
+  </section>
+</main>
 
+<footer class="foot">
+  <small>© 2025 GBRSA</small>
+  <div class="a2hs-tip" style="background:#e6faff; padding:6px; font-size:0.7em; line-height:1.4; margin-top:10px; color:#444;">
+    <p><strong>For best experience</strong>, add this web-app to your homescreen.</p>
+    <p><strong>On Android</strong>, open your browser menu and select “Add to homescreen”.</p>
+    <p><strong>On iOS</strong>, tap the “share” button and choose “Add to Home Screen”.</p>
+    <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE</p>
+  </div>
+</footer>
+
+<!-- Preserve scroll behavior -->
 <script>
-  window.addEventListener('pageshow', function () {
-    // Scroll reset
-    window.scrollTo(0, 0);
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
-
-    // Remove focus from previously selected buttons/links
-    if (document.activeElement && document.activeElement.blur) {
-      document.activeElement.blur();
-    }
-  });
+window.addEventListener('pageshow', function () {
+  window.scrollTo(0, 0);
+  if (document.activeElement?.blur) document.activeElement.blur();
+});
 </script>
 
+<!-- Service Worker -->
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js").catch(()=>{});
 }
 </script>
+
 <script>
 (function(){
   let startY = 0, pulling = false;
   document.addEventListener('touchend', () => { pulling = false; }, {passive:true});
 })();
 </script>
+
+<!-- ⭐ JUDGE LOGIN SCRIPT -->
+<script>
+const validKeys = {
+  "abc123": 1,
+  "def456": 2,
+  "ghi789": 3,
+  "jkl555": 4,
+  "mno888": 5,
+  "pqr222": 6,
+  "stu333": 7,
+  "vwx444": 8,
+  "yyy111": 9,
+  "zzt777": 10,
+  "qqq101": 11,
+  "key999": 12
+};
+
+const keyInput = document.getElementById("judgeKey");
+const keyError = document.getElementById("keyError");
+const btnLogin = document.getElementById("btnJudgeLogin");
+
+btnLogin.addEventListener("click", () => {
+  const key = keyInput.value.trim();
+  const station = validKeys[key];
+
+  keyError.style.display = "none";
+
+  if (!station) {
+    keyError.style.display = "block";
+    return;
+  }
+
+  btnLogin.disabled = true;
+  btnLogin.textContent = "Loading...";
+
+  location.href = `station.html?station=${station}&key=${key}`;
+});
+
+// ENTER key support
+keyInput.addEventListener("keyup", (e) => {
+  if (e.key === "Enter") btnLogin.click();
+});
+</script>
+
 </body>
 </html>
