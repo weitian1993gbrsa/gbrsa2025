@@ -1,98 +1,76 @@
 (function(){
-  const $ = (q, el=document) => el.querySelector(q);
+  const $ = (q,el=document)=>el.querySelector(q);
 
-  const listEl       = $('#entryList');
-  const stationInfo  = $('#stationInfo');
+  const listEl = $('#entryList');
   const stationLabel = $('#stationLabel');
-  const btnRefresh   = $('#btnRefresh');
+  const btnRefresh = $('#btnRefresh');
 
-  const params  = new URLSearchParams(location.search);
-  const station = (params.get('station') || '1').trim();
+  const params = new URLSearchParams(location.search);
+  const station = params.get("station") || "1";
+  stationLabel.textContent = station;
 
-  if (stationLabel) stationLabel.textContent = station;
-
-  function escapeHtml(s) {
-    const map = {
-      '&':'&amp;',
-      '<':'&lt;',
-      '>':'&gt;',
-      '"':'&quot;',
-      "'":'&#39;'
-    };
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
-      return map[c] || c;
-    });
+  function escape(t){
+    return String(t||"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
   }
 
-  async function loadStationList() {
-    if (!listEl) return;
-    listEl.innerHTML = '<div class="hint">Loading…</div>';
+  async function loadStationList(){
+    listEl.innerHTML = "<div class='hint'>Loading…</div>";
 
-    try {
-      const data = await apiGet({ cmd: 'stationlist', station });
-      if (!data || !data.ok) {
-        listEl.innerHTML = '<div class="hint error">Failed to load station list.</div>';
-        if (window.toast) toast(data && data.error ? data.error : 'Load failed');
+    try{
+      const data = await apiGet({cmd:"stationlist", station});
+      if (!data || !data.ok){
+        listEl.innerHTML = "<div class='hint error'>Failed to load.</div>";
         return;
       }
+
       const entries = data.entries || [];
 
-      if (!entries.length) {
-        listEl.innerHTML = '<div class="hint">No participants found for this station.</div>';
+      if (!entries.length){
+        listEl.innerHTML = "<div class='hint'>No entries for this station.</div>";
         return;
       }
 
-      listEl.innerHTML = '';
-      entries.forEach((p, idx) => {
-        const card = document.createElement('button');
-        card.type = 'button';
+      listEl.innerHTML = "";
 
-        const status = p.status === 'done' ? 'done' : 'pending';
-        card.className = 'station-card ' + status;
+      entries.forEach((p, idx)=>{
+        const div = document.createElement("button");
+        div.type = "button";
+        div.className = `station-card ${p.status==="done" ? "done" : "pending"}`;
 
-        card.innerHTML = `
+        div.innerHTML = `
           <div class="top-row">
-            <span>Heat ${escapeHtml(p.heat || '-') }</span>
-            <span>#${idx + 1} • ${escapeHtml(p.entryId || '')}</span>
+            <span>Heat ${escape(p.heat)}</span>
+            <span>#${idx+1} • ${escape(p.entryId)}</span>
           </div>
-          <div class="name">${escapeHtml(p.displayName || '')}</div>
-          <div class="team">${escapeHtml(p.team || '')}</div>
+          <div class="name">${escape(p.displayName)}</div>
+          <div class="team">${escape(p.team)}</div>
           <div class="status">
-            ${status === 'done' ? 'DONE (submitted)' : 'NOT DONE (tap to judge)'}
+            ${p.status==="done" ? "DONE (SUBMITTED)" : "NOT DONE (TAP TO JUDGE)"}
           </div>
         `;
 
-        card.addEventListener('click', () => {
-          if (window.speedLookupById) {
+        div.addEventListener("click", ()=>{
+          if (window.speedLookupById){
             window.speedLookupById(p.entryId);
-            const cardEl = document.getElementById('participantCard');
-            if (cardEl) {
-              cardEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          } else {
-            if (window.toast) toast('Speed script not ready.');
+            window.scrollTo({top:0,behavior:"smooth"});
           }
         });
 
-        listEl.appendChild(card);
+        listEl.appendChild(div);
       });
 
-      if (stationInfo) {
-        stationInfo.textContent = `Showing ${entries.length} entr${entries.length === 1 ? 'y' : 'ies'} for Station ${station}.`;
-      }
-    } catch (err) {
-      console.error(err);
-      listEl.innerHTML = '<div class="hint error">Error loading station list.</div>';
-      if (window.toast) toast('Error loading station list');
+    }catch(err){
+      listEl.innerHTML = "<div class='hint error'>Error loading station data.</div>";
     }
   }
 
-  if (btnRefresh) {
-    btnRefresh.addEventListener('click', loadStationList);
+  if (btnRefresh){
+    btnRefresh.addEventListener("click", loadStationList);
   }
 
-  window.addEventListener('speed:submitSuccess', () => {
-    loadStationList();
+  /** Give Google Sheets time to write the row */
+  window.addEventListener("speed:submitSuccess", ()=>{
+    setTimeout(()=>loadStationList(), 1000);
   });
 
   loadStationList();
