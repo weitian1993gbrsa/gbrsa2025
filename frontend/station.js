@@ -15,7 +15,7 @@
     }[m]));
   }
 
-  /** Load station list */
+  /** Load station entries */
   async function loadStationList(){
     listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
@@ -28,7 +28,7 @@
 
       const arr = data.entries || [];
       if (!arr.length){
-        listEl.innerHTML = `<div class="hint">No participants assigned to this station.</div>`;
+        listEl.innerHTML = `<div class="hint">No participants assigned.</div>`;
         return;
       }
 
@@ -51,10 +51,22 @@
           </div>
         `;
 
-        /** FIXED CLICK HANDLER */
+        /** BUILD FULL URL — SEND ALL PARTICIPANT FIELDS */
+        const judgeURL = `speed-judge.html`
+          + `?id=${encodeURIComponent(p.entryId)}`
+          + `&name1=${encodeURIComponent(p.NAME1||"")}`
+          + `&name2=${encodeURIComponent(p.NAME2||"")}`
+          + `&name3=${encodeURIComponent(p.NAME3||"")}`
+          + `&name4=${encodeURIComponent(p.NAME4||"")}`
+          + `&team=${encodeURIComponent(p.team||"")}`
+          + `&state=${encodeURIComponent(p.state||"")}`
+          + `&heat=${encodeURIComponent(p.heat||"")}`
+          + `&station=${encodeURIComponent(station)}`
+          + `&event=${encodeURIComponent(p.event||"")}`
+          + `&division=${encodeURIComponent(p.division||"")}`;
+
         card.addEventListener("click", ()=>{
-          const url = `speed-judge.html?id=${p.entryId}&heat=${p.heat}&station=${station}&event=${encodeURIComponent(p.event||"")}&division=${encodeURIComponent(p.division||"")}`;
-          location.href = url;
+          location.href = judgeURL;
         });
 
         listEl.appendChild(card);
@@ -69,10 +81,6 @@
   if (btnRefresh){
     btnRefresh.addEventListener("click", loadStationList);
   }
-
-  window.addEventListener("speed:submitSuccess", ()=>{
-    setTimeout(loadStationList, 1000);
-  });
 
   window.addEventListener("load", ()=>{ setTimeout(loadStationList, 200); });
 
