@@ -9,7 +9,19 @@
   const station = params.get("station") || "1";
   stationLabel.textContent = station;
 
-  function escape(t){
+  let cache = {id:null, data:null, ts:0};
+
+  async function cachedLookup(id){
+    const now = Date.now();
+    if (cache.id === id && now - cache.ts < 2000){
+      return cache.data;
+    }
+    const data = await apiGet({cmd:"participant", entryId:id});
+    cache = {id, data, ts:now};
+    return data;
+  }
+
+  function esc(t){
     return String(t||"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
   }
 
@@ -19,59 +31,63 @@
     try{
       const data = await apiGet({cmd:"stationlist", station});
       if (!data || !data.ok){
-        listEl.innerHTML = "<div class='hint error'>Failed to load.</div>";
+        listEl.innerHTML = "<div class='hint error'>Failed to load station data.</div>";
         return;
       }
 
-      const entries = data.entries || [];
-
-      if (!entries.length){
-        listEl.innerHTML = "<div class='hint'>No entries for this station.</div>";
+      const arr = data.entries || [];
+      if (!arr.length){
+        listEl.innerHTML = "<div class='hint'>No participants assigned.</div>";
         return;
       }
 
       listEl.innerHTML = "";
+      arr.forEach((e, i)=>{
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = `station-card ${e.status==="done" ? "done" : "pending"}`;
 
-      entries.forEach((p, idx)=>{
-        const div = document.createElement("button");
-        div.type = "button";
-        div.className = `station-card ${p.status==="done" ? "done" : "pending"}`;
-
-        div.innerHTML = `
+        card.innerHTML = `
           <div class="top-row">
-            <span>Heat ${escape(p.heat)}</span>
-            <span>#${idx+1} • ${escape(p.entryId)}</span>
+            <span>Heat ${esc(e.heat)}</span>
+            <span>#${i+1} • ${esc(e.entryId)}</span>
           </div>
-          <div class="name">${escape(p.displayName)}</div>
-          <div class="team">${escape(p.team)}</div>
+          <div class="name">${esc(e.displayName)}</div>
+          <div class="team">${esc(e.team)}</div>
           <div class="status">
-            ${p.status==="done" ? "DONE (SUBMITTED)" : "NOT DONE (TAP TO JUDGE)"}
+            ${e.status==="done" ? "DONE (SUBMITTED)" : "NOT DONE (TAP TO JUDGE)"}
           </div>
         `;
 
-        div.addEventListener("click", ()=>{
+        card.addEventListener("click", async ()=>{
+          await cachedLookup(e.entryId);
           if (window.speedLookupById){
-            window.speedLookupById(p.entryId);
-            window.scrollTo({top:0,behavior:"smooth"});
+            window.speedLookupById(e.entryId);
           }
+          window.scrollTo({top:0,behavior:"smooth"});
         });
 
-        listEl.appendChild(div);
+        listEl.appendChild(card);
       });
 
     }catch(err){
-      listEl.innerHTML = "<div class='hint error'>Error loading station data.</div>";
+      listEl.innerHTML = "<div class='hint error'>Error loading station.</div>";
     }
   }
 
+  /** Manual refresh */
   if (btnRefresh){
     btnRefresh.addEventListener("click", loadStationList);
   }
 
-  /** Give Google Sheets time to write the row */
+  /** Auto refresh after submit (delay for Google Sheets write) */
   window.addEventListener("speed:submitSuccess", ()=>{
     setTimeout(()=>loadStationList(), 1000);
   });
 
-  loadStationList();
+  /** Load only AFTER whole page + speed.js is ready */
+  window.addEventListener("load", ()=>{
+    setTimeout(loadStationList, 300);
+  });
+
 })();
