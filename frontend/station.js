@@ -10,7 +10,7 @@
   stationLabel.textContent = station;
 
   /** ============================================================
-   *  FIXED HTML ESCAPE FUNCTION
+   *  HTML ESCAPE (safe output)
    * ============================================================ **/
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, (m) => ({
@@ -23,23 +23,28 @@
   }
 
   /** ============================================================
-   *  FIXED NAME FORMATTER — ALWAYS ONE LINE
+   *  NAME FORMATTER — ALWAYS ONE LINE
    * ============================================================ **/
   function formatNames(p) {
     const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
       .filter(n => n && String(n).trim() !== "");
-
     return names.map(esc).join(", ");
   }
 
   /** ============================================================
-   *  LOAD STATION LIST FROM BACKEND
+   *  LOAD STATION LIST (Real-time Status Refresh)
    * ============================================================ **/
   async function loadStationList() {
     listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
     try {
-      const data = await apiGet({ cmd: "stationlist", station });
+      // ⭐ FORCE NON-CACHED REQUEST (important fix)
+      const data = await apiGet({
+        cmd: "stationlist",
+        station,
+        _ts: Date.now()   // prevent browser/server caching
+      });
+
       if (!data || !data.ok) {
         listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
         return;
@@ -102,16 +107,16 @@
   }
 
   /** ============================================================
-   *  FIXED REFRESH BUTTON — ALWAYS WORKS
+   *  REFRESH BUTTON — CHECK REAL-TIME STATUS
    * ============================================================ **/
   if (btnRefresh) {
     btnRefresh.addEventListener("click", () => {
-      listEl.innerHTML = `<div class="hint">Refreshing…</div>`;
-      loadStationList();
+      listEl.innerHTML = `<div class="hint">Checking updates…</div>`;
+      loadStationList();   // reload statuses
     });
   }
 
-  /** Auto-load */
+  /** Auto-load on page open */
   window.addEventListener("load", () => {
     setTimeout(loadStationList, 200);
   });
