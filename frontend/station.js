@@ -31,7 +31,7 @@
   const cardMap = {};
 
   /** ============================================================
-   *  CREATE CARD (only first load)
+   *  CREATE CARD (only first time)
    * ============================================================ **/
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -72,12 +72,11 @@
     });
 
     cardMap[p.entryId] = { card, statusEl };
-
     return card;
   }
 
   /** ============================================================
-   *  UPDATE CARD (color + text only)
+   *  UPDATE CARD (fast status/color update only)
    * ============================================================ **/
   function updateCard(p) {
     const entry = cardMap[p.entryId];
@@ -97,13 +96,15 @@
   }
 
   /** ============================================================
-   *  SUPER FAST LOAD — SHOW CARDS FIRST, BACKEND AFTER
+   *  SUPER FAST LOAD SYSTEM
+   *  - First load → build cards once
+   *  - Next loads → instant update (no rebuild)
    * ============================================================ **/
   async function loadStationList() {
+    const firstLoad = Object.keys(cardMap).length === 0;
 
-    // ⭐ If cards already created → show INSTANTLY (no loading screen)
-    const isInitialLoad = Object.keys(cardMap).length === 0;
-    if (isInitialLoad) {
+    // First load → show basic loading message
+    if (firstLoad) {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
@@ -112,18 +113,18 @@
       data = await apiGet({
         cmd: "stationlist",
         station,
-        _ts: Date.now()
+        _ts: Date.now() // no cache
       });
     } catch (err) {
       console.error(err);
-      if (isInitialLoad) {
+      if (firstLoad) {
         listEl.innerHTML = `<div class="hint error">Error loading station.</div>`;
       }
       return;
     }
 
     if (!data || !data.ok) {
-      if (isInitialLoad) {
+      if (firstLoad) {
         listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
       }
       return;
@@ -131,8 +132,8 @@
 
     const arr = data.entries || [];
 
-    /** ⭐ FIRST LOAD — Create all cards once */
-    if (isInitialLoad) {
+    /** FIRST LOAD → create cards */
+    if (firstLoad) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => {
         const card = createCard(p, i);
@@ -141,19 +142,25 @@
       return;
     }
 
-    /** ⭐ SUBSEQUENT LOADS — Instant updates */
+    /** SUBSEQUENT LOADS → instant update */
     arr.forEach(p => updateCard(p));
   }
 
-  /** REFRESH BUTTON */
+  /** ============================================================
+   *  REFRESH BUTTON (now fully working)
+   * ============================================================ **/
   if (btnRefresh) {
     btnRefresh.addEventListener("click", () => {
-      loadStationList(); // fast update only
+      listEl.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="hint">Refreshing…</div>`
+      );
+      loadStationList();
     });
   }
 
-  /** AUTO LOAD ON PAGE OPEN */
+  /** AUTO-LOAD WHEN OPEN PAGE */
   window.addEventListener("load", () => {
-    setTimeout(loadStationList, 50); // faster boot
+    setTimeout(loadStationList, 60);
   });
 })();
