@@ -318,6 +318,16 @@
         const out = await apiPost(payload); // provided by app.js
         if (out && (out.ok || out.raw)) {
           if (window.toast) toast('Submitted ✅');
+          // Notify listeners (e.g. station view) that this ID was scored
+          try {
+            const submittedId = payload['ID'] || payload['id'] || '';
+            if (submittedId && window.dispatchEvent) {
+              window.dispatchEvent(
+                new CustomEvent('speed:submitSuccess', { detail: { id: submittedId } })
+              );
+            }
+          } catch(_){}
+
                     if (submitOverlay){ overlayText && (overlayText.textContent = 'Saved!'); await new Promise(r=>setTimeout(r, 550)); submitOverlay.classList.add('hide'); }
           resetUI();
         } else {
@@ -330,6 +340,9 @@
       }
     });
   }
+
+  // Expose lookup for other pages (e.g. station view)
+  window.speedLookupById = lookupById;
 
   // Initial state
   hideParticipant();

@@ -65,8 +65,7 @@ function buildHeaderMap(headerRow) {
   }
   if (nameCols.length === 0) [5,6,7,8].forEach(i => { if (i < H.length) nameCols.push(i); });
 
-  // TEAM column (was "representative")
-  let teamCol = findOne(['team', 'representative', 'rep'], { contains: true });
+  let repCol = findOne(['team', 'rep'], { contains: true });
   let stateCol = findOne(['state']);
   let heatCol = findOne(['heat']);
   let stationCol = findOne(['station']);
@@ -74,10 +73,10 @@ function buildHeaderMap(headerRow) {
   let divisionCol= findOne(['division']);
 
   // Practical fallbacks for your layout
-  if (teamCol   < 0 && 9  < H.length) teamCol   = 9;  // J
+  if (repCol   < 0 && 9  < H.length) repCol   = 9;  // J
   if (stateCol < 0 && 10 < H.length) stateCol = 10; // K
 
-  return { idCol, nameCols, teamCol, stateCol, heatCol, stationCol, eventCol, divisionCol, headerLower: H };
+  return { idCol, nameCols, repCol, stateCol, heatCol, stationCol, eventCol, divisionCol, headerLower: H };
 }
 
 /** --- GET endpoint --- **/
@@ -85,6 +84,7 @@ function doGet(e) {
   const cmd = (e && e.parameter && (e.parameter.cmd || '') || '').toLowerCase();
   if (cmd === 'ping')       return json({ ok: true, data: { ts: Date.now() }, error: null });
   if (cmd === 'participant')return getParticipant(e);
+  if (cmd === 'stationlist')return getStationList(e);
 
   // diagnostics (optional)
   if (cmd === 'columns')    return debugColumns();
@@ -139,17 +139,13 @@ function getParticipant(e) {
     .map(c => String(safeGet(hit[c])).trim())
     .filter(Boolean);
 
-  const teamValue = map.teamCol >= 0 ? safeGet(hit[map.teamCol]) : '';
-
   const participant = {
     ID: entryId,
     NAME1: names[0] || '',
     NAME2: names[1] || '',
     NAME3: names[2] || '',
     NAME4: names[3] || '',
-    TEAM: teamValue,
-    // kept for backward compatibility – remove later if not needed
-    REPRESENTATIVE: teamValue,
+    TEAM: map.repCol   >= 0 ? safeGet(hit[map.repCol])   : '',
     STATE:          map.stateCol >= 0 ? safeGet(hit[map.stateCol]) : '',
     HEAT:           map.heatCol  >= 0 ? safeGet(hit[map.heatCol])  : '',
     STATION:        map.stationCol>= 0 ? safeGet(hit[map.stationCol]): '',
@@ -160,6 +156,87 @@ function getParticipant(e) {
   return json({ ok: true, participant, error: null });
 }
 
+
+function getStationList(e) {
+  const { SHEET_ID, DATA_SHEET, RESULT_SHEET_SPEED } = getConfig();
+  const stationParam = String(
+    e && e.parameter && (e.parameter.station || e.parameter.STATION || '')
+  ).trim();
+  if (!stationParam) {
+    return json({ ok: false, error: 'Missing station parameter' });
+  }
+
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+
+  // --- DATA sheet: entries assigned to this station ---
+  const dataSh = ss.getSheetByName(DATA_SHEET);
+  if (!dataSh) return json({ ok: false, error: 'DATA sheet not found' });
+
+  const dataValues = dataSh.getDataRange().getValues();
+  if (!dataValues || dataValues.length < 2) {
+    return json({ ok: false, error: 'No data rows' });
+  }
+
+  const header = dataValues[0];
+  const map = buildHeaderMap(header);
+
+  const entries = [];
+  for (let r = 1; r < dataValues.length; r++) {
+    const row = dataValues[r];
+    const stationCell = map.stationCol >= 0 ? safeGet(row[map.stationCol]) : '';
+    const stVal = String(stationCell || '').trim();
+    if (!stVal || stVal !== stationParam) continue;
+
+    const id = map.idCol >= 0 ? normalizeId(row[map.idCol]) : '';
+    if (!id) continue;
+
+    const names = (map.nameCols || [])
+      .map(i => safeGet(row[i]))
+      .filter(Boolean);
+
+    const team = map.repCol   >= 0 ? safeGet(row[map.repCol])   : '';
+    const state= map.stateCol >= 0 ? safeGet(row[map.stateCol]) : '';
+    const heat = map.heatCol  >= 0 ? safeGet(row[map.heatCol])  : '';
+    const event= map.eventCol >= 0 ? safeGet(row[map.eventCol]) : '';
+    const div  = map.divisionCol>=0? safeGet(row[map.divisionCol]): '';
+
+    entries.push({
+      entryId: id,
+      displayName: names.join(', '),
+      team,
+      state,
+      heat,
+      event,
+      division: div
+    });
+  }
+
+  // --- RESULT sheet: which IDs are already scored at this station ---
+  const resultSh = ss.getSheetByName(RESULT_SHEET_SPEED);
+  const judgedIds = new Set();
+
+  if (resultSh) {
+    const resValues = resultSh.getDataRange().getValues();
+    if (resValues && resValues.length > 1) {
+      const rh = lowerHeaders(resValues[0]);
+      const idCol = rh.indexOf('id');
+      const stCol = rh.indexOf('station');
+      for (let r = 1; r < resValues.length; r++) {
+        const row = resValues[r];
+        const st = stCol >= 0 ? String(safeGet(row[stCol]) || '').trim() : '';
+        if (st && st !== stationParam) continue;
+        const id = idCol >= 0 ? normalizeId(row[idCol]) : '';
+        if (id) judgedIds.add(id);
+      }
+    }
+  }
+
+  entries.forEach(ei => {
+    ei.status = judgedIds.has(ei.entryId) ? 'done' : 'pending';
+  });
+
+  return json({ ok: true, station: stationParam, entries, error: null });
+}
 /** --- WRITE RESULT: handle POST from Speed & Freestyle forms --- **/
 function doPost(e) {
   try {
@@ -208,8 +285,7 @@ function writeSpeed(payload) {
     safeGet(payload['NAME2']),
     safeGet(payload['NAME3']),
     safeGet(payload['NAME4']),
-    // accept TEAM or REPRESENTATIVE from the payload
-    safeGet(getKey(payload, ['TEAM', 'REPRESENTATIVE'], '')),
+    safeGet(payload['TEAM']),
     safeGet(payload['STATE']),
     safeGet(payload['HEAT']),
     safeGet(payload['STATION']),
@@ -262,8 +338,7 @@ function writeFreestyle(payload) {
     j2Out,                                                // DIFF J2 (2dp if present)
     safeGet(payload['REMARK']),
     safeGet(payload['NAME1']),
-    // accept TEAM or REPRESENTATIVE from the payload
-    safeGet(getKey(payload, ['TEAM', 'REPRESENTATIVE'], '')),
+    safeGet(payload['TEAM']),
     safeGet(payload['STATE']),
     safeGet(payload['HEAT']),
     safeGet(payload['STATION']),
