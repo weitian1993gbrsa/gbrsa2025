@@ -1,107 +1,110 @@
-(function(){
-  const $ = (q,el=document)=>el.querySelector(q);
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>GBRSA – Speed Judge</title>
 
-  const params = new URLSearchParams(location.search);
-  const entryId = params.get("id");
-  const station = params.get("station") || "";
-  const returnUrl = `station.html?station=${station}`;
+  <link rel="stylesheet" href="./styles.css"/>
 
-  const pId = $('#pId');
-  const pNames = $('#pNames');
-  const pRep = $('#pRep');
-  const pState = $('#pState');
+  <script defer src="./config.js"></script>
+  <script defer src="./app.js"></script>
+  <script defer src="./speed-judge.js"></script>
 
-  const fId = $('#fId');
-  const fNAME1 = $('#fNAME1');
-  const fNAME2 = $('#fNAME2');
-  const fNAME3 = $('#fNAME3');
-  const fNAME4 = $('#fNAME4');
-  const fREP = $('#fREP');
-  const fSTATE = $('#fSTATE');
-  const fHEAT = $('#fHEAT');
-  const fSTATION = $('#fSTATION');
-  const fEVENT = $('#fEVENT');
-  const fDIVISION = $('#fDIVISION');
-
-  const badgeHeat = $('#badgeHeat');
-  const badgeStation = $('#badgeStation');
-  const badgeEvent = $('#badgeEvent');
-  const badgeDivision = $('#badgeDivision');
-
-  const scoreForm = $('#scoreForm');
-  const submitOverlay = $('#submitOverlay');
-  const overlayText = $('#overlayText');
-
-  async function loadParticipant(){
-    try{
-      const data = await apiGet({cmd:'participant', entryId});
-      if (!data || !data.participant){
-        toast("Participant not found");
-        return;
-      }
-
-      const p = data.participant;
-
-      pId.textContent = p.ID;
-      pNames.innerHTML = [p.NAME1,p.NAME2,p.NAME3,p.NAME4].filter(Boolean).join("<br>");
-      pRep.textContent = p.TEAM;
-      pState.textContent = p.STATE;
-
-      badgeHeat.textContent = `HEAT ${p.HEAT}`;
-      badgeStation.textContent = `STATION ${p.STATION}`;
-      badgeEvent.textContent = `EVENT ${p.EVENT}`;
-      badgeDivision.textContent = `DIVISION ${p.DIVISION}`;
-
-      fId.value = p.ID;
-      fNAME1.value = p.NAME1;
-      fNAME2.value = p.NAME2;
-      fNAME3.value = p.NAME3;
-      fNAME4.value = p.NAME4;
-      fREP.value = p.TEAM;
-      fSTATE.value = p.STATE;
-      fHEAT.value = p.HEAT;
-      fSTATION.value = p.STATION;
-      fEVENT.value = p.EVENT;
-      fDIVISION.value = p.DIVISION;
-
-    }catch(err){
-      console.error(err);
-      toast("Failed to load participant");
+  <style>
+    html,body { touch-action:manipulation; }
+    .badge { background:#e4e8ff; padding:4px 10px; border-radius:8px; margin-right:5px; }
+    .back-btn {
+      border:1px solid #000;
+      padding:6px 15px;
+      border-radius:6px;
+      background:#fff;
+      font-size:14px;
+      cursor:pointer;
+      margin-right:10px;
     }
-  }
+  </style>
+</head>
 
-  if (scoreForm){
-    scoreForm.addEventListener("submit", async (e)=>{
-      e.preventDefault();
+<body class="page judge">
 
-      if (submitOverlay){
-        overlayText.textContent = "Sending…";
-        submitOverlay.classList.remove("hide");
-      }
+<header class="topbar">
+  <button class="back-btn" onclick="history.back()">← Back</button>
+  <div class="titles">
+    <h1>Speed Judge</h1>
+    <p class="subtitle">Enter result & submit.</p>
+  </div>
+</header>
 
-      const fd = new FormData(scoreForm);
-      const payload = Object.fromEntries(fd.entries());
-      payload['FALSE START'] = fd.get("FALSE START") ? "YES" : "";
-      payload._form = "speed";
+<main class="container">
 
-      try{
-        const out = await apiPost(payload);
+<section id="participantCard" class="block">
+  <div class="row space">
+    <h2>Participant</h2>
+    <div class="badges">
+      <span id="badgeHeat" class="badge">HEAT —</span>
+      <span id="badgeStation" class="badge">STATION —</span>
+      <span id="badgeEvent" class="badge">EVENT —</span>
+      <span id="badgeDivision" class="badge">DIVISION —</span>
+    </div>
+  </div>
 
-        overlayText.textContent = "Saved!";
-        if (window.toast) toast("Submitted ✔");
+  <dl class="info">
+    <div><dt>ID</dt><dd id="pId">—</dd></div>
+    <div><dt>Names</dt><dd id="pNames">—</dd></div>
+    <div><dt>Team</dt><dd id="pRep">—</dd></div>
+    <div><dt>State</dt><dd id="pState">—</dd></div>
+  </dl>
+</section>
 
-        setTimeout(()=>{
-          location.href = returnUrl;
-        }, 600);
+<section id="scoreFormWrap" class="block">
+  <h2>Enter Score</h2>
 
-      }catch(err){
-        console.error(err);
-        toast("Submit failed");
-        submitOverlay.classList.add("hide");
-      }
-    });
-  }
+  <form id="scoreForm" class="form">
 
-  loadParticipant();
+    <label class="field">
+      <span>SCORE</span>
+      <input name="SCORE" type="number" required min="0" class="input"/>
+    </label>
 
-})();
+    <label class="check">
+      <input type="checkbox" name="FALSE START"/>
+      <span>FALSE START</span>
+    </label>
+
+    <label class="field">
+      <span>REMARK</span>
+      <input name="REMARK" class="input"/>
+    </label>
+
+    <!-- Hidden fields -->
+    <input type="hidden" name="ID" id="fId"/>
+    <input type="hidden" name="NAME1" id="fNAME1"/>
+    <input type="hidden" name="NAME2" id="fNAME2"/>
+    <input type="hidden" name="NAME3" id="fNAME3"/>
+    <input type="hidden" name="NAME4" id="fNAME4"/>
+    <input type="hidden" name="TEAM" id="fREP"/>
+    <input type="hidden" name="STATE" id="fSTATE"/>
+    <input type="hidden" name="HEAT" id="fHEAT"/>
+    <input type="hidden" name="STATION" id="fSTATION"/>
+    <input type="hidden" name="EVENT" id="fEVENT"/>
+    <input type="hidden" name="DIVISION" id="fDIVISION"/>
+
+    <div class="row space">
+      <button type="submit" class="btn primary">Submit Result</button>
+    </div>
+
+  </form>
+</section>
+
+</main>
+
+<div id="submitOverlay" class="overlay hide">
+  <div class="overlay-card">
+    <div class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div id="overlayText" class="overlay-text">Sending…</div>
+  </div>
+</div>
+
+</body>
+</html>
