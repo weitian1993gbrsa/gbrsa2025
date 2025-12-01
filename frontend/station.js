@@ -9,41 +9,32 @@
   const station = qs.get("station") || "1";
   stationLabel.textContent = station;
 
-  /** HTML escape */
+  /** Escape HTML */
   function esc(s){
     return String(s || "").replace(/[&<>"']/g, m => ({
-      "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;"
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;"
     }[m]));
   }
 
-  /** ============================================================
-   *  FORMAT NAMES (1–4 names) CLEAN & READABLE
-   * ============================================================ **/
+  /** FORMAT NAMES **/
   function formatNames(p){
     const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
       .filter(n => n && String(n).trim() !== "");
 
     if (names.length === 0) return "—";
 
-    // 1 name
-    if (names.length === 1) {
-      return esc(names[0]);
-    }
+    if (names.length === 1) return esc(names[0]);
 
-    // 2 names → NAME1, NAME2
-    if (names.length === 2) {
+    if (names.length === 2)
       return `${esc(names[0])}, ${esc(names[1])}`;
-    }
 
-    // 3–4 names split across 2 lines
     const line1 = `${esc(names[0])}, ${esc(names[1])}`;
     const line2 = names.slice(2).map(esc).join(", ");
     return `${line1}<br>${line2}`;
   }
 
-  /** ============================================================
-   *  LOAD STATION LIST
-   * ============================================================ **/
+
+  /** LOAD STATION LIST **/
   async function loadStationList(){
     listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
@@ -75,11 +66,11 @@
           <div class="name">${formatNames(p)}</div>
           <div class="team">${esc(p.team)}</div>
           <div class="status">
-            ${p.status === "done" ? "DONE (SUBMITTED)" : "NOT DONE (TAP TO JUDGE)"}
+            ${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}
           </div>
         `;
 
-        /** Build FULL URL → Pass ALL participant fields */
+        /** Build URL to judge page */
         const judgeURL =
           `speed-judge.html`
           + `?id=${encodeURIComponent(p.entryId)}`
@@ -107,12 +98,10 @@
     }
   }
 
-  /** Refresh button */
   if (btnRefresh){
     btnRefresh.addEventListener("click", loadStationList);
   }
 
-  /** Load on page ready */
   window.addEventListener("load", () => {
     setTimeout(loadStationList, 200);
   });
