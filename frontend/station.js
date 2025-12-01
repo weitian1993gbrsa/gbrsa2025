@@ -5,87 +5,99 @@
   const stationLabel = $('#stationLabel');
   const btnRefresh = $('#btnRefresh');
 
-  const params = new URLSearchParams(location.search);
-  const station = params.get("station") || "1";
+  const qs = new URLSearchParams(location.search);
+  const station = qs.get("station") || "1";
   stationLabel.textContent = station;
 
-  let cache = {id:null, data:null, ts:0};
+  /** Simple HTML escape */
+  function esc(s){
+    return String(s || "").replace(/[&<>"']/g, m => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;"
+    }[m]));
+  }
 
-  async function cachedLookup(id){
+  /** Cache last participant lookup to speed up clicking */
+  let lookupCache = {id:null, data:null, ts:0};
+
+  async function cachedParticipant(id){
     const now = Date.now();
-    if (cache.id === id && now - cache.ts < 2000){
-      return cache.data;
+    if (lookupCache.id === id && (now - lookupCache.ts) < 2500){
+      return lookupCache.data;
     }
     const data = await apiGet({cmd:"participant", entryId:id});
-    cache = {id, data, ts:now};
+    lookupCache = {id, data, ts:now};
     return data;
   }
 
-  function esc(t){
-    return String(t||"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
-  }
-
+  /** MAIN LOADER */
   async function loadStationList(){
-    listEl.innerHTML = "<div class='hint'>Loading…</div>";
+    listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
-    try{
+    try {
       const data = await apiGet({cmd:"stationlist", station});
       if (!data || !data.ok){
-        listEl.innerHTML = "<div class='hint error'>Failed to load station data.</div>";
+        listEl.innerHTML = `<div class="hint error">Unable to load station entries.</div>`;
         return;
       }
 
-      const arr = data.entries || [];
-      if (!arr.length){
-        listEl.innerHTML = "<div class='hint'>No participants assigned.</div>";
+      const entries = data.entries || [];
+      if (!entries.length){
+        listEl.innerHTML = `<div class="hint">No participants assigned to this station.</div>`;
         return;
       }
 
       listEl.innerHTML = "";
-      arr.forEach((e, i)=>{
+
+      entries.forEach((p, idx)=>{
         const card = document.createElement("button");
         card.type = "button";
-        card.className = `station-card ${e.status==="done" ? "done" : "pending"}`;
+        card.className = `station-card ${p.status === "done" ? "done" : "pending"}`;
 
         card.innerHTML = `
           <div class="top-row">
-            <span>Heat ${esc(e.heat)}</span>
-            <span>#${i+1} • ${esc(e.entryId)}</span>
+            <span>Heat ${esc(p.heat)}</span>
+            <span>#${idx+1} • ${esc(p.entryId)}</span>
           </div>
-          <div class="name">${esc(e.displayName)}</div>
-          <div class="team">${esc(e.team)}</div>
+          <div class="name">${esc(p.displayName)}</div>
+          <div class="team">${esc(p.team)}</div>
           <div class="status">
-            ${e.status==="done" ? "DONE (SUBMITTED)" : "NOT DONE (TAP TO JUDGE)"}
+            ${p.status === "done" ? "DONE (SUBMITTED)" : "NOT DONE (TAP TO JUDGE)"}
           </div>
         `;
 
+        /** When card is clicked → load participant → open judge form */
         card.addEventListener("click", async ()=>{
-          await cachedLookup(e.entryId);
+          await cachedParticipant(p.entryId);
+
           if (window.speedLookupById){
-            window.speedLookupById(e.entryId);
+            window.speedLookupById(p.entryId);
+          } else {
+            console.warn("speedLookupById not found. Ensure speed.js loads BEFORE station.js");
           }
-          window.scrollTo({top:0,behavior:"smooth"});
+
+          window.scrollTo({top:0, behavior:"smooth"});
         });
 
         listEl.appendChild(card);
       });
 
-    }catch(err){
-      listEl.innerHTML = "<div class='hint error'>Error loading station.</div>";
+    } catch (err){
+      console.error(err);
+      listEl.innerHTML = `<div class="hint error">Error loading station list.</div>`;
     }
   }
 
-  /** Manual refresh */
+  /** Manual refresh button */
   if (btnRefresh){
     btnRefresh.addEventListener("click", loadStationList);
   }
 
-  /** Auto refresh after submit (delay for Google Sheets write) */
+  /** Auto refresh after submitting result */
   window.addEventListener("speed:submitSuccess", ()=>{
-    setTimeout(()=>loadStationList(), 1000);
+    setTimeout(loadStationList, 1000);  // wait for Google Sheets to finish writing
   });
 
-  /** Load only AFTER whole page + speed.js is ready */
+  /** Load AFTER page fully ready */
   window.addEventListener("load", ()=>{
     setTimeout(loadStationList, 300);
   });
