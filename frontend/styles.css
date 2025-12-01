@@ -343,18 +343,21 @@ body:not(.homepage) {
 }
 
 /* ---------------------------------
-   SPEED JUDGE SUBMIT OVERLAY (RESTORED)
+   SPEED JUDGE SUBMIT OVERLAY (FAST VERSION)
 ----------------------------------- */
 
 #submitOverlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #ffffffcc;
-  backdrop-filter: blur(3px);
+  background: rgba(255,255,255,0.85);
   display: flex;
   justify-content: center;
   align-items: center;
+
+  /* SPEED BOOST */
+  transform: translateZ(0);
+  will-change: opacity, transform;
 }
 
 #submitOverlay.hide {
@@ -374,6 +377,9 @@ body:not(.homepage) {
   flex-direction: column;
   align-items: center;
   gap: .75rem;
+
+  /* GPU BOOST */
+  transform: translateZ(0);
 }
 
 .overlay-text {
@@ -397,3 +403,8 @@ body:not(.homepage) {
 
 .loading .dot:nth-child(2) { animation-delay: .15s }
 .loading .dot:nth-child(3) { animation-delay: .3s }
+
+@keyframes blink {
+  0%,80%,100%{ transform:scale(0); opacity:.3 }
+  40%{ transform:scale(1); opacity:1 }
+}
