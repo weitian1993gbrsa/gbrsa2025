@@ -53,7 +53,7 @@
 
         /** FIXED CLICK HANDLER */
         card.addEventListener("click", ()=>{
-          const url = `speed-judge.html?id=${p.entryId}&station=${station}`;
+          const url = `speed-judge.html?id=${p.entryId}&heat=${p.heat}&station=${station}&event=${encodeURIComponent(p.event||"")}&division=${encodeURIComponent(p.division||"")}`;
           location.href = url;
         });
 
