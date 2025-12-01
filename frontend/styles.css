@@ -172,7 +172,7 @@ body:not(.homepage) {
 .check { display: flex; align-items: center; gap: .5rem; }
 
 /* ---------------------------------
-   STATION CARD – OFFICIAL DESIGN
+   STATION CARD
 ----------------------------------- */
 .station-card {
   display: block;
@@ -187,7 +187,6 @@ body:not(.homepage) {
   box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
   color: #fff;
   appearance: none;
-  -webkit-appearance: none;
 }
 
 .station-card.pending { background: #24c36b; }
@@ -221,7 +220,7 @@ body:not(.homepage) {
   opacity: .9;
 }
 
-/* ⭐ EVENT + STATUS ROW */
+/* ⭐ Event row improvement */
 .station-card .event-row {
   display: flex;
   justify-content: space-between;
@@ -237,61 +236,8 @@ body:not(.homepage) {
 }
 
 /* ---------------------------------
-   BADGES
+   HOMEPAGE CARDS
 ----------------------------------- */
-.badges { display: flex; flex-wrap: wrap; gap: .35rem; }
-
-.badge {
-  display: inline-block;
-  white-space: nowrap;
-  padding: .25rem .5rem;
-  border-radius: .375rem;
-  background: #e8f1ff;
-  color: #0b3a88;
-  font-size: .75rem;
-}
-
-/* ---------------------------------
-   RESPONSIVE FIXES
------------------------------------ */
-@media (min-width: 640px) {
-  .scan-row { flex-direction: row; }
-  .info { grid-template-columns: 1fr 1fr; }
-  .block .btn.primary { width: auto; }
-}
-
-/* ---------------------------------
-   HOMEPAGE HERO + MENU GRID
------------------------------------ */
-
-.hero {
-  position: relative;
-  display: grid;
-  min-height: 42vh;
-  place-items: center;
-  background: linear-gradient(180deg, #ffffff, var(--soft));
-}
-
-.hero-content {
-  position: relative;
-  padding: 2rem 1rem;
-  max-width: 900px;
-  width: 100%;
-}
-
-.hero-title {
-  font-size: 2rem;
-  margin: 0 0 .25rem;
-  font-weight: 700;
-}
-
-.hero-text {
-  margin: 0 0 1rem;
-  color: var(--muted);
-  font-size: 1rem;
-}
-
-/* Homepage cards */
 .menu-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -321,31 +267,49 @@ body:not(.homepage) {
   outline-offset: 2px;
 }
 
-.card.disabled {
-  opacity: .75;
+/* ---------------------------------
+   JUDGE LOGIN UI (UPGRADE)
+----------------------------------- */
+.judge-login {
+  padding: 1.25rem 1.25rem 1.5rem;
+  border-left: 4px solid var(--accent);
 }
 
-/* ============================================================
-   FIXED NAME FORMATTING
-============================================================ */
-.station-card .name {
-  white-space: normal;
-  word-break: keep-all;
-  line-height: 1.4;
+.judge-desc {
+  margin: .25rem 0 1rem;
+  color: var(--muted);
+  font-size: .9rem;
 }
 
-.station-card .name-part::after {
-  content: ", ";
+.login-field {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
 }
 
-.station-card .name-part:last-child::after {
-  content: "";
+.judge-error {
+  display: none;
+  color: #d00000;
+  font-weight: 600;
+  margin-top: .75rem;
+  animation: fadeIn .3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media(max-width: 480px) {
+  .login-field {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 /* ---------------------------------
-   SPEED JUDGE SUBMIT OVERLAY (FAST VERSION)
+   SPEED JUDGE SUBMIT OVERLAY
 ----------------------------------- */
-
 #submitOverlay {
   position: fixed;
   inset: 0;
@@ -355,7 +319,6 @@ body:not(.homepage) {
   justify-content: center;
   align-items: center;
 
-  /* SPEED BOOST */
   transform: translateZ(0);
   will-change: opacity, transform;
 }
@@ -377,8 +340,6 @@ body:not(.homepage) {
   flex-direction: column;
   align-items: center;
   gap: .75rem;
-
-  /* GPU BOOST */
   transform: translateZ(0);
 }
 
