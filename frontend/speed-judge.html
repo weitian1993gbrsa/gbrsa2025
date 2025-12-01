@@ -13,7 +13,7 @@
 
   <style>
     html,body { touch-action:manipulation; }
-    .badge { background:#e4e8ff; padding:4px 10px; border-radius:8px; margin-right:5px; }
+
     .back-btn {
       border:1px solid #000;
       padding:6px 15px;
@@ -38,26 +38,7 @@
 
 <main class="container">
 
-<section id="participantCard" class="block">
-  <div class="row space">
-    <h2>Participant</h2>
-    <div class="badges">
-      <span id="badgeHeat" class="badge">HEAT —</span>
-      <span id="badgeStation" class="badge">STATION —</span>
-      <span id="badgeEvent" class="badge">EVENT —</span>
-      <span id="badgeDivision" class="badge">DIVISION —</span>
-    </div>
-  </div>
-
-  <dl class="info">
-    <div><dt>ID</dt><dd id="pId">—</dd></div>
-    <div><dt>Names</dt><dd id="pNames">—</dd></div>
-    <div><dt>Team</dt><dd id="pRep">—</dd></div>
-    <div><dt>State</dt><dd id="pState">—</dd></div>
-  </dl>
-</section>
-
-<section id="scoreFormWrap" class="block">
+<section class="block">
   <h2>Enter Score</h2>
 
   <form id="scoreForm" class="form">
@@ -77,14 +58,14 @@
       <input name="REMARK" class="input"/>
     </label>
 
-    <!-- Hidden fields -->
-    <input type="hidden" name="ID" id="fId"/>
-    <input type="hidden" name="NAME1" id="fNAME1"/>
-    <input type="hidden" name="NAME2" id="fNAME2"/>
-    <input type="hidden" name="NAME3" id="fNAME3"/>
-    <input type="hidden" name="NAME4" id="fNAME4"/>
-    <input type="hidden" name="TEAM" id="fREP"/>
-    <input type="hidden" name="STATE" id="fSTATE"/>
+    <!-- Hidden fields populated from URL -->
+    <input type="hidden" name="ID" id="fID"/>
+    <input type="hidden" name="NAME1"/>
+    <input type="hidden" name="NAME2"/>
+    <input type="hidden" name="NAME3"/>
+    <input type="hidden" name="NAME4"/>
+    <input type="hidden" name="TEAM"/>
+    <input type="hidden" name="STATE"/>
     <input type="hidden" name="HEAT" id="fHEAT"/>
     <input type="hidden" name="STATION" id="fSTATION"/>
     <input type="hidden" name="EVENT" id="fEVENT"/>
@@ -95,13 +76,16 @@
     </div>
 
   </form>
+
 </section>
 
 </main>
 
 <div id="submitOverlay" class="overlay hide">
   <div class="overlay-card">
-    <div class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div class="loading">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
     <div id="overlayText" class="overlay-text">Sending…</div>
   </div>
 </div>
