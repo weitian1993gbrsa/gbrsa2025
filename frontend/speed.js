@@ -4,7 +4,7 @@
   // Elements
   const ROI_RATIO = 0.25; // 20% center ROI
   let offCanvas, offCtx;
-    const STABLE_FRAMES_MIN = 6, STABLE_FRAMES_MAX = 8;
+  const STABLE_FRAMES_MIN = 6, STABLE_FRAMES_MAX = 8;
   const HOLD_MS_MIN = 800, HOLD_MS_MAX = 1000;
   const STABLE_FRAMES = STABLE_FRAMES_MAX;
   const HOLD_MS = HOLD_MS_MAX;
@@ -12,6 +12,7 @@
   const submitOverlay = document.getElementById('submitOverlay');
   const overlayText   = document.getElementById('overlayText');
   const entryInput = $('#entryIdInput');
+
   // Force uppercase typing for ID field
   if (entryInput){
     entryInput.addEventListener('input', (e) => {
@@ -60,10 +61,19 @@
 
   const loadingDots = '<span class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>';
 
-  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
 
-  function hideStep2(){ if (document.activeElement && document.activeElement.blur){ try{ document.activeElement.blur(); }catch(_){ } }
-    scoreFormWrap.classList.add('hide'); btnConfirm.disabled = true; }
+  function hideStep2(){
+    if (document.activeElement && document.activeElement.blur){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
+    scoreFormWrap.classList.add('hide');
+    btnConfirm.disabled = true;
+  }
   function showParticipant(){ participantCard.classList.remove('hide'); }
   function hideParticipant(){ participantCard.classList.add('hide'); }
 
@@ -72,23 +82,38 @@
   }
 
   function resetUI(){
-    if (document.activeElement && document.activeElement.blur){ try{ document.activeElement.blur(); }catch(_){ } }
+    if (document.activeElement && document.activeElement.blur){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
     scoreForm.reset();
     clearHidden();
     hideParticipant();
     hideStep2();
-    pId.textContent = '—'; pNames.innerHTML = '—'; pRep.textContent = '—'; pState.textContent = '—';
-    badgeHeat.textContent = 'HEAT —'; badgeStation.textContent = 'STATION —'; badgeEvent.textContent = 'EVENT —'; badgeDivision.textContent = 'DIVISION —';
+    pId.textContent = '—';
+    pNames.innerHTML = '—';
+    pRep.textContent = '—';
+    pState.textContent = '—';
+    badgeHeat.textContent = 'HEAT —';
+    badgeStation.textContent = 'STATION —';
+    badgeEvent.textContent = 'EVENT —';
+    badgeDivision.textContent = 'DIVISION —';
     entryInput.value = '';
     stopScan();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     const isTouch = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints>0);
-    if (!isTouch){ setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150); }
+    if (!isTouch){
+      setTimeout(()=> entryInput && entryInput.focus && entryInput.focus(), 150);
+    }
   }
 
   async function lookupById(raw){
     const id = String(raw||'').trim().toUpperCase();
-    if (!id){ hideParticipant(); hideStep2(); clearHidden(); return; }
+    if (!id){
+      hideParticipant();
+      hideStep2();
+      clearHidden();
+      return;
+    }
 
     // reset step 2 when starting a new lookup
     hideStep2();
@@ -99,12 +124,19 @@
     btnConfirm.disabled = true;
     pId.textContent = 'Loading…';
     pNames.innerHTML = loadingDots;
-    pRep.textContent = ''; pState.textContent = ''; badgeHeat.textContent = 'HEAT —'; badgeStation.textContent = 'STATION —'; badgeEvent.textContent = 'EVENT —'; badgeDivision.textContent = 'DIVISION —';
+    pRep.textContent = '';
+    pState.textContent = '';
+    badgeHeat.textContent = 'HEAT —';
+    badgeStation.textContent = 'STATION —';
+    badgeEvent.textContent = 'EVENT —';
+    badgeDivision.textContent = 'DIVISION —';
 
     try {
       const data = await apiGet({ cmd:'participant', entryId: id }); // provided by app.js
       if (!data || !data.participant){
-        hideParticipant(); hideStep2(); clearHidden();
+        hideParticipant();
+        hideStep2();
+        clearHidden();
         if (window.toast) toast('ID not found.');
         return;
       }
@@ -135,13 +167,20 @@
       fNAME2.value = p['NAME2'] || '';
       fNAME3.value = p['NAME3'] || '';
       fNAME4.value = p['NAME4'] || '';
-      fREP.value = rep; fSTATE.value = state; fHEAT.value = heat; fSTATION.value = station; fEVENT.value = event; fDIVISION.value = division;
+      fREP.value = rep;
+      fSTATE.value = state;
+      fHEAT.value = heat;
+      fSTATION.value = station;
+      fEVENT.value = event;
+      fDIVISION.value = division;
 
       btnConfirm.disabled = false;
     } catch (err){
       console.error(err);
-        if (submitOverlay){ submitOverlay.classList.add('hide'); }
-      hideParticipant(); hideStep2(); clearHidden();
+      if (submitOverlay){ submitOverlay.classList.add('hide'); }
+      hideParticipant();
+      hideStep2();
+      clearHidden();
       if (window.toast) toast('Lookup failed.');
     }
   }
@@ -150,17 +189,29 @@
   if (entryInput){
     entryInput.addEventListener('change', e => lookupById(e.target.value));
     entryInput.addEventListener('keyup', e => { if (e.key === 'Enter') lookupById(entryInput.value); });
-    entryInput.addEventListener('input', e => { if (e.target.value.trim() === ''){ hideParticipant(); hideStep2(); clearHidden(); } });
+    entryInput.addEventListener('input', e => {
+      if (e.target.value.trim() === ''){
+        hideParticipant();
+        hideStep2();
+        clearHidden();
+      }
+    });
   }
 
-  // Camera scan support
+  // Camera scan support (kept for future if you re-enable)
   async function startScan(){
-    // Initialize camera and QR scanning; prefer BarcodeDetector when available, otherwise fallback to jsQR
     try {
-      const constraints = { video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio: false };
+      const constraints = {
+        video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} },
+        audio: false
+      };
       stream = await navigator.mediaDevices.getUserMedia(constraints);
       cam.srcObject = stream;
-      try { cam.setAttribute('playsinline',''); cam.muted = true; cam.playsInline = true; } catch(_) {}
+      try {
+        cam.setAttribute('playsinline','');
+        cam.muted = true;
+        cam.playsInline = true;
+      } catch(_) {}
       await cam.play();
     } catch(err){
       console.error(err);
@@ -168,28 +219,23 @@
       return;
     }
 
-    // Create offscreen canvas for frame processing if needed
     if (!offCanvas){
       offCanvas = document.createElement('canvas');
       offCtx = offCanvas.getContext('2d');
     }
 
-    // Use native BarcodeDetector if available (Chrome/Edge). Fallback to jsQR for browsers like iOS Safari.
     if ('BarcodeDetector' in window) {
       try {
         detector = new BarcodeDetector({ formats: ['qr_code'] });
-      } catch(e) {
-        detector = null;
-      }
+      } catch(e) { detector = null; }
     } else {
-      detector = null; // force jsQR fallback
+      detector = null;
     }
 
     scanning = true;
     cameraWrap.classList.remove('hide');
 
     if (detector) {
-      // BarcodeDetector loop
       (async function bdLoop(){
         while (scanning && cam.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA){
           try {
@@ -203,19 +249,20 @@
                 return;
               }
             }
-          } catch(e){ /* ignore detection errors */ }
+          } catch(e){ }
           await new Promise(r => setTimeout(r, 150));
         }
       })();
     } else {
-      // jsQR fallback: repeatedly capture frames and decode
       (async function jsqrLoop(){
         while (scanning && cam.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA){
           try {
-            // draw video frame to offscreen canvas
             offCanvas.width = cam.videoWidth || cam.clientWidth;
             offCanvas.height = cam.videoHeight || cam.clientHeight;
-            if (offCanvas.width === 0 || offCanvas.height === 0){ await new Promise(r=>setTimeout(r,100)); continue; }
+            if (offCanvas.width === 0 || offCanvas.height === 0){
+              await new Promise(r=>setTimeout(r,100));
+              continue;
+            }
             offCtx.drawImage(cam, 0, 0, offCanvas.width, offCanvas.height);
             const imageData = offCtx.getImageData(0,0,offCanvas.width, offCanvas.height);
             const code = (typeof jsQR !== 'undefined') ? jsQR(imageData.data, imageData.width, imageData.height) : null;
@@ -225,25 +272,29 @@
               await lookupById(code.data);
               return;
             }
-          } catch(e){ /* ignore frame errors */ }
+          } catch(e){ }
           await new Promise(r => setTimeout(r, 150));
         }
       })();
     }
   }
 
-  async function scanLoop()
-{
+  async function scanLoop(){
     if (!scanning) return;
     try {
       const vw = cam.videoWidth, vh = cam.videoHeight;
       if (!vw || !vh){ return requestAnimationFrame(scanLoop); }
-      // Center square ROI (20% of min side)
       const side = Math.floor(Math.min(vw, vh) * ROI_RATIO);
       const sx = Math.floor((vw - side) / 2);
       const sy = Math.floor((vh - side) / 2);
-      if (!offCanvas){ offCanvas = document.createElement('canvas'); offCtx = offCanvas.getContext('2d', { willReadFrequently:true }); }
-      if (offCanvas.width !== side || offCanvas.height !== side){ offCanvas.width = side; offCanvas.height = side; }
+      if (!offCanvas){
+        offCanvas = document.createElement('canvas');
+        offCtx = offCanvas.getContext('2d', { willReadFrequently:true });
+      }
+      if (offCanvas.width !== side || offCanvas.height !== side){
+        offCanvas.width = side;
+        offCanvas.height = side;
+      }
       offCtx.drawImage(cam, sx, sy, side, side, 0, 0, side, side);
       const codes = await detector.detect(offCanvas);
       if (codes && codes.length) {
@@ -252,10 +303,13 @@
         const bb = c.boundingBox || c.bounds;
         let fullyInside = true;
         if (bb){
-          const EDGE = Math.floor(0.02 * side); // 2% tolerance
-          fullyInside = (bb.x >= EDGE && bb.y >= EDGE && (bb.x+bb.width) <= (side-EDGE) && (bb.y+bb.height) <= (side-EDGE));
+          const EDGE = Math.floor(0.02 * side);
+          fullyInside = (bb.x >= EDGE && bb.y >= EDGE &&
+                         (bb.x+bb.width) <= (side-EDGE) &&
+                         (bb.y+bb.height) <= (side-EDGE));
         }
-        if (!bb || bb.x < 0 || bb.y < 0 || (bb.x+bb.width) > side || (bb.y+bb.height) > side) {
+        if (!bb || bb.x < 0 || bb.y < 0 ||
+            (bb.x+bb.width) > side || (bb.y+bb.height) > side) {
           fullyInside = false;
         }
         if (fullyInside){
@@ -267,7 +321,9 @@
             _stableCount = 1;
             _lockStart = now;
           }
-          if (_stableCount >= STABLE_FRAMES && (now - _lockStart) >= HOLD_MS && (now - _lastAccept) > 1500){
+          if (_stableCount >= STABLE_FRAMES &&
+              (now - _lockStart) >= HOLD_MS &&
+              (now - _lastAccept) > 1500){
             _lastAccept = now;
             const id = rawValue;
             await stopScan();
@@ -280,18 +336,28 @@
       }
     } catch(e){}
     requestAnimationFrame(scanLoop);
-}
+  }
 
   async function stopScan(){
-    const xbtn = document.getElementById('closeScanBtn'); if (xbtn) xbtn.remove();
+    const xbtn = document.getElementById('closeScanBtn');
+    if (xbtn) xbtn.remove();
 
     scanning = false;
     if (cam) cam.pause();
-    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
     cameraWrap.classList.add('hide');
-    try{ if (window._roiSync){ window.removeEventListener('resize', _roiSync); window.removeEventListener('orientationchange', _roiSync); window._roiSync = null; } }catch(_){}
-        
+    try{
+      if (window._roiSync){
+        window.removeEventListener('resize', _roiSync);
+        window.removeEventListener('orientationchange', _roiSync);
+        window._roiSync = null;
+      }
+    }catch(_){}
   }
+
   if (btnOpenCamera) btnOpenCamera.addEventListener('click', startScan);
   if (btnCloseCamera) btnCloseCamera.addEventListener('click', stopScan);
 
@@ -308,16 +374,25 @@
   if (scoreForm){
     scoreForm.addEventListener('submit', async (e)=> {
       e.preventDefault();
-      if (document.activeElement && document.activeElement.blur){ try{ document.activeElement.blur(); }catch(_){ } }
-      if (submitOverlay){ overlayText && (overlayText.textContent = 'Sending…'); submitOverlay.classList.remove('hide'); }
+      if (document.activeElement && document.activeElement.blur){
+        try{ document.activeElement.blur(); }catch(_){}
+      }
+      if (submitOverlay){
+        overlayText && (overlayText.textContent = 'Sending…');
+        submitOverlay.classList.remove('hide');
+      }
       const fd = new FormData(scoreForm);
       const payload = Object.fromEntries(fd.entries());
       // FALSE START: 'YES' when checked, blank when unchecked
       payload['FALSE START'] = fd.get('FALSE START') ? 'YES' : '';
+      // 🔴 IMPORTANT: tell backend this is SPEED
+      payload._form = 'speed';
+
       try {
         const out = await apiPost(payload); // provided by app.js
         if (out && (out.ok || out.raw)) {
           if (window.toast) toast('Submitted ✅');
+
           // Notify listeners (e.g. station view) that this ID was scored
           try {
             const submittedId = payload['ID'] || payload['id'] || '';
@@ -328,10 +403,14 @@
             }
           } catch(_){}
 
-                    if (submitOverlay){ overlayText && (overlayText.textContent = 'Saved!'); await new Promise(r=>setTimeout(r, 550)); submitOverlay.classList.add('hide'); }
+          if (submitOverlay){
+            overlayText && (overlayText.textContent = 'Saved!');
+            await new Promise(r=>setTimeout(r, 550));
+            submitOverlay.classList.add('hide');
+          }
           resetUI();
         } else {
-          throw new Error('Server rejected');
+          throw new Error(out && out.error ? out.error : 'Server rejected');
         }
       } catch (err) {
         console.error(err);
