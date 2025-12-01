@@ -9,7 +9,7 @@
   <script defer src="./app.js"></script>
   <script defer src="./config.js"></script>
   <script defer src="./nozoom.js"></script>
-<style>html, body { touch-action: manipulation; }</style>
+  <style>html, body { touch-action: manipulation; }</style>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b1020">
 
@@ -17,10 +17,22 @@
 // iOS focus fix: ensure font-size is 16px on focused inputs to avoid auto-zoom
 (function(){
   function ensureSize(el){
-    try{ if(!el) return; var t=el.tagName.toLowerCase(); if(t==='input' || t==='textarea' || t==='select'){ el.style.fontSize='16px'; el.style.webkitTextSizeAdjust='100%'; } }catch(e){}
+    try{
+      if(!el) return;
+      var t = el.tagName.toLowerCase();
+      if(t==='input' || t==='textarea' || t==='select'){
+        el.style.fontSize='16px';
+        el.style.webkitTextSizeAdjust='100%';
+      }
+    }catch(e){}
   }
   document.addEventListener('focusin', function(e){ ensureSize(e.target); }, true);
-  document.addEventListener('focusout', function(e){ try{ e.target.style.fontSize=''; e.target.style.webkitTextSizeAdjust=''; }catch(e){} }, true);
+  document.addEventListener('focusout', function(e){
+    try{
+      e.target.style.fontSize='';
+      e.target.style.webkitTextSizeAdjust='';
+    }catch(e){}
+  }, true);
 })();
 </script>
 
@@ -38,35 +50,36 @@
     <section class="hero-content">
       <h2 class="hero-title">Input ID. Score. Sync.</h2>
       <p class="hero-text">Paperless judging for Speed Events.</p>
+
       <div class="menu-grid">
-  <a class="card" href="./speed.html"><h3>Speed Judge</h3><p>ID → lookup → input score → submit.</p></a>
-  <a class="card" href="./freestyle.html"><h3>Freestyle Judge</h3><p>ID → lookup → input MISSES/BREAKS/DIFF/Missed RE → submit.</p></a>
-</div>
+        <a class="card" href="./speed.html">
+          <h3>Speed Judge</h3>
+          <p>ID → lookup → input score → submit.</p>
+        </a>
+
+        <a class="card" href="./freestyle.html">
+          <h3>Freestyle Judge</h3>
+          <p>ID → lookup → input MISSES/BREAKS/DIFF/Missed RE → submit.</p>
+        </a>
+
+        <!-- New: Station 1 page -->
+        <a class="card" href="./station.html?station=1">
+          <h3>Speed Station 1</h3>
+          <p>Card list for Station&nbsp;1 → tap to judge.</p>
+        </a>
+      </div>
     </section>
+  </main>
 
-</main>
-
-  <footer class="foot"><small>© 2025 GBRSA</small>
-<div class="a2hs-tip" style="background:#e6faff; padding:6px; font-size:0.7em; line-height:1.4; margin-top:10px; color:#444;">
-  <p><strong>For best experience</strong>, add this web‑app to your homescreen.</p>
-  <p><strong>On Android</strong>, open the menu in your browser (usually three dots next to the search bar) and select an option saying something like “Add to homescreen” or “Install”.</p>
-  <p><strong>On iOS</strong>, tap the “share” button and select “Add to Home Screen”.</p>
-  <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE – the simple scoring system</p>
-</div>
-</footer>
-
-
-
-
-
-
-
-
-
-
-
-
-
+  <footer class="foot">
+    <small>© 2025 GBRSA</small>
+    <div class="a2hs-tip" style="background:#e6faff; padding:6px; font-size:0.7em; line-height:1.4; margin-top:10px; color:#444;">
+      <p><strong>For best experience</strong>, add this web-app to your homescreen.</p>
+      <p><strong>On Android</strong>, open the menu in your browser (usually three dots next to the search bar) and select an option saying something like “Add to homescreen” or “Install”.</p>
+      <p><strong>On iOS</strong>, tap the “share” button and select “Add to Home Screen”.</p>
+      <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE – the simple scoring system</p>
+    </div>
+  </footer>
 
 <script>
   window.addEventListener('pageshow', function () {
@@ -90,7 +103,6 @@ if ("serviceWorker" in navigator) {
 <script>
 (function(){
   let startY = 0, pulling = false;
-  
   document.addEventListener('touchend', () => { pulling = false; }, {passive:true});
 })();
 </script>
