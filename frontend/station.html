@@ -4,13 +4,17 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>Speed Station</title>
+
   <link rel="stylesheet" href="./styles.css"/>
+
+  <!-- ORDER MATTERS -->
   <script defer src="./config.js"></script>
-  <script defer src="./app.js"></script>
-  <script defer src="./station.js"></script>
+  <script defer src="./app.js"></script>        <!-- apiGet lives here -->
+  <script defer src="./station.js"></script>    <!-- must load last -->
 </head>
 
 <body class="page station">
+
   <header class="topbar">
     <img src="./assets/company-logo.png" class="logo"/>
     <div class="titles">
@@ -25,5 +29,6 @@
       <div id="entryList" class="entry-list"></div>
     </section>
   </main>
+
 </body>
 </html>
