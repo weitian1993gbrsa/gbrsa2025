@@ -9,7 +9,7 @@
   const station = qs.get("station") || "1";
   stationLabel.textContent = station;
 
-  /** ESCAPE HTML (safe output) **/
+  /** ESCAPE HTML **/
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, m => ({
       "&": "&amp;",
@@ -20,7 +20,7 @@
     }[m]));
   }
 
-  /** NAME FORMATTER: Always one line **/
+  /** NAME FORMATTER **/
   function formatNames(p) {
     const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
       .filter(n => n && String(n).trim() !== "");
@@ -31,7 +31,7 @@
   const cardMap = {};
 
   /** ============================================================
-   *  CREATE CARD (only first load)
+   *  CREATE CARD
    * ============================================================ **/
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -47,9 +47,11 @@
       <div class="name">${formatNames(p)}</div>
 
       <div class="team">${esc(p.team)}</div>
-      <div class="event">${esc(p.event)}</div>     <!-- ⭐ ADDED EVENT LINE -->
 
-      <div class="status">${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}</div>
+      <div class="event-row">
+        <div class="status">${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}</div>
+        <div class="event">${esc(p.event)}</div>
+      </div>
     `;
 
     const statusEl = card.querySelector(".status");
@@ -65,7 +67,7 @@
       + `&state=${encodeURIComponent(p.state || "")}`
       + `&heat=${encodeURIComponent(p.heat || "")}`
       + `&station=${encodeURIComponent(station)}`
-      + `&event=${encodeURIComponent(p.event || "")}`   // ⭐ PASS EVENT TO NEXT PAGE
+      + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
     card.addEventListener("click", () => {
@@ -77,7 +79,7 @@
   }
 
   /** ============================================================
-   *  UPDATE CARD (fast status/color update only)
+   *  UPDATE CARD (fast)
    * ============================================================ **/
   function updateCard(p) {
     const entry = cardMap[p.entryId];
@@ -97,7 +99,7 @@
   }
 
   /** ============================================================
-   *  LOAD DATA (initial + background update)
+   *  LOAD DATA
    * ============================================================ **/
   async function loadStationList() {
     const firstLoad = Object.keys(cardMap).length === 0;
@@ -111,7 +113,7 @@
       data = await apiGet({
         cmd: "stationlist",
         station,
-        _ts: Date.now() // no cache
+        _ts: Date.now()
       });
     } catch (err) {
       console.error(err);
@@ -130,7 +132,7 @@
 
     const arr = data.entries || [];
 
-    /** FIRST LOAD → create cards */
+    /** First load → create all cards */
     if (firstLoad) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => {
@@ -140,20 +142,20 @@
       return;
     }
 
-    /** SUBSEQUENT LOAD → instant update */
+    /** Later → update status only */
     arr.forEach(p => updateCard(p));
   }
 
   /** ============================================================
-   *  🔥 REFRESH BUTTON — FULL PAGE RELOAD
+   *  FULL PAGE REFRESH BUTTON
    * ============================================================ **/
   if (btnRefresh) {
     btnRefresh.addEventListener("click", () => {
-      location.reload();  // FULL PAGE RELOAD
+      location.reload();
     });
   }
 
-  /** AUTO-LOAD ON PAGE OPEN */
+  /** AUTO LOAD **/
   window.addEventListener("load", () => {
     setTimeout(loadStationList, 60);
   });
