@@ -9,11 +9,9 @@
   const station = qs.get("station") || "1";
   stationLabel.textContent = station;
 
-  /** ============================================================
-   *  HTML ESCAPE (safe output)
-   * ============================================================ **/
+  /** ESCAPE HTML (safe output) **/
   function esc(s) {
-    return String(s || "").replace(/[&<>"']/g, (m) => ({
+    return String(s || "").replace(/[&<>"']/g, m => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
@@ -22,102 +20,128 @@
     }[m]));
   }
 
-  /** ============================================================
-   *  NAME FORMATTER — ALWAYS ONE LINE
-   * ============================================================ **/
+  /** NAME FORMATTER: Always one line **/
   function formatNames(p) {
     const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
       .filter(n => n && String(n).trim() !== "");
     return names.map(esc).join(", ");
   }
 
+  /** 🔥 CARD CACHE (no rebuild needed) **/
+  const cardMap = {};
+
   /** ============================================================
-   *  LOAD STATION LIST (Real-time Status Refresh)
+   *  CREATE CARD (only first time)
    * ============================================================ **/
-  async function loadStationList() {
-    listEl.innerHTML = `<div class="hint">Loading…</div>`;
+  function createCard(p, index) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = `station-card ${p.status === "done" ? "done" : "pending"}`;
 
-    try {
-      // ⭐ FORCE NON-CACHED REQUEST (important fix)
-      const data = await apiGet({
-        cmd: "stationlist",
-        station,
-        _ts: Date.now()   // prevent browser/server caching
-      });
+    card.innerHTML = `
+      <div class="top-row">
+        <span>Heat ${esc(p.heat)}</span>
+        <span>#${index + 1} • ${esc(p.entryId)}</span>
+      </div>
 
-      if (!data || !data.ok) {
-        listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
-        return;
-      }
+      <div class="name">${formatNames(p)}</div>
 
-      const arr = data.entries || [];
-      if (!arr.length) {
-        listEl.innerHTML = `<div class="hint">No participants assigned.</div>`;
-        return;
-      }
+      <div class="team">${esc(p.team)}</div>
 
-      listEl.innerHTML = "";
+      <div class="status">${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}</div>
+    `;
 
-      arr.forEach((p, i) => {
-        const card = document.createElement("button");
-        card.type = "button";
-        card.className = `station-card ${p.status === "done" ? "done" : "pending"}`;
+    /** Save important elements for fast updates */
+    const statusEl = card.querySelector(".status");
 
-        card.innerHTML = `
-          <div class="top-row">
-            <span>Heat ${esc(p.heat)}</span>
-            <span>#${i + 1} • ${esc(p.entryId)}</span>
-          </div>
+    /** Build judge page URL */
+    const judgeURL =
+      `speed-judge.html`
+      + `?id=${encodeURIComponent(p.entryId)}`
+      + `&name1=${encodeURIComponent(p.NAME1 || "")}`
+      + `&name2=${encodeURIComponent(p.NAME2 || "")}`
+      + `&name3=${encodeURIComponent(p.NAME3 || "")}`
+      + `&name4=${encodeURIComponent(p.NAME4 || "")}`
+      + `&team=${encodeURIComponent(p.team || "")}`
+      + `&state=${encodeURIComponent(p.state || "")}`
+      + `&heat=${encodeURIComponent(p.heat || "")}`
+      + `&station=${encodeURIComponent(station)}`
+      + `&event=${encodeURIComponent(p.event || "")}`
+      + `&division=${encodeURIComponent(p.division || "")}`;
 
-          <div class="name">${formatNames(p)}</div>
+    card.addEventListener("click", () => {
+      location.href = judgeURL;
+    });
 
-          <div class="team">${esc(p.team)}</div>
+    /** Store card + elements */
+    cardMap[p.entryId] = { card, statusEl };
 
-          <div class="status">
-            ${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}
-          </div>
-        `;
+    return card;
+  }
 
-        /** Build URL → send full participant data to judge page */
-        const judgeURL =
-          `speed-judge.html`
-          + `?id=${encodeURIComponent(p.entryId)}`
-          + `&name1=${encodeURIComponent(p.NAME1 || "")}`
-          + `&name2=${encodeURIComponent(p.NAME2 || "")}`
-          + `&name3=${encodeURIComponent(p.NAME3 || "")}`
-          + `&name4=${encodeURIComponent(p.NAME4 || "")}`
-          + `&team=${encodeURIComponent(p.team || "")}`
-          + `&state=${encodeURIComponent(p.state || "")}`
-          + `&heat=${encodeURIComponent(p.heat || "")}`
-          + `&station=${encodeURIComponent(station)}`
-          + `&event=${encodeURIComponent(p.event || "")}`
-          + `&division=${encodeURIComponent(p.division || "")}`;
+  /** ============================================================
+   *  FAST UPDATE — No rebuild, only update color + status
+   * ============================================================ **/
+  function updateCard(p) {
+    const entry = cardMap[p.entryId];
+    if (!entry) return; // shouldn’t happen
 
-        card.addEventListener("click", () => {
-          location.href = judgeURL;
-        });
+    const { card, statusEl } = entry;
 
-        listEl.appendChild(card);
-      });
-
-    } catch (err) {
-      console.error(err);
-      listEl.innerHTML = `<div class="hint error">Error loading station.</div>`;
+    // Update class (color)
+    if (p.status === "done") {
+      card.classList.remove("pending");
+      card.classList.add("done");
+      statusEl.textContent = "DONE (SUBMITTED)";
+    } else {
+      card.classList.remove("done");
+      card.classList.add("pending");
+      statusEl.textContent = "NEW";
     }
   }
 
   /** ============================================================
-   *  REFRESH BUTTON — CHECK REAL-TIME STATUS
+   *  LOAD STATION DATA (initial + refresh)
    * ============================================================ **/
+  async function loadStationList() {
+    listEl.innerHTML = `<div class="hint">Loading…</div>`;
+
+    const data = await apiGet({
+      cmd: "stationlist",
+      station,
+      _ts: Date.now()  // force fresh data
+    });
+
+    if (!data || !data.ok) {
+      listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
+      return;
+    }
+
+    const arr = data.entries || [];
+
+    /** FIRST LOAD → build cards once */
+    if (Object.keys(cardMap).length === 0) {
+      listEl.innerHTML = "";
+      arr.forEach((p, i) => {
+        const card = createCard(p, i);
+        listEl.appendChild(card);
+      });
+      return;
+    }
+
+    /** NEXT LOADS → super fast update */
+    arr.forEach(p => updateCard(p));
+  }
+
+  /** REFRESH BUTTON */
   if (btnRefresh) {
     btnRefresh.addEventListener("click", () => {
-      listEl.innerHTML = `<div class="hint">Checking updates…</div>`;
-      loadStationList();   // reload statuses
+      loadStationList(); // No rebuild, instant update
     });
   }
 
-  /** Auto-load on page open */
+  /** AUTO LOAD */
   window.addEventListener("load", () => {
-    setTimeout(loadStationList, 200);
+    setTimeout(loadStationList, 150);
   });
 })();
