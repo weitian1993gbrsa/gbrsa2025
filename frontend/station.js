@@ -31,7 +31,7 @@
   const cardMap = {};
 
   /** ============================================================
-   *  CREATE CARD (only first time)
+   *  CREATE CARD (only first load)
    * ============================================================ **/
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -96,14 +96,11 @@
   }
 
   /** ============================================================
-   *  SUPER FAST LOAD SYSTEM
-   *  - First load → build cards once
-   *  - Next loads → instant update (no rebuild)
+   *  LOAD DATA (initial + background update)
    * ============================================================ **/
   async function loadStationList() {
     const firstLoad = Object.keys(cardMap).length === 0;
 
-    // First load → show basic loading message
     if (firstLoad) {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
@@ -142,24 +139,20 @@
       return;
     }
 
-    /** SUBSEQUENT LOADS → instant update */
+    /** SUBSEQUENT LOAD → instant update */
     arr.forEach(p => updateCard(p));
   }
 
   /** ============================================================
-   *  REFRESH BUTTON (now fully working)
+   *  🔥 REFRESH BUTTON — FULL PAGE RELOAD
    * ============================================================ **/
   if (btnRefresh) {
     btnRefresh.addEventListener("click", () => {
-      listEl.insertAdjacentHTML(
-        "afterbegin",
-        `<div class="hint">Refreshing…</div>`
-      );
-      loadStationList();
+      location.reload();  // FULL PAGE RELOAD
     });
   }
 
-  /** AUTO-LOAD WHEN OPEN PAGE */
+  /** AUTO-LOAD ON PAGE OPEN */
   window.addEventListener("load", () => {
     setTimeout(loadStationList, 60);
   });
