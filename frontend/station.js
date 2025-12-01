@@ -9,9 +9,11 @@
   const station = qs.get("station") || "1";
   stationLabel.textContent = station;
 
-  /** ESCAPE HTML (safe output) **/
+  /** ============================================================
+   *  HTML ESCAPE (safe output)
+   * ============================================================ **/
   function esc(s) {
-    return String(s || "").replace(/[&<>"']/g, m => ({
+    return String(s || "").replace(/[&<>"']/g, (m) => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
@@ -20,128 +22,102 @@
     }[m]));
   }
 
-  /** NAME FORMATTER: Always one line **/
+  /** ============================================================
+   *  NAME FORMATTER — ALWAYS ONE LINE
+   * ============================================================ **/
   function formatNames(p) {
     const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
       .filter(n => n && String(n).trim() !== "");
     return names.map(esc).join(", ");
   }
 
-  /** 🔥 CARD CACHE (no rebuild needed) **/
-  const cardMap = {};
-
   /** ============================================================
-   *  CREATE CARD (only first time)
-   * ============================================================ **/
-  function createCard(p, index) {
-    const card = document.createElement("button");
-    card.type = "button";
-    card.className = `station-card ${p.status === "done" ? "done" : "pending"}`;
-
-    card.innerHTML = `
-      <div class="top-row">
-        <span>Heat ${esc(p.heat)}</span>
-        <span>#${index + 1} • ${esc(p.entryId)}</span>
-      </div>
-
-      <div class="name">${formatNames(p)}</div>
-
-      <div class="team">${esc(p.team)}</div>
-
-      <div class="status">${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}</div>
-    `;
-
-    /** Save important elements for fast updates */
-    const statusEl = card.querySelector(".status");
-
-    /** Build judge page URL */
-    const judgeURL =
-      `speed-judge.html`
-      + `?id=${encodeURIComponent(p.entryId)}`
-      + `&name1=${encodeURIComponent(p.NAME1 || "")}`
-      + `&name2=${encodeURIComponent(p.NAME2 || "")}`
-      + `&name3=${encodeURIComponent(p.NAME3 || "")}`
-      + `&name4=${encodeURIComponent(p.NAME4 || "")}`
-      + `&team=${encodeURIComponent(p.team || "")}`
-      + `&state=${encodeURIComponent(p.state || "")}`
-      + `&heat=${encodeURIComponent(p.heat || "")}`
-      + `&station=${encodeURIComponent(station)}`
-      + `&event=${encodeURIComponent(p.event || "")}`
-      + `&division=${encodeURIComponent(p.division || "")}`;
-
-    card.addEventListener("click", () => {
-      location.href = judgeURL;
-    });
-
-    /** Store card + elements */
-    cardMap[p.entryId] = { card, statusEl };
-
-    return card;
-  }
-
-  /** ============================================================
-   *  FAST UPDATE — No rebuild, only update color + status
-   * ============================================================ **/
-  function updateCard(p) {
-    const entry = cardMap[p.entryId];
-    if (!entry) return; // shouldn’t happen
-
-    const { card, statusEl } = entry;
-
-    // Update class (color)
-    if (p.status === "done") {
-      card.classList.remove("pending");
-      card.classList.add("done");
-      statusEl.textContent = "DONE (SUBMITTED)";
-    } else {
-      card.classList.remove("done");
-      card.classList.add("pending");
-      statusEl.textContent = "NEW";
-    }
-  }
-
-  /** ============================================================
-   *  LOAD STATION DATA (initial + refresh)
+   *  LOAD STATION LIST (Real-time Status Refresh)
    * ============================================================ **/
   async function loadStationList() {
     listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
-    const data = await apiGet({
-      cmd: "stationlist",
-      station,
-      _ts: Date.now()  // force fresh data
-    });
+    try {
+      // ⭐ FORCE NON-CACHED REQUEST (important fix)
+      const data = await apiGet({
+        cmd: "stationlist",
+        station,
+        _ts: Date.now()   // prevent browser/server caching
+      });
 
-    if (!data || !data.ok) {
-      listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
-      return;
-    }
+      if (!data || !data.ok) {
+        listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
+        return;
+      }
 
-    const arr = data.entries || [];
+      const arr = data.entries || [];
+      if (!arr.length) {
+        listEl.innerHTML = `<div class="hint">No participants assigned.</div>`;
+        return;
+      }
 
-    /** FIRST LOAD → build cards once */
-    if (Object.keys(cardMap).length === 0) {
       listEl.innerHTML = "";
+
       arr.forEach((p, i) => {
-        const card = createCard(p, i);
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = `station-card ${p.status === "done" ? "done" : "pending"}`;
+
+        card.innerHTML = `
+          <div class="top-row">
+            <span>Heat ${esc(p.heat)}</span>
+            <span>#${i + 1} • ${esc(p.entryId)}</span>
+          </div>
+
+          <div class="name">${formatNames(p)}</div>
+
+          <div class="team">${esc(p.team)}</div>
+
+          <div class="status">
+            ${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}
+          </div>
+        `;
+
+        /** Build URL → send full participant data to judge page */
+        const judgeURL =
+          `speed-judge.html`
+          + `?id=${encodeURIComponent(p.entryId)}`
+          + `&name1=${encodeURIComponent(p.NAME1 || "")}`
+          + `&name2=${encodeURIComponent(p.NAME2 || "")}`
+          + `&name3=${encodeURIComponent(p.NAME3 || "")}`
+          + `&name4=${encodeURIComponent(p.NAME4 || "")}`
+          + `&team=${encodeURIComponent(p.team || "")}`
+          + `&state=${encodeURIComponent(p.state || "")}`
+          + `&heat=${encodeURIComponent(p.heat || "")}`
+          + `&station=${encodeURIComponent(station)}`
+          + `&event=${encodeURIComponent(p.event || "")}`
+          + `&division=${encodeURIComponent(p.division || "")}`;
+
+        card.addEventListener("click", () => {
+          location.href = judgeURL;
+        });
+
         listEl.appendChild(card);
       });
-      return;
-    }
 
-    /** NEXT LOADS → super fast update */
-    arr.forEach(p => updateCard(p));
+    } catch (err) {
+      console.error(err);
+      listEl.innerHTML = `<div class="hint error">Error loading station.</div>`;
+    }
   }
 
-  /** REFRESH BUTTON */
+  /** ============================================================
+   *  REFRESH BUTTON — CHECK REAL-TIME STATUS
+   * ============================================================ **/
   if (btnRefresh) {
     btnRefresh.addEventListener("click", () => {
-      loadStationList(); // No rebuild, instant update
+      listEl.innerHTML = `<div class="hint">Checking updates…</div>`;
+      loadStationList();   // reload statuses
     });
   }
 
-  /** AUTO LOAD */
+  /** Auto-load on page open */
   window.addEventListener("load", () => {
-    setTimeout(loadStationList, 150);
+    setTimeout(loadStationList, 200);
   });
 })();
