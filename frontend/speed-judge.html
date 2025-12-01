@@ -3,89 +3,93 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <title>GBRSA – Speed Judge</title>
+  <title>Speed Judge</title>
 
   <link rel="stylesheet" href="./styles.css"/>
 
+  <!-- Core scripts -->
   <script defer src="./config.js"></script>
   <script defer src="./app.js"></script>
   <script defer src="./speed-judge.js"></script>
 
   <style>
-    html,body { touch-action:manipulation; }
-    .back-btn {
-      border:1px solid #000;
-      padding:6px 15px;
-      border-radius:6px;
-      background:#fff;
-      font-size:14px;
-      cursor:pointer;
-      margin-right:10px;
+    .judge-header {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      gap: .75rem;
+      background: #ffffffd9;
+      border-bottom: 1px solid #e5e7eb;
+      backdrop-filter: blur(4px);
     }
+    .judge-title { font-size: 1.4rem; font-weight: 700; }
+    .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
   </style>
 </head>
 
 <body class="page judge">
 
-<header class="topbar">
-  <button class="back-btn" onclick="history.back()">← Back</button>
-  <div class="titles">
-    <h1>Speed Judge</h1>
-    <p class="subtitle">Enter score & submit.</p>
+<header class="judge-header">
+  <button onclick="history.back()" class="btn">← Back</button>
+  <div>
+    <div class="judge-title">Speed Judge</div>
+    <div class="judge-sub">Enter score and submit</div>
   </div>
 </header>
 
 <main class="container">
 
-<section class="block">
-  <h2>Enter Score</h2>
+  <section class="block">
 
-  <form id="scoreForm" class="form">
+    <form id="scoreForm" class="form">
 
-    <label class="field">
-      <span>SCORE</span>
-      <input name="SCORE" type="number" required min="0" class="input"/>
-    </label>
+      <label class="field">
+        <span>SCORE</span>
+        <input type="number" name="SCORE" min="0" required class="input">
+      </label>
 
-    <label class="check">
-      <input type="checkbox" name="FALSE START"/>
-      <span>FALSE START</span>
-    </label>
+      <label class="check">
+        <input type="checkbox" name="FALSE START">
+        <span>FALSE START</span>
+      </label>
 
-    <label class="field">
-      <span>REMARK</span>
-      <input name="REMARK" class="input"/>
-    </label>
+      <label class="field">
+        <span>REMARK</span>
+        <input type="text" name="REMARK" class="input">
+      </label>
 
-    <!-- Hidden fields (populated from URL parameters) -->
-    <input type="hidden" name="ID" id="fID"/>
-    <input type="hidden" name="NAME1" id="fNAME1"/>
-    <input type="hidden" name="NAME2" id="fNAME2"/>
-    <input type="hidden" name="NAME3" id="fNAME3"/>
-    <input type="hidden" name="NAME4" id="fNAME4"/>
-    <input type="hidden" name="TEAM" id="fTEAM"/>
-    <input type="hidden" name="STATE" id="fSTATE"/>
-    <input type="hidden" name="HEAT" id="fHEAT"/>
-    <input type="hidden" name="STATION" id="fSTATION"/>
-    <input type="hidden" name="EVENT" id="fEVENT"/>
-    <input type="hidden" name="DIVISION" id="fDIVISION"/>
+      <!-- Hidden fields required by backend -->
+      <input type="hidden" name="ID" id="fID">
+      <input type="hidden" name="NAME1" id="fNAME1">
+      <input type="hidden" name="NAME2" id="fNAME2">
+      <input type="hidden" name="NAME3" id="fNAME3">
+      <input type="hidden" name="NAME4" id="fNAME4">
+      <input type="hidden" name="TEAM" id="fTEAM">
+      <input type="hidden" name="STATE" id="fSTATE">
+      <input type="hidden" name="HEAT" id="fHEAT">
+      <input type="hidden" name="STATION" id="fSTATION">
+      <input type="hidden" name="EVENT" id="fEVENT">
+      <input type="hidden" name="DIVISION" id="fDIVISION">
 
-    <div class="row space">
-      <button type="submit" class="btn primary">Submit Result</button>
-    </div>
+      <div class="row space">
+        <button type="submit" class="btn primary" style="width:100%;font-size:1.1rem;padding:1rem">
+          Submit Result →
+        </button>
+      </div>
 
-  </form>
+    </form>
 
-</section>
+  </section>
 
 </main>
 
+<!-- Submit Overlay (fixed + fully hidden by default) -->
 <div id="submitOverlay" class="overlay hide">
   <div class="overlay-card">
     <div class="loading">
       <span class="dot"></span><span class="dot"></span><span class="dot"></span>
     </div>
-    <div id="overlayText" class="overlay-text">Sending…</div>
+    <div id="overlayText" class="overlay-text">Submitting…</div>
   </div>
 </div>
 
