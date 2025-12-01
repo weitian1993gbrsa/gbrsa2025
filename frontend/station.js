@@ -101,9 +101,14 @@
     }
   }
 
-  /** Refresh button */
+  /** ============================================================
+   *  FIXED REFRESH BUTTON — ALWAYS WORKS
+   * ============================================================ **/
   if (btnRefresh) {
-    btnRefresh.addEventListener("click", loadStationList);
+    btnRefresh.addEventListener("click", () => {
+      listEl.innerHTML = `<div class="hint">Refreshing…</div>`;
+      loadStationList();
+    });
   }
 
   /** Auto-load */
