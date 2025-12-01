@@ -27,11 +27,11 @@
     return names.map(esc).join(", ");
   }
 
-  /** 🔥 CARD CACHE (no rebuild needed) **/
+  /** CARD CACHE **/
   const cardMap = {};
 
   /** ============================================================
-   *  CREATE CARD (only first time)
+   *  CREATE CARD (only first load)
    * ============================================================ **/
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -51,10 +51,8 @@
       <div class="status">${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}</div>
     `;
 
-    /** Save important elements for fast updates */
     const statusEl = card.querySelector(".status");
 
-    /** Build judge page URL */
     const judgeURL =
       `speed-judge.html`
       + `?id=${encodeURIComponent(p.entryId)}`
@@ -73,22 +71,20 @@
       location.href = judgeURL;
     });
 
-    /** Store card + elements */
     cardMap[p.entryId] = { card, statusEl };
 
     return card;
   }
 
   /** ============================================================
-   *  FAST UPDATE — No rebuild, only update color + status
+   *  UPDATE CARD (color + text only)
    * ============================================================ **/
   function updateCard(p) {
     const entry = cardMap[p.entryId];
-    if (!entry) return; // shouldn’t happen
+    if (!entry) return;
 
     const { card, statusEl } = entry;
 
-    // Update class (color)
     if (p.status === "done") {
       card.classList.remove("pending");
       card.classList.add("done");
@@ -101,26 +97,42 @@
   }
 
   /** ============================================================
-   *  LOAD STATION DATA (initial + refresh)
+   *  SUPER FAST LOAD — SHOW CARDS FIRST, BACKEND AFTER
    * ============================================================ **/
   async function loadStationList() {
-    listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
-    const data = await apiGet({
-      cmd: "stationlist",
-      station,
-      _ts: Date.now()  // force fresh data
-    });
+    // ⭐ If cards already created → show INSTANTLY (no loading screen)
+    const isInitialLoad = Object.keys(cardMap).length === 0;
+    if (isInitialLoad) {
+      listEl.innerHTML = `<div class="hint">Loading…</div>`;
+    }
+
+    let data;
+    try {
+      data = await apiGet({
+        cmd: "stationlist",
+        station,
+        _ts: Date.now()
+      });
+    } catch (err) {
+      console.error(err);
+      if (isInitialLoad) {
+        listEl.innerHTML = `<div class="hint error">Error loading station.</div>`;
+      }
+      return;
+    }
 
     if (!data || !data.ok) {
-      listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
+      if (isInitialLoad) {
+        listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
+      }
       return;
     }
 
     const arr = data.entries || [];
 
-    /** FIRST LOAD → build cards once */
-    if (Object.keys(cardMap).length === 0) {
+    /** ⭐ FIRST LOAD — Create all cards once */
+    if (isInitialLoad) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => {
         const card = createCard(p, i);
@@ -129,19 +141,19 @@
       return;
     }
 
-    /** NEXT LOADS → super fast update */
+    /** ⭐ SUBSEQUENT LOADS — Instant updates */
     arr.forEach(p => updateCard(p));
   }
 
   /** REFRESH BUTTON */
   if (btnRefresh) {
     btnRefresh.addEventListener("click", () => {
-      loadStationList(); // No rebuild, instant update
+      loadStationList(); // fast update only
     });
   }
 
-  /** AUTO LOAD */
+  /** AUTO LOAD ON PAGE OPEN */
   window.addEventListener("load", () => {
-    setTimeout(loadStationList, 150);
+    setTimeout(loadStationList, 50); // faster boot
   });
 })();
