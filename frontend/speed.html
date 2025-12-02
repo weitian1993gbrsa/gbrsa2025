@@ -42,4 +42,228 @@
   .scan-row { display: flex; gap: .75rem; align-items: center; }
   .scan-row .input { flex: 1; }
 
-  .refresh-btn { margin-le
+  .refresh-btn { margin-left: auto; padding: .5rem .9rem; border-radius: .6rem;
+    border: 1px solid rgba(0,0,0,.1); background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .refresh-btn:active { transform: translateY(1px); }
+
+  /* Header button style */
+  .btn.small {
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  /* NEW PARTICIPANT CARD STYLE (Same as station list card) */
+  .participant-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin: 16px 0;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  }
+  .pc-line1 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    display: flex;
+    gap: 8px;
+  }
+  .pc-id { color: #444; }
+  .pc-name { color: #111; }
+
+  .pc-line2,
+  .pc-line3 {
+    margin-top: 6px;
+    font-size: 0.92rem;
+    color: #666;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .pc-meta { color: #444; }
+
+  .pc-status {
+    margin-top: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .pc-pending { color: #d97b00; }
+
+  .pc-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 0.9rem;
+    font-size: 1.05rem;
+    border-radius: 10px;
+  }
+</style>
+
+</head>
+
+<body class="page">
+
+<!-- 🔥 REBUILT HEADER -->
+<header class="topbar"
+  style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
+
+  <!-- LEFT: Logo + Title -->
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="./assets/company-logo.png" alt="GBRSA" class="logo" style="height:38px;">
+    <h1 style="font-size:20px;margin:0;">Speed</h1>
+  </div>
+
+  <!-- RIGHT: Home + Refresh -->
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="btn small" onclick="location.href='admin.html'">Home</button>
+    <button id="btnRefresh" class="btn small refresh-btn">Refresh</button>
+  </div>
+
+</header>
+<!-- END HEADER -->
+
+<main class="container">
+  
+  <!-- Step 1 -->
+  <section class="block">
+    <h2>Step 1 — Identify Participant</h2>
+
+    <div class="scan-row">
+      <button id="btnOpenCamera" class="btn">📷 Scan QR</button>
+
+      <input id="entryIdInput" class="input"
+        placeholder="Type ID HERE 🙏🏻" inputmode="text"
+        autocapitalize="characters" spellcheck="false">
+
+      <button id="btnLookup" class="btn">Search ID</button>
+    </div>
+
+    <div id="cameraWrap" class="camera hide">
+      <video id="cam" playsinline autoplay muted></video>
+      <div class="scan-tip">Point your rear camera at the QR</div>
+    </div>
+
+    <div class="hint">After type ID and then click Search ID.</div>
+  </section>
+
+  <!-- ⭐ NEW PARTICIPANT CARD (station card style) -->
+  <section id="participantCard" class="participant-card hide">
+
+    <div class="pc-line1">
+      <span id="pcID" class="pc-id">ID —</span>
+      <span id="pcName" class="pc-name">NAME</span>
+    </div>
+
+    <div class="pc-line2">
+      <span id="pcHeat" class="pc-meta">Heat —</span>
+      <span id="pcTeam" class="pc-meta">Team —</span>
+      <span id="pcStation" class="pc-meta">Station —</span>
+    </div>
+
+    <div class="pc-line3">
+      <span id="pcState" class="pc-meta">State —</span>
+      <span id="pcEvent" class="pc-meta">Event —</span>
+      <span id="pcDivision" class="pc-meta">Division —</span>
+    </div>
+
+    <div class="pc-status pc-pending">● Pending</div>
+
+    <button id="btnConfirm" class="btn primary pc-btn" disabled>
+      Confirm & Start Scoring
+    </button>
+
+  </section>
+  <!-- END NEW CARD -->
+
+  <!-- Step 2 — Score Form -->
+  <section id="scoreFormWrap" class="block hide">
+    <h2>Step 2 — Enter Score</h2>
+
+    <form id="scoreForm" class="form">
+      <div class="grid">
+        <label class="field">
+          <span>SCORE</span>
+          <input name="SCORE" type="number" required min="0"
+            class="input" placeholder="e.g. 156">
+        </label>
+
+        <label class="check">
+          <input type="checkbox" name="FALSE START">
+          <span>FALSE START</span>
+        </label>
+
+        <label class="field col-span-2">
+          <span>REMARK</span>
+          <input name="REMARK" class="input" placeholder="Optional notes">
+        </label>
+      </div>
+
+      <!-- Hidden values -->
+      <input type="hidden" name="ID" id="fId"/>
+      <input type="hidden" name="NAME1" id="fNAME1"/>
+      <input type="hidden" name="NAME2" id="fNAME2"/>
+      <input type="hidden" name="NAME3" id="fNAME3"/>
+      <input type="hidden" name="NAME4" id="fNAME4"/>
+      <input type="hidden" name="TEAM" id="fREP"/>
+      <input type="hidden" name="STATE" id="fSTATE"/>
+      <input type="hidden" name="HEAT" id="fHEAT"/>
+      <input type="hidden" name="STATION" id="fSTATION"/>
+      <input type="hidden" name="EVENT" id="fEVENT"/>
+      <input type="hidden" name="DIVISION" id="fDIVISION"/>
+
+      <div class="row space">
+        <button type="submit" class="btn primary">Submit Result</button>
+      </div>
+    </form>
+  </section>
+
+</main>
+
+<!-- Submit overlay -->
+<div id="submitOverlay" class="overlay hide" aria-live="polite">
+  <div class="overlay-card">
+    <div class="loading">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div id="overlayText" class="overlay-text">Sending…</div>
+  </div>
+</div>
+
+<script>judging = true;</script>
+
+<script>
+(function iosHelpersInit(){
+  try{
+    async function hardRefresh(){
+      try{
+        if (navigator.serviceWorker){
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const r of regs){ await r.unregister().catch(()=>{}); }
+        }
+        if (window.caches){
+          const keys = await caches.keys();
+          for (const k of keys){ await caches.delete(k).catch(()=>{}); }
+        }
+      }catch(_){}
+      location.reload(true);
+    }
+
+    window.hardRefresh = hardRefresh;
+
+    var btnRefresh = document.getElementById('btnRefresh');
+    if (btnRefresh){ btnRefresh.addEventListener('click', hardRefresh); }
+
+    var entryInput = document.getElementById('entryIdInput');
+    var btnLookup = document.getElementById('btnLookup');
+
+    if (btnLookup && entryInput){
+      btnLookup.addEventListener('click', function(){
+        var evt = new KeyboardEvent('keyup', {key:'Enter', bubbles:true});
+        entryInput.dispatchEvent(evt);
+      });
+    }
+
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>
