@@ -7,7 +7,6 @@
 
   <link rel="stylesheet" href="./styles.css"/>
 
-  <!-- app glue & page logic -->
   <script defer src="./app.js"></script>
   <script defer src="./config.js"></script>
   <script defer src="./freestyle.js"></script>
@@ -15,10 +14,18 @@
 
   <style>
     #entryIdInput { text-transform: uppercase; }
-    .scan-row{display:flex;gap:.75rem;align-items:center}
-    .scan-row .input{flex:1}
-    .refresh-btn{margin-left:auto;padding:.5rem .9rem;border-radius:.6rem;border:1px solid rgba(0,0,0,.1);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06)}
-    .refresh-btn:active{transform:translateY(1px)}
+    .scan-row { display:flex; gap:.75rem; align-items:center; }
+    .scan-row .input { flex:1; }
+    .refresh-btn { margin-left:auto; padding:.5rem .9rem; border-radius:.6rem;
+      border:1px solid rgba(0,0,0,.1); background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.06); }
+    .refresh-btn:active { transform:translateY(1px); }
+
+    /* Shared small button style */
+    .btn.small {
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 8px;
+    }
   </style>
 
   <!-- iOS avoid zoom on inputs -->
@@ -27,35 +34,55 @@
     function ensureSize(el){
       try{
         if(!el) return;
-        var t=el.tagName.toLowerCase();
-        if(t==='input'||t==='textarea'||t==='select'){
+        var t = el.tagName.toLowerCase();
+        if(t==='input' || t==='textarea' || t==='select'){
           el.style.fontSize='16px';
           el.style.webkitTextSizeAdjust='100%';
         }
       }catch(e){}
     }
-    document.addEventListener('focusin',e=>ensureSize(e.target),true);
-    document.addEventListener('focusout',e=>{try{e.target.style.fontSize='';e.target.style.webkitTextSizeAdjust='';}catch(e){}},true);
+    document.addEventListener('focusin', e => ensureSize(e.target), true);
+    document.addEventListener('focusout', e => { 
+      try{ e.target.style.fontSize=''; e.target.style.webkitTextSizeAdjust=''; } catch(e){} 
+    }, true);
   })();
   </script>
 </head>
 
 <body data-mode="freestyle" class="page">
-<header class="topbar">
-  <a class="back" href="./index.html" aria-label="Back">←</a>
-  <img src="./assets/company-logo.png" alt="GBRSA" class="logo"/>
-  <div class="titles"><h1>Freestyle Judge</h1></div>
-  <button id="btnRefresh" class="refresh-btn" title="Refresh">↻ Refresh</button>
+
+<!-- 🔥 UPDATED HEADER (MATCHES SPEED PAGE) -->
+<header class="topbar"
+  style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
+
+  <!-- LEFT SIDE: Logo + Title -->
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="./assets/company-logo.png" alt="GBRSA" class="logo" style="height:38px;">
+    <h1 style="font-size:20px;margin:0;">Freestyle</h1>
+  </div>
+
+  <!-- RIGHT SIDE: Home + Refresh -->
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="btn small" onclick="location.href='admin.html'">Home</button>
+    <button id="btnRefresh" class="btn small refresh-btn" title="Refresh">Refresh</button>
+  </div>
+
 </header>
+<!-- END HEADER -->
 
 <main class="container">
+
   <!-- Step 1 -->
   <section class="block">
     <h2>Step 1 — Identify Participant</h2>
+
     <div class="scan-row">
-      <input id="entryIdInput" class="input" placeholder="Type participant ID then click Search ID." inputmode="text" autocapitalize="characters" spellcheck="false"/>
+      <input id="entryIdInput" class="input"
+        placeholder="Type participant ID then click Search ID."
+        inputmode="text" autocapitalize="characters" spellcheck="false"/>
       <button id="btnLookup" class="btn">Search ID</button>
     </div>
+
     <div class="hint">Type participant ID then click Search ID.</div>
   </section>
 
@@ -70,20 +97,26 @@
         <span id="badgeDivision" class="badge">DIVISION —</span>
       </div>
     </div>
+
     <dl class="info">
       <div><dt>ID</dt><dd id="pId">—</dd></div>
       <div><dt>Names</dt><dd id="pNames">—</dd></div>
       <div><dt>Team</dt><dd id="pRep">—</dd></div>
       <div><dt>State</dt><dd id="pState">—</dd></div>
     </dl>
-    <button id="btnConfirm" class="btn primary" disabled>Confirm & Start Scoring</button>
+
+    <button id="btnConfirm" class="btn primary" disabled>
+      Confirm & Start Scoring
+    </button>
   </section>
 
   <!-- Step 2 -->
   <section id="scoreFormWrap" class="block hide">
     <h2>Step 2 — Enter Freestyle Scores</h2>
+
     <form id="scoreForm" class="form">
       <div class="grid">
+
         <label class="field">
           <span>MISSES</span>
           <input name="MISSES" type="number" min="0" step="1" class="input" placeholder="0"/>
@@ -96,12 +129,14 @@
 
         <label class="field">
           <span>DIFF J1</span>
-          <input name="DIFF J1" type="number" step="0.01" inputmode="decimal" class="input" placeholder="0.00"/>
+          <input name="DIFF J1" type="number" step="0.01" inputmode="decimal"
+            class="input" placeholder="0.00"/>
         </label>
 
         <label class="field">
           <span>DIFF J2</span>
-          <input name="DIFF J2" type="number" step="0.01" inputmode="decimal" class="input" placeholder="0.00"/>
+          <input name="DIFF J2" type="number" step="0.01" inputmode="decimal"
+            class="input" placeholder="0.00"/>
         </label>
 
         <label class="field">
@@ -113,6 +148,7 @@
           <span>REMARK</span>
           <input name="REMARK" class="input" placeholder="Optional notes"/>
         </label>
+
       </div>
 
       <!-- Hidden participant data -->
@@ -133,6 +169,7 @@
       </div>
     </form>
   </section>
+
 </main>
 
 <!-- Submit overlay -->
@@ -143,39 +180,42 @@
   </div>
 </div>
 
-<script>judging=true;</script>
+<script>judging = true;</script>
 
 <script>
 (function helpersInit(){
   try{
     async function hardRefresh(){
       try{
-        if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
-          const regs=await navigator.serviceWorker.getRegistrations();
-          for(const r of regs){try{await r.unregister();}catch(_){ }}
+        if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for(const r of regs){ try{ await r.unregister(); }catch(_){ } }
         }
-        if(window.caches&&caches.keys){
-          const keys=await caches.keys();
-          for(const k of keys){try{await caches.delete(k);}catch(_){ }}
+        if(window.caches && caches.keys){
+          const keys = await caches.keys();
+          for(const k of keys){ try{ await caches.delete(k); }catch(_){ } }
         }
       }catch(_){}
       location.reload(true);
     }
-    window.hardRefresh=hardRefresh;
-    var btnRefresh=document.getElementById('btnRefresh');
-    if(btnRefresh){ btnRefresh.addEventListener('click',hardRefresh); }
 
-    // "Search ID" clicks should trigger the Enter handler on the input
-    var entryInput=document.getElementById('entryIdInput');
-    var btnLookup=document.getElementById('btnLookup');
-    if(btnLookup&&entryInput){
-      btnLookup.addEventListener('click',function(){
-        var evt=new KeyboardEvent('keyup',{key:'Enter',bubbles:true});
+    window.hardRefresh = hardRefresh;
+
+    var btnRefresh = document.getElementById('btnRefresh');
+    if(btnRefresh){ btnRefresh.addEventListener('click', hardRefresh); }
+
+    var entryInput = document.getElementById('entryIdInput');
+    var btnLookup = document.getElementById('btnLookup');
+
+    if(btnLookup && entryInput){
+      btnLookup.addEventListener('click', function(){
+        var evt = new KeyboardEvent('keyup',{key:'Enter', bubbles:true});
         entryInput.dispatchEvent(evt);
       });
     }
   }catch(e){}
 })();
 </script>
+
 </body>
 </html>
