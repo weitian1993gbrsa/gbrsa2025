@@ -427,3 +427,14 @@ body.station .station-card {
   padding: 1.25rem 1.5rem;
   box-shadow: 0 4px 14px rgba(0,0,0,0.06);
 }
+
+/* =============================
+   FOOTER CENTER FIX
+   ============================= */
+.foot {
+  text-align: center;
+  padding: 1.5rem 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  width: 100%;
+}
