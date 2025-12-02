@@ -4,10 +4,19 @@
   const params = new URLSearchParams(location.search);
 
   /* ============================================================
-     RETURN URL (with key included for secure access)
+     RETURN URL (secure)
+     Preload station page so redirect feels instant
   ============================================================ */
   const returnURL =
     `station.html?station=${params.get("station")}&key=${params.get("key")}`;
+
+  // Preload next station page for instant return
+  fetch(returnURL).catch(()=>{});
+
+  /* ============================================================
+     PRE-WARM BACKEND (eliminate first cold delay)
+  ============================================================ */
+  fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 
   /* ============================================================
      LOAD PARTICIPANT VALUES INTO FORM
@@ -34,12 +43,13 @@
   const overlayText = $("#overlayText");
 
   /* ============================================================
-     FORM SUBMISSION HANDLER (OPTIMIZED)
+     FORM SUBMISSION HANDLER (TURBO OPTIMIZED)
   ============================================================ */
   scoreForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Show overlay immediately
+    // ⚡ Overlay immediate + smooth
+    overlay.style.opacity = "1";
     overlay.classList.remove("hide");
     overlayText.textContent = "Submitting…";
 
@@ -50,22 +60,21 @@
     payload["FALSE START"] = fd.get("FALSE START") ? "YES" : "";
     payload._form = "speed";
 
-    try {
-      const out = await apiPost(payload);
+    // ⚡ Non-blocking API + ultra-fast UI
+    apiPost(payload).then(() => {
 
-      // Success message
       overlayText.textContent = "Saved ✔";
 
-      // SUPER FAST REDIRECT (150ms)
+      // ⚡ SUPER FAST REDIRECT (120ms)
       setTimeout(() => {
         location.href = returnURL;
-      }, 150);
+      }, 120);
 
-    } catch (err) {
+    }).catch(err => {
       console.error(err);
       overlayText.textContent = "Submit failed";
       setTimeout(() => overlay.classList.add("hide"), 800);
-    }
+    });
   });
 
 })();
