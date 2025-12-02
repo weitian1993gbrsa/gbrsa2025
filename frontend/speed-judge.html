@@ -3,13 +3,12 @@
 <head>
   <meta charset="utf-8"/>
 
-  <!-- Disable cache -->
+  <!-- IMPORTANT: disable caching -->
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-
   <title>Speed Judge</title>
 
   <link rel="stylesheet" href="./styles.css"/>
@@ -19,66 +18,22 @@
   <script defer src="./app.js"></script>
   <script defer src="./speed-judge.js"></script>
 
-<style>
-  .judge-header {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    gap: .75rem;
-    background: #ffffffd9;
-    border-bottom: 1px solid #e5e7eb;
-    backdrop-filter: blur(4px);
-    position: sticky;
-    top: 0;
-    z-index: 9999;
-  }
-  .judge-title { font-size: 1.4rem; font-weight: 700; }
-  .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
-
-  /* Numberpad */
-  .simple-pad {
-    margin-top: 1.5rem;
-    text-align: center;
-  }
-
-  .score-screen {
-    font-size: 2.4rem;
-    font-weight: 700;
-    letter-spacing: .25rem;
-    text-align: center;
-    padding: 1.2rem 0;
-    margin-bottom: 1rem;
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 3px 10px rgba(0,0,0,.06);
-  }
-
-  .numpad-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: .75rem;
-  }
-
-  .numpad-grid button {
-    padding: 1rem;
-    border-radius: 14px;
-    font-size: 1.4rem;
-    font-weight: 700;
-    border: 1px solid #ddd;
-    background: #fff;
-    box-shadow: 0 4px 12px #0001;
-  }
-
-  .clear-btn {
-    background: #dc2626 !important;
-    color: #fff !important;
-  }
-  .enter-btn {
-    background: #2563eb !important;
-    color: #fff !important;
-  }
-</style>
-
+  <style>
+    .judge-header {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      gap: .75rem;
+      background: #ffffffd9;
+      border-bottom: 1px solid #e5e7eb;
+      backdrop-filter: blur(4px);
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+    }
+    .judge-title { font-size: 1.4rem; font-weight: 700; }
+    .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
+  </style>
 </head>
 
 <body class="page judge">
@@ -91,15 +46,16 @@
   </div>
 </header>
 
-
 <main class="container">
 
   <section class="block">
 
     <form id="scoreForm" class="form">
 
-      <!-- Hidden SCORE input -->
-      <input type="hidden" id="hiddenScore" name="SCORE">
+      <label class="field">
+        <span>SCORE</span>
+        <input type="number" name="SCORE" min="0" required class="input">
+      </label>
 
       <label class="check">
         <input type="checkbox" name="FALSE START">
@@ -111,7 +67,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Hidden fields for backend -->
+      <!-- Hidden fields required by backend -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -124,35 +80,7 @@
       <input type="hidden" name="EVENT" id="fEVENT">
       <input type="hidden" name="DIVISION" id="fDIVISION">
 
-<!-- Numberpad -->
-<div class="simple-pad">
-
-  <div id="scoreScreen" class="score-screen">···</div>
-
-  <div class="numpad-grid">
-
-    <button type="button" data-key="1">1</button>
-    <button type="button" data-key="2">2</button>
-    <button type="button" data-key="3">3</button>
-
-    <button type="button" data-key="4">4</button>
-    <button type="button" data-key="5">5</button>
-    <button type="button" data-key="6">6</button>
-
-    <button type="button" data-key="7">7</button>
-    <button type="button" data-key="8">8</button>
-    <button type="button" data-key="9">9</button>
-
-    <button type="button" data-key="clear" class="clear-btn">Clear</button>
-    <button type="button" data-key="0">0</button>
-    <button type="button" data-key="enter" class="enter-btn">Enter</button>
-
-  </div>
-
-</div>
-
-
-      <div class="row space" style="margin-top:1.5rem">
+      <div class="row space">
         <button type="submit" class="btn primary" style="width:100%;font-size:1.1rem;padding:1rem">
           Submit Result →
         </button>
@@ -163,7 +91,6 @@
   </section>
 
 </main>
-
 
 <!-- Submit Overlay -->
 <div id="submitOverlay" class="overlay hide">
@@ -176,18 +103,32 @@
 </div>
 
 
-<!-- Back Navigation -->
+<!-- ============================================================
+     BACK-SWIPE FIX + SNAPSHOT KILLER + CLEAN REDIRECT
+============================================================ -->
 <script>
+/* Load station + key for redirect */
 function goBack() {
-  const p = new URLSearchParams(location.search);
-  location.href = `station.html?station=${p.get("station")}&key=${p.get("key")}`;
+  const params = new URLSearchParams(location.search);
+  const station = params.get("station");
+  const key = params.get("key");
+  location.href = `station.html?station=${station}&key=${key}`;
 }
 
+/* Smart history: force back-swipe to trigger popstate */
 history.pushState(null, null, location.href);
-window.onpopstate = () => goBack();
 
+/* When user swipes back → always go to station page */
+window.onpopstate = function () {
+  goBack();
+};
+
+/* iOS & Android: prevent restoring frozen judge page */
 window.addEventListener("pageshow", function (event) {
-  if (event.persisted) goBack();
+  if (event.persisted) {
+    // If browser attempts to restore cached page → force fresh load
+    goBack();
+  }
 });
 </script>
 
