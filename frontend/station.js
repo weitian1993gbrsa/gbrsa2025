@@ -17,13 +17,11 @@
   ============================================================ */
   const JUDGE_KEYS = window.JUDGE_KEYS || {};
 
-  // Convert { key: station } → { station: key }
   const validKeys = {};
   for (const [k, s] of Object.entries(JUDGE_KEYS)) {
     validKeys[String(s)] = k;
   }
 
-  // Check authorization
   if (!key || key !== validKeys[station]) {
     document.body.innerHTML = `
       <div style="padding:2rem;text-align:center;">
@@ -57,12 +55,28 @@
   }
 
   /* ============================================================
-     CARD CACHE
+     CARD CACHE (for turbo refresh)
   ============================================================ */
   const cardMap = {};
 
   /* ============================================================
-     CREATE CARD (FIRST TIME ONLY)
+     PREFETCH SPEED-JUDGE PAGE (Instant Open)
+  ============================================================ */
+  function prefetchJudgePage() {
+    const link1 = document.createElement("link");
+    link1.rel = "prefetch";
+    link1.href = "speed-judge.html";
+    document.head.appendChild(link1);
+
+    const link2 = document.createElement("link");
+    link2.rel = "prefetch";
+    link2.href = "speed-judge.js";
+    document.head.appendChild(link2);
+  }
+  prefetchJudgePage();
+
+  /* ============================================================
+     CREATE CARD (first load)
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -98,7 +112,7 @@
       + `&state=${encodeURIComponent(p.state || "")}`
       + `&heat=${encodeURIComponent(p.heat || "")}`
       + `&station=${encodeURIComponent(station)}`
-      + `&key=${encodeURIComponent(key)}`       /* keep judge locked */
+      + `&key=${encodeURIComponent(key)}`
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
@@ -111,7 +125,7 @@
   }
 
   /* ============================================================
-     UPDATE CARD (ONLY STATUS)
+     FAST STATUS UPDATE ONLY
   ============================================================ */
   function updateCard(p) {
     const cache = cardMap[p.entryId];
@@ -131,49 +145,48 @@
   }
 
   /* ============================================================
-     LOAD STATION DATA
+     FULL TURBO LOAD (INSTANT + BACKGROUND UPDATE)
   ============================================================ */
   async function loadStationList() {
+
     const firstLoad = Object.keys(cardMap).length === 0;
 
     if (firstLoad) {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
-    let data;
-    try {
-      data = await apiGet({
-        cmd: "stationlist",
-        station,
-        _ts: Date.now()
-      });
-    } catch (err) {
-      console.error(err);
+    // ⚡ STEP 1: If we already have cards, show them instantly
+    if (!firstLoad) {
+      // Cards already on screen — no clearing, no waiting
+    }
+
+    // ⚡ STEP 2: Fetch backend in background (non-blocking)
+    apiGet({
+      cmd: "stationlist",
+      station,
+      _ts: Date.now()
+    }).then(data => {
+
+      if (!data || !data.ok) return;
+
+      const arr = data.entries || [];
+
+      // 🔥 First load: build cards
       if (firstLoad) {
-        listEl.innerHTML = `<div class="hint error">Error loading station.</div>`;
+        listEl.innerHTML = "";
+        arr.forEach((p, i) => {
+          const card = createCard(p, i);
+          listEl.appendChild(card);
+        });
+        return;
       }
-      return;
-    }
 
-    if (!data || !data.ok) {
-      if (firstLoad) {
-        listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
-      }
-      return;
-    }
-
-    const arr = data.entries || [];
-
-    if (firstLoad) {
-      listEl.innerHTML = "";
-      arr.forEach((p, i) => {
-        const card = createCard(p, i);
-        listEl.appendChild(card);
+      // 🔥 Subsequent loads: update status instantly
+      requestAnimationFrame(() => {
+        arr.forEach(p => updateCard(p));
       });
-      return;
-    }
 
-    arr.forEach(p => updateCard(p));
+    }).catch(err => console.error(err));
   }
 
   /* ============================================================
@@ -184,10 +197,10 @@
   }
 
   /* ============================================================
-     AUTO LOAD
+     AUTO LOAD (Start fast load)
   ============================================================ */
   window.addEventListener("load", () => {
-    setTimeout(loadStationList, 60);
+    setTimeout(loadStationList, 30);
   });
 
 })();
