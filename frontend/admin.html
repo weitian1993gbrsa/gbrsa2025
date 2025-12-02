@@ -44,8 +44,8 @@
 
 <body class="page">
 
-<header class="topbar">
-  <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
+<header class="topbar" style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
+  <img src="./assets/company-logo.png" alt="GBRSA" class="logo" style="height:38px;">
   <div class="titles">
     <h1>Admin Panel</h1>
     <p class="subtitle">GBRSA Scoring System</p>
@@ -65,8 +65,13 @@
       Freestyle Event
     </button>
 
+    <!-- 🔥 FORCE LOGOUT BUTTON -->
+    <button class="btn danger admin-btn" onclick="forceLogoutAll()">
+      Force Logout All Judges
+    </button>
+
     <button class="btn danger admin-btn" onclick="logout()">
-      Logout
+      Logout (Admin)
     </button>
 
   </div>
@@ -76,10 +81,34 @@
   <small>© 2025 GB Rope Skipping Academy</small>
 </footer>
 
+<!-- ===================================================
+     ADMIN LOGOUT + FORCE LOGOUT API
+     =================================================== -->
 <script>
 function logout() {
-  // Clear admin session field (no real login, just go home)
   window.location.href = "index.html";
+}
+
+async function forceLogoutAll() {
+    if (!window.CONFIG || !window.CONFIG.APPS_SCRIPT_URL) {
+        alert("CONFIG not loaded.");
+        return;
+    }
+
+    const url = window.CONFIG.APPS_SCRIPT_URL + "?cmd=forceLogout";
+
+    try {
+        const res = await fetch(url);
+        const js = await res.json();
+
+        if (js.ok) {
+            alert("🔥 All judges have been logged out.\n\nLogout Version = " + js.logoutVersion);
+        } else {
+            alert("❌ ERROR: " + js.error);
+        }
+    } catch(e){
+        alert("❌ Network error: " + e);
+    }
 }
 </script>
 
