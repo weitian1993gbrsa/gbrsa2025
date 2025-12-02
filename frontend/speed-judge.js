@@ -3,12 +3,19 @@
   const $ = (q) => document.querySelector(q);
   const params = new URLSearchParams(location.search);
 
-  // FIX: return with the same KEY to avoid Access Denied
+  /* ============================================================
+     RETURN URL (with key included for secure access)
+  ============================================================ */
   const returnURL =
     `station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
-  // Load all participant fields from URL
-  const set = (id, val) => { const el = $(id); if (el) el.value = val || ""; };
+  /* ============================================================
+     LOAD PARTICIPANT VALUES INTO FORM
+  ============================================================ */
+  const set = (id, val) => { 
+    const el = $(id); 
+    if (el) el.value = val || ""; 
+  };
 
   set("#fID", params.get("id"));
   set("#fNAME1", params.get("name1"));
@@ -26,25 +33,33 @@
   const overlay = $("#submitOverlay");
   const overlayText = $("#overlayText");
 
+  /* ============================================================
+     FORM SUBMISSION HANDLER (OPTIMIZED)
+  ============================================================ */
   scoreForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Show overlay immediately
     overlay.classList.remove("hide");
     overlayText.textContent = "Submitting…";
 
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
 
+    // Checkbox fix
     payload["FALSE START"] = fd.get("FALSE START") ? "YES" : "";
     payload._form = "speed";
 
     try {
       const out = await apiPost(payload);
+
+      // Success message
       overlayText.textContent = "Saved ✔";
 
+      // SUPER FAST REDIRECT (150ms)
       setTimeout(() => {
-        location.href = returnURL;   // SECURE RETURN
-      }, 600);
+        location.href = returnURL;
+      }, 150);
 
     } catch (err) {
       console.error(err);
