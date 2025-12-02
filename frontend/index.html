@@ -1,9 +1,9 @@
 <script>
 // ============================
-// LOAD KEY GROUPS
+// LOAD KEY GROUPS FROM config.js
 // ============================
-const judgeKeys = window.JUDGE_KEYS;   // from config.js
-const adminKeys = window.ADMIN_KEYS;   // you must add this in config.js
+const judgeKeys = window.JUDGE_KEYS || {};
+const adminKeys = window.ADMIN_KEYS || {};
 
 // UI elements
 const keyInput  = document.getElementById("judgeKey");
@@ -15,14 +15,13 @@ const btnLogin  = document.getElementById("btnJudgeLogin");
 // ============================
 btnLogin.addEventListener("click", () => {
   const key = keyInput.value.trim();
-
   keyError.style.display = "none";
 
   // 🔐 ADMIN LOGIN → admin.html
   if (adminKeys[key]) {
     btnLogin.disabled = true;
     btnLogin.textContent = "Loading…";
-    location.href = `admin.html?key=${key}`;
+    location.href = `admin.html?key=${encodeURIComponent(key)}`;
     return;
   }
 
@@ -31,7 +30,7 @@ btnLogin.addEventListener("click", () => {
   if (station) {
     btnLogin.disabled = true;
     btnLogin.textContent = "Loading…";
-    location.href = `station.html?station=${station}&key=${key}`;
+    location.href = `station.html?station=${station}&key=${encodeURIComponent(key)}`;
     return;
   }
 
@@ -39,29 +38,29 @@ btnLogin.addEventListener("click", () => {
   keyError.style.display = "block";
 });
 
-// Enter key = Login
+// ENTER key = login
 keyInput.addEventListener("keyup", e => {
   if (e.key === "Enter") btnLogin.click();
 });
 
 // ============================
-// RESET FIELDS ON RETURN
+// RESET INPUT WHEN RETURNING
 // ============================
-function resetJudgeLogin() {
+function resetLoginField() {
   keyInput.value = "";
   keyError.style.display = "none";
   btnLogin.disabled = false;
   btnLogin.textContent = "Enter";
 }
 
-// iOS — restores from cache
-window.addEventListener("pageshow", resetJudgeLogin);
+// iOS Safari restore
+window.addEventListener("pageshow", resetLoginField);
 
-// Android — back/forward navigation
+// Android + Chrome restore
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") resetJudgeLogin();
+  if (document.visibilityState === "visible") resetLoginField();
 });
 
 // Extra safety
-window.addEventListener("pagehide", resetJudgeLogin);
+window.addEventListener("pagehide", resetLoginField);
 </script>
