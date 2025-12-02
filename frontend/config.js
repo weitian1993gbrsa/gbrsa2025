@@ -5,9 +5,11 @@ window.CONFIG = {
   RESULT_SHEET_NAME: "RESULT"
 };
 
-// Login backend URL
-const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbzq3LYbSAoFRjt8wIbomxwehCOdAdGo4eCkpHlhj_ncTm27tpQJyMhzQHRQTfhKQ6WJ/exec";
+// Login backend URL (currently unused but safe to keep)
+const LOGIN_API_URL =
+  "https://script.google.com/macros/s/AKfycbzq3LYbSAoFRjt8wIbomxwehCOdAdGo4eCkpHlhj_ncTm27tpQJyMhzQHRQTfhKQ6WJ/exec";
 
+// Force browser repaint helper
 function forceRepaint() {
   document.body.classList.add("hidden");
   void document.body.offsetHeight;
@@ -15,10 +17,9 @@ function forceRepaint() {
 }
 
 /* ============================================================
-   JUDGE ACCESS KEYS (ONE SOURCE OF TRUTH)
+   JUDGE ACCESS KEYS  
    ✔ Update judge keys here ONLY
-   ✔ index.html + station.js will automatically sync
-   ✔ No more double editing in different files
+   ✔ Used by index.html & station.js
 ============================================================ */
 
 window.JUDGE_KEYS = {
@@ -35,6 +36,12 @@ window.JUDGE_KEYS = {
   "qqq101": 11,
   "key999": 12
 };
+
+/* ============================================================
+   ADMIN ACCESS KEYS  
+   ✔ Used for admin.html access
+   ✔ NOT tied to station numbers
+============================================================ */
 
 window.ADMIN_KEYS = {
   "admin123": true,
