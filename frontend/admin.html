@@ -7,7 +7,11 @@
 
 <link rel="stylesheet" href="./styles.css"/>
 
+<!-- Config FIRST -->
 <script src="./config.js"></script>
+
+<!-- Admin logic -->
+<script defer src="./admin.js"></script>
 
 <style>
   .admin-header {
@@ -53,25 +57,6 @@
   </section>
 
 </main>
-
-<script>
-// =============================
-// SECURITY CHECK
-// =============================
-const qs = new URLSearchParams(location.search);
-const key = qs.get("key");
-
-// If no key → redirect
-if (!key) location.href = "index.html";
-
-// Validate admin
-const admins = window.ADMIN_KEYS || {};
-
-if (!admins[key]) {
-  alert("Access Denied: Admin key required.");
-  location.href = "index.html";
-}
-</script>
 
 </body>
 </html>
