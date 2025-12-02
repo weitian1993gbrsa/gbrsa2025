@@ -11,6 +11,10 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1020">
 
+<!-- IMPORTANT: LOAD CONFIG FIRST -->
+<script defer src="./config.js"></script>
+<script defer src="./app.js"></script>
+
 <style>
   .admin-wrapper {
     max-width: 420px;
@@ -70,7 +74,7 @@
       Force Logout All Judges
     </button>
 
-    <button class="btn danger admin-btn" onclick="logout()">
+    <button class="btn danger admin-btn" onclick="logoutAdmin()">
       Logout (Admin)
     </button>
 
@@ -85,11 +89,13 @@
      ADMIN LOGOUT + FORCE LOGOUT API
      =================================================== -->
 <script>
-function logout() {
+function logoutAdmin() {
   window.location.href = "index.html";
 }
 
 async function forceLogoutAll() {
+
+    // 🔥 FIXED: Ensure CONFIG IS LOADED
     if (!window.CONFIG || !window.CONFIG.APPS_SCRIPT_URL) {
         alert("CONFIG not loaded.");
         return;
