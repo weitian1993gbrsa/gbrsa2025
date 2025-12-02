@@ -438,22 +438,3 @@ body.station .station-card {
   font-size: 0.9rem;
   width: 100%;
 }
-
-/* ===== PARTICIPANT CARD COLOR STATES ===== */
-
-.participant-card.done {
-  background: #059669 !important; /* green */
-  color: #fff !important;
-}
-
-.participant-card.pending {
-  background: #d97706 !important; /* orange */
-  color: #fff !important;
-}
-
-/* Make inner texts white */
-.participant-card.done span,
-.participant-card.pending span {
-  color: #fff !important;
-}
-
