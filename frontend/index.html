@@ -1,66 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="format-detection" content="telephone=no">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>GBRSA Score • Scoring</title>
+
+<!-- CSS -->
+<link rel="stylesheet" href="./styles.css"/>
+
+<!-- 🔥 PREFETCH (Speed Boost) -->
+<link rel="prefetch" href="speed-judge.html">
+<link rel="prefetch" href="speed-judge.js">
+<link rel="prefetch" href="styles.css">
+<link rel="prefetch" href="station.html">
+
+<!-- Load config first -->
+<script src="./config.js"></script>
+
+<!-- Other scripts -->
+<script defer src="./app.js"></script>
+<script defer src="./nozoom.js"></script>
+
+<style>html, body { touch-action: manipulation; }</style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1020">
+
+<!-- 🔥 API Warm-Up -->
 <script>
-// ============================
-// LOAD KEY GROUPS FROM config.js
-// ============================
-const judgeKeys = window.JUDGE_KEYS || {};
-const adminKeys = window.ADMIN_KEYS || {};
+fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
+</script>
+
+<!-- iOS Zoom Fix -->
+<script>
+(function(){
+  function ensureSize(el){
+    try{
+      if(!el) return;
+      let t = el.tagName.toLowerCase();
+      if (t==='input' || t==='textarea' || t==='select'){
+        el.style.fontSize='16px';
+        el.style.webkitTextSizeAdjust='100%';
+      }
+    }catch(e){}
+  }
+  document.addEventListener('focusin', e => ensureSize(e.target), true);
+})();
+</script>
+
+</head>
+
+<body class="page homepage">
+
+<header class="topbar">
+  <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
+  <div class="titles">
+    <h1>GBRSA RopeApp</h1>
+    <p class="subtitle">powered by GBRSA</p>
+  </div>
+</header>
+
+<!-- ⭐ CENTERED PAGE WRAPPER -->
+<main class="page-wrapper">
+  <div class="home-wrapper">
+
+    <div class="menu-grid">
+
+      <!-- Judge login ONLY -->
+      <div class="card judge-login">
+        <h3>Judge Access</h3>
+        <p class="judge-desc">Enter your assigned access code to open your duty.</p>
+
+        <div class="login-field">
+          <input id="judgeKey" class="input" placeholder="Enter access code" type="password">
+          <button class="btn primary" id="btnJudgeLogin">Enter</button>
+        </div>
+
+        <p id="keyError" class="judge-error">Invalid access code.</p>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<footer class="foot" style="text-align:center;">
+  <small>© 2025 GB Rope Skipping Academy</small>
+</footer>
+
+<script>
+// Judge key mapping from config.js
+const validKeys = window.JUDGE_KEYS;
 
 // UI elements
 const keyInput  = document.getElementById("judgeKey");
 const keyError  = document.getElementById("keyError");
 const btnLogin  = document.getElementById("btnJudgeLogin");
 
-// ============================
-// LOGIN HANDLER
-// ============================
+// Handle login button
 btnLogin.addEventListener("click", () => {
   const key = keyInput.value.trim();
+  const station = validKeys[key];
+
   keyError.style.display = "none";
 
-  // 🔐 ADMIN LOGIN → admin.html
-  if (adminKeys[key]) {
-    btnLogin.disabled = true;
-    btnLogin.textContent = "Loading…";
-    location.href = `admin.html?key=${encodeURIComponent(key)}`;
+  if (!station) {
+    keyError.style.display = "block";
     return;
   }
 
-  // 👨‍⚖️ JUDGE LOGIN → station.html
-  const station = judgeKeys[key];
-  if (station) {
-    btnLogin.disabled = true;
-    btnLogin.textContent = "Loading…";
-    location.href = `station.html?station=${station}&key=${encodeURIComponent(key)}`;
-    return;
-  }
+  btnLogin.disabled = true;
+  btnLogin.textContent = "Loading…";
 
-  // ❌ INVALID KEY
-  keyError.style.display = "block";
+  // Redirect to secure station
+  location.href = `station.html?station=${station}&key=${key}`;
 });
 
-// ENTER key = login
+// Support Enter key
 keyInput.addEventListener("keyup", e => {
   if (e.key === "Enter") btnLogin.click();
 });
 
-// ============================
-// RESET INPUT WHEN RETURNING
-// ============================
-function resetLoginField() {
+// ⭐ UNIVERSAL RESET FUNCTION
+function resetJudgeLogin() {
+  btnLogin.disabled = false;
+  btnLogin.textContent = "Enter";
+  keyError.style.display = "none";
+  keyInput.value = ""; // 🔥 CLEAR PASSWORD
+}
+
+/* =============================
+   FIX BACK-NAV ON ALL DEVICES
+   ============================= */
+
+// iOS Safari — page restored from cache
+window.addEventListener("pageshow", resetJudgeLogin);
+
+// Android Chrome — swipe back triggers visibilitychange
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    resetJudgeLogin();
+  }
+});
+
+// Extra safety — Android memory snapshot restore
+window.addEventListener("pagehide", () => {
+  keyInput.value = "";
+});
+</script>
+
+</body>
+</html>
+
+<!-- EXTRA SAFETY CLEAR -->
+<script>
+function clearJudgeField() {
+  const keyInput = document.getElementById("judgeKey");
+  const btnLogin = document.getElementById("btnJudgeLogin");
+  const keyError = document.getElementById("keyError");
+
+  if (!keyInput) return;
+
   keyInput.value = "";
   keyError.style.display = "none";
   btnLogin.disabled = false;
   btnLogin.textContent = "Enter";
 }
 
-// iOS Safari restore
-window.addEventListener("pageshow", resetLoginField);
+// iOS + modern browsers
+window.addEventListener("pageshow", clearJudgeField);
 
-// Android + Chrome restore
+// Android Chrome back-swipe
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") resetLoginField();
+  if (document.visibilityState === "visible") {
+    clearJudgeField();
+  }
 });
 
-// Extra safety
-window.addEventListener("pagehide", resetLoginField);
+// Extra safety: When page unloads, clear
+window.addEventListener("pagehide", clearJudgeField);
 </script>
