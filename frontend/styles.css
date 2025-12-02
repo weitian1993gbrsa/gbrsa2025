@@ -427,33 +427,3 @@ body.station .station-card {
   padding: 1.25rem 1.5rem;
   box-shadow: 0 4px 14px rgba(0,0,0,0.06);
 }
-
-/* ============================================================
-   iOS Swipe-Back Blocker (Prevents left-edge back gesture)
-   ============================================================ */
-
-body.station::before,
-body.judge::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 30px;           /* Block iOS back-swipe zone */
-  height: 100%;
-  z-index: 9999999;
-  background: transparent;
-  pointer-events: auto;  /* eats the gesture */
-}
-
-body.station::after,
-body.judge::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 30px;           /* Block iOS forward-swipe zone */
-  height: 100%;
-  z-index: 9999999;
-  background: transparent;
-  pointer-events: auto;
-}
