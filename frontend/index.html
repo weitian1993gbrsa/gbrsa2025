@@ -9,16 +9,16 @@
 <!-- CSS -->
 <link rel="stylesheet" href="./styles.css"/>
 
-<!-- 🔥 PREFETCH (Speed Boost: preload judge page & scripts) -->
+<!-- 🔥 PREFETCH -->
 <link rel="prefetch" href="speed-judge.html">
 <link rel="prefetch" href="speed-judge.js">
 <link rel="prefetch" href="styles.css">
 <link rel="prefetch" href="station.html">
 
-<!-- 🔧 MUST load config first -->
+<!-- CONFIG -->
 <script src="./config.js"></script>
 
-<!-- Other scripts -->
+<!-- Scripts -->
 <script defer src="./app.js"></script>
 <script defer src="./nozoom.js"></script>
 
@@ -26,13 +26,13 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1020">
 
-<!-- 🔥 API Warm-Up (Fix slow Google Script cold start) -->
+<!-- API Warm-up -->
 <script>
 fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </script>
 
+<!-- iOS Input Zoom Fix -->
 <script>
-/* iOS input zoom fix */
 (function(){
   function ensureSize(el){
     try{
@@ -45,12 +45,6 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
     }catch(e){}
   }
   document.addEventListener('focusin', e => ensureSize(e.target), true);
-  document.addEventListener('focusout', e => {
-    try{
-      e.target.style.fontSize='';
-      e.target.style.webkitTextSizeAdjust='';
-    }catch(e){}
-  }, true);
 })();
 </script>
 
@@ -67,7 +61,8 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </header>
 
 <main class="hero">
-  <section class="hero-content">
+  <section class="home-wrapper">   <!-- ⭐ NEW CENTERED WRAPPER -->
+
     <h2 class="hero-title">Input ID. Score. Sync.</h2>
     <p class="hero-text">Paperless judging for Speed Events.</p>
 
@@ -85,7 +80,7 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
         <p>ID → lookup → input MISSES/BREAKS/DIFF/Missed RE → submit.</p>
       </a>
 
-      <!-- ⭐ JUDGE LOGIN BLOCK -->
+      <!-- ⭐ JUDGE LOGIN -->
       <div class="card judge-login">
         <h3>Judge Access</h3>
         <p class="judge-desc">Enter your assigned access code to open your station.</p>
@@ -107,14 +102,14 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </footer>
 
 <script>
-// Get valid keys from config.js
+// Get valid judge keys
 const validKeys = window.JUDGE_KEYS;
 
-const keyInput  = document.getElementById("judgeKey");
-const keyError  = document.getElementById("keyError");
-const btnLogin  = document.getElementById("btnJudgeLogin");
+const keyInput = document.getElementById("judgeKey");
+const keyError = document.getElementById("keyError");
+const btnLogin = document.getElementById("btnJudgeLogin");
 
-// Handle login button
+// Submit handler
 btnLogin.addEventListener("click", () => {
   const key = keyInput.value.trim();
   const station = validKeys[key];
@@ -129,21 +124,20 @@ btnLogin.addEventListener("click", () => {
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  // Redirect technician/judge to their secure station
   location.href = `station.html?station=${station}&key=${key}`;
 });
 
-// Support ENTER key
-keyInput.addEventListener("keyup", (e) => {
+// ENTER key support
+keyInput.addEventListener("keyup", e => {
   if (e.key === "Enter") btnLogin.click();
 });
 
-// ⭐ FIX SAFARI BACK-FORWARD CACHE + CLEAR PASSWORD
+// ⭐ FIX SAFARI/BACK CACHE — clear password
 window.addEventListener("pageshow", () => {
-  btnLogin.disabled = false;      // re-enable button
-  btnLogin.textContent = "Enter"; // reset text
+  btnLogin.disabled = false;
+  btnLogin.textContent = "Enter";
   keyError.style.display = "none";
-  keyInput.value = "";            // 🔥 CLEAR PASSWORD
+  keyInput.value = "";  // Clear password
 });
 </script>
 
