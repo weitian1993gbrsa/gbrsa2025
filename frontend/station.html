@@ -19,20 +19,12 @@
       top: 0;
       z-index: 999;
     }
-
-    .btn.small {
-      padding: 6px 12px;
-      font-size: 14px;
-      border-radius: 8px;
-    }
   </style>
 </head>
 
 <body class="page station">
 
-<header class="topbar"
-  style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
-
+<header class="topbar">
   <img src="./assets/company-logo.png" class="logo"/>
 
   <div class="titles">
@@ -40,17 +32,18 @@
   </div>
 
   <!-- NEW HOME BUTTON -->
-  <button id="btnHome" class="btn small" style="margin-left:auto;margin-right:.5rem;">
+  <button id="btnHome" class="btn" style="margin-left:auto;margin-right:.5rem;">
     ⬅ Home
   </button>
 
   <!-- REFRESH BUTTON -->
-  <button id="btnRefresh" class="btn small">⟳ Refresh</button>
+  <button id="btnRefresh" class="btn">⟳ Refresh</button>
 </header>
 
 <main class="container">
   <section class="block">
     <h2>Entries for this Station</h2>
+
     <div id="entryList" class="entry-list"></div>
   </section>
 </main>
@@ -58,53 +51,16 @@
 <!-- HARD BLOCK SWIPE BACK ON iOS + ANDROID -->
 <script>
 history.pushState(null, null, location.href);
-window.onpopstate = () => history.go(1);
+
+window.onpopstate = function () {
+  history.go(1);    // block gesture-back
+};
 </script>
 
 <!-- HOME BUTTON LOGIC -->
 <script>
-document.getElementById("btnHome").onclick = () => {
-  location.href = "index.html";
-};
-</script>
-
-<!-- =============================================
-     🔥 FORCE LOGOUT CHECK (FINAL WORKING VERSION)
-     ============================================= -->
-<script>
-window.addEventListener("load", async () => {
-
-    // CONFIG not ready → cannot check logout
-    if (!window.CONFIG || !window.CONFIG.APPS_SCRIPT_URL) return;
-
-    try {
-        const url = window.CONFIG.APPS_SCRIPT_URL + "?cmd=getLogoutVersion";
-        const res = await fetch(url, { cache: "no-store" });
-
-        if (!res.ok) return; // backend offline → skip
-        const js = await res.json();
-
-        if (!js || !js.ok || !js.logoutVersion) return;
-
-        const serverV = String(js.logoutVersion);
-        const localV  = localStorage.getItem("logoutVersion");
-
-        // 🔥 Version mismatch = FORCE LOGOUT
-        if (localV !== serverV) {
-            localStorage.setItem("logoutVersion", serverV);
-
-            // Clear station session if needed
-            sessionStorage.clear();
-
-            // Redirect to homepage
-            location.href = "index.html";
-            return;
-        }
-
-    } catch (err) {
-        // offline → do nothing
-    }
-
+document.getElementById("btnHome").addEventListener("click", () => {
+  location.href = "index.html"; // always go clean home
 });
 </script>
 
