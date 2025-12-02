@@ -17,7 +17,7 @@
   const pcState = $('#pcState');
   const pcEvent = $('#pcEvent');
   const pcDivision = $('#pcDivision');
-  const pcStatus = $('#pcStatus');   // ⭐ NEW STATUS ELEMENT
+  const pcStatus = $('#pcStatus');   // ⭐ STATUS TAG
 
   const btnConfirm = $('#btnConfirm');
   const scoreFormWrap = $('#scoreFormWrap');
@@ -26,7 +26,7 @@
   const submitOverlay = document.getElementById('submitOverlay');
   const overlayText   = document.getElementById('overlayText');
 
-  /* Hidden fields for submission */
+  /* Hidden fields */
   const fId = $('#fId');
   const fNAME1 = $('#fNAME1');
   const fNAME2 = $('#fNAME2');
@@ -85,7 +85,7 @@
   }
 
   /* ============================================================
-     🔥 NEW: CHECK IF THIS ID IS ALREADY SCORED TODAY
+     🔥 CHECK IF ID HAS BEEN SCORED
      ============================================================ */
 
   async function checkStatus(id, station) {
@@ -102,7 +102,7 @@
   }
 
   /* ============================================================
-     LOOKUP — UPDATE NEW CARD UI + STATUS
+     LOOKUP — UPDATE CARD + STATUS
      ============================================================ */
 
   async function lookupById(raw){
@@ -133,9 +133,11 @@
 
       const p = data.participant;
 
-      /* Build full name */
+      /* ⭐ Names comma-separated, one line */
       const names = [p.NAME1,p.NAME2,p.NAME3,p.NAME4]
-        .filter(Boolean).map(escapeHtml).join(' ');
+        .filter(Boolean)
+        .map(escapeHtml)
+        .join(', ');
 
       /* Fill visible card */
       pcID.textContent = id;
@@ -148,7 +150,7 @@
       pcEvent.textContent = "Event " + (p.EVENT || "—");
       pcDivision.textContent = "Division " + (p.DIVISION || "—");
 
-      /* Fill hidden fields */
+      /* Hidden fields */
       fId.value = id;
       fNAME1.value = p.NAME1 || '';
       fNAME2.value = p.NAME2 || '';
@@ -161,9 +163,7 @@
       fEVENT.value = p.EVENT || '';
       fDIVISION.value = p.DIVISION || '';
 
-      /* ======================================================
-         🔥 NEW: CHECK STATUS FROM BACKEND
-         ====================================================== */
+      /* ⭐ Check judged status */
       const judgedStatus = await checkStatus(id, p.STATION);
 
       if (judgedStatus === "done") {
@@ -186,7 +186,7 @@
   }
 
   /* ============================================================
-     ENTRY INPUT TRIGGERS
+     ENTRY INPUT EVENTS
      ============================================================ */
 
   if (entryInput){
@@ -259,7 +259,7 @@
     });
   }
 
-  /* EXPORT lookup for station page */
+  /* EXPORT for station.html */
   window.speedLookupById = lookupById;
 
   /* INITIAL STATE */
