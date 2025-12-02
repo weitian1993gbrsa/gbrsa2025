@@ -127,13 +127,20 @@ btnLogin.addEventListener("click", () => {
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  // Redirect technician/judge to their secure station
+  // Correct secure redirect
   location.href = `station.html?station=${station}&key=${key}`;
 });
 
 // Support ENTER key
 keyInput.addEventListener("keyup", (e) => {
   if (e.key === "Enter") btnLogin.click();
+});
+
+// ⭐ FIX iPad/Safari BACK-FORWARD CACHE ISSUE
+window.addEventListener("pageshow", () => {
+  btnLogin.disabled = false;       // restore button
+  btnLogin.textContent = "Enter";  // restore button label
+  keyError.style.display = "none"; // hide old error
 });
 </script>
 
