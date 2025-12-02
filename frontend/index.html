@@ -5,18 +5,31 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>GBRSA Score • Scoring</title>
+
+<!-- CSS -->
 <link rel="stylesheet" href="./styles.css"/>
 
-<!-- IMPORTANT: LOAD CONFIG FIRST (for JUDGE_KEYS) -->
+<!-- 🔥 PREFETCH (Speed Boost: preload judge page & scripts) -->
+<link rel="prefetch" href="speed-judge.html">
+<link rel="prefetch" href="speed-judge.js">
+<link rel="prefetch" href="styles.css">
+<link rel="prefetch" href="station.html">
+
+<!-- 🔧 MUST load config first -->
 <script src="./config.js"></script>
 
-<!-- Other scripts may load after -->
+<!-- Other scripts -->
 <script defer src="./app.js"></script>
 <script defer src="./nozoom.js"></script>
 
 <style>html, body { touch-action: manipulation; }</style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1020">
+
+<!-- 🔥 API Warm-Up (Fix slow Google Script cold start) -->
+<script>
+fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
+</script>
 
 <script>
 /* iOS input zoom fix */
