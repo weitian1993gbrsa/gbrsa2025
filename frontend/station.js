@@ -71,7 +71,7 @@
       <div class="team">${esc(p.team)}</div>
 
       <div class="event-row">
-        <div class="status">${p.status === "done" ? "DONE (SUBMITTED)" : "NEW"}</div>
+        <div class="status">${p.status === "done" ? "COMPLETED" : "NEW"}</div>
         <div class="event">${esc(p.event)}</div>
       </div>
     `;
@@ -112,7 +112,7 @@
     if (p.status === "done") {
       card.classList.remove("pending");
       card.classList.add("done");
-      statusEl.textContent = "DONE (SUBMITTED)";
+      statusEl.textContent = "COMPLETED";
     } else {
       card.classList.remove("done");
       card.classList.add("pending");
