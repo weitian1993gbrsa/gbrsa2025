@@ -41,7 +41,7 @@
 
 <body data-mode="freestyle" class="page">
 
-<!-- ⭐ FIXED BACK BUTTON → ALWAYS GO TO admin.html -->
+<!-- ⭐ FIXED BACK BUTTON → ALWAYS GO TO admin.html WITH KEY -->
 <header class="topbar">
   <button class="back" onclick="goBackToAdmin()" aria-label="Back">←</button>
   <img src="./assets/company-logo.png" alt="GBRSA" class="logo"/>
@@ -51,6 +51,8 @@
 
 <script>
 function goBackToAdmin() {
-    window.location.href = "admin.html";
+    const key = new URLSearchParams(location.search).get("key");
+    window.location.href = `admin.html?key=${key}`;
 }
 </script>
+
