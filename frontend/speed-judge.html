@@ -33,6 +33,52 @@
     }
     .judge-title { font-size: 1.4rem; font-weight: 700; }
     .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
+
+    /* SCORE SCREEN */
+    .score-screen {
+      width: 100%;
+      background: #111;
+      color: #0ff;
+      font-size: 2.8rem;
+      text-align: right;
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      font-family: monospace;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.45);
+      letter-spacing: 2px;
+    }
+
+    /* NUMPAD */
+    .numpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .numpad-grid button {
+      padding: 18px 0;
+      font-size: 1.6rem;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      font-weight: 600;
+    }
+
+    .np-clear {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+    }
+
+    .np-enter {
+      background: #2563eb;
+      color: white;
+      border-color: #1d4ed8;
+      font-weight: 700;
+    }
   </style>
 </head>
 
@@ -52,10 +98,30 @@
 
     <form id="scoreForm" class="form">
 
-      <label class="field">
-        <span>SCORE</span>
-        <input type="number" name="SCORE" min="0" required class="input">
-      </label>
+      <!-- NEW SCORE DISPLAY (no keyboard popup) -->
+      <div id="scoreScreen" class="score-screen">0</div>
+
+      <!-- NUMBER PAD -->
+      <div class="numpad-grid">
+        <button type="button" data-key="1">1</button>
+        <button type="button" data-key="2">2</button>
+        <button type="button" data-key="3">3</button>
+
+        <button type="button" data-key="4">4</button>
+        <button type="button" data-key="5">5</button>
+        <button type="button" data-key="6">6</button>
+
+        <button type="button" data-key="7">7</button>
+        <button type="button" data-key="8">8</button>
+        <button type="button" data-key="9">9</button>
+
+        <button type="button" data-key="clear" class="np-clear">Clear</button>
+        <button type="button" data-key="0">0</button>
+        <button type="button" data-key="enter" class="np-enter">Enter</button>
+      </div>
+
+      <!-- HIDDEN REAL SCORE -->
+      <input type="hidden" name="SCORE" id="hiddenScore"/>
 
       <label class="check">
         <input type="checkbox" name="FALSE START">
@@ -67,7 +133,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Hidden fields required by backend -->
+      <!-- Backend Hidden Fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -80,16 +146,14 @@
       <input type="hidden" name="EVENT" id="fEVENT">
       <input type="hidden" name="DIVISION" id="fDIVISION">
 
-      <div class="row space">
-        <button type="submit" class="btn primary" style="width:100%;font-size:1.1rem;padding:1rem">
-          Submit Result →
-        </button>
-      </div>
+      <button type="submit" class="btn primary" 
+        style="width:100%;font-size:1.1rem;padding:1rem;margin-top:1rem;">
+        Submit Result →
+      </button>
 
     </form>
 
   </section>
-
 </main>
 
 <!-- Submit Overlay -->
@@ -102,12 +166,10 @@
   </div>
 </div>
 
-
 <!-- ============================================================
-     BACK-SWIPE FIX + SNAPSHOT KILLER + CLEAN REDIRECT
+     BACK NAV + CACHE FIX
 ============================================================ -->
 <script>
-/* Load station + key for redirect */
 function goBack() {
   const params = new URLSearchParams(location.search);
   const station = params.get("station");
@@ -115,20 +177,12 @@ function goBack() {
   location.href = `station.html?station=${station}&key=${key}`;
 }
 
-/* Smart history: force back-swipe to trigger popstate */
+/* Lock history for swipe-back */
 history.pushState(null, null, location.href);
+window.onpopstate = function () { goBack(); };
 
-/* When user swipes back → always go to station page */
-window.onpopstate = function () {
-  goBack();
-};
-
-/* iOS & Android: prevent restoring frozen judge page */
 window.addEventListener("pageshow", function (event) {
-  if (event.persisted) {
-    // If browser attempts to restore cached page → force fresh load
-    goBack();
-  }
+  if (event.persisted) goBack();
 });
 </script>
 

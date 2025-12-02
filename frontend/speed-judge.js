@@ -4,26 +4,24 @@
   const params = new URLSearchParams(location.search);
 
   /* ============================================================
-     RETURN URL (secure)
-     Preload station page so redirect feels instant
+     RETURN URL (secure) + PRELOAD
   ============================================================ */
   const returnURL =
     `station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
-  // Preload next station page for instant return
-  fetch(returnURL).catch(()=>{});
+  fetch(returnURL).catch(()=>{}); // preload
 
   /* ============================================================
-     PRE-WARM BACKEND (eliminate first cold delay)
+     PRE-WARM BACKEND
   ============================================================ */
   fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 
   /* ============================================================
-     LOAD PARTICIPANT VALUES INTO FORM
+     LOAD PARTICIPANT DATA INTO HIDDEN FIELDS
   ============================================================ */
-  const set = (id, val) => { 
-    const el = $(id); 
-    if (el) el.value = val || ""; 
+  const set = (id, val) => {
+    const el = $(id);
+    if (el) el.value = val || "";
   };
 
   set("#fID", params.get("id"));
@@ -38,17 +36,69 @@
   set("#fEVENT", params.get("event"));
   set("#fDIVISION", params.get("division"));
 
+  /* ============================================================
+     NUMBERPAD + SCORE SCREEN
+  ============================================================ */
+
+  const scoreScreen = $("#scoreScreen");
+  const hiddenScore = $("#hiddenScore");
+
+  const numButtons = document.querySelectorAll(".numpad-grid button");
+
+  numButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.key;
+
+      // Clear
+      if (key === "clear") {
+        scoreScreen.textContent = "0";
+        hiddenScore.value = "";
+        return;
+      }
+
+      // Enter (auto-submit)
+      if (key === "enter") {
+        const form = $("#scoreForm");
+        form.dispatchEvent(new Event("submit"));
+        return;
+      }
+
+      // Digits 0–9
+      if (/^[0-9]$/.test(key)) {
+        let current = scoreScreen.textContent.trim();
+
+        // Replace "0" with new digit
+        if (current === "0") {
+          scoreScreen.textContent = key;
+        } else {
+          scoreScreen.textContent = current + key;
+        }
+
+        hiddenScore.value = scoreScreen.textContent;
+      }
+    });
+  });
+
+  /* ============================================================
+     FORM SUBMISSION (TURBO MODE)
+  ============================================================ */
   const scoreForm = $("#scoreForm");
   const overlay = $("#submitOverlay");
   const overlayText = $("#overlayText");
 
-  /* ============================================================
-     FORM SUBMISSION HANDLER (TURBO OPTIMIZED)
-  ============================================================ */
   scoreForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // ⚡ Overlay immediate + smooth
+    // Ensure score is not empty
+    const scoreVal = scoreScreen.textContent.trim();
+    if (scoreVal === "" || scoreVal === "0") {
+      alert("Please enter a score before submitting.");
+      return;
+    }
+
+    hiddenScore.value = scoreVal;
+
+    // Show overlay
     overlay.style.opacity = "1";
     overlay.classList.remove("hide");
     overlayText.textContent = "Submitting…";
@@ -56,25 +106,22 @@
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
 
-    // Checkbox fix
     payload["FALSE START"] = fd.get("FALSE START") ? "YES" : "";
     payload._form = "speed";
 
-    // ⚡ Non-blocking API + ultra-fast UI
-    apiPost(payload).then(() => {
+    apiPost(payload)
+      .then(() => {
+        overlayText.textContent = "Saved ✔";
 
-      overlayText.textContent = "Saved ✔";
-
-      // ⚡ SUPER FAST REDIRECT (120ms)
-      setTimeout(() => {
-        location.href = returnURL;
-      }, 120);
-
-    }).catch(err => {
-      console.error(err);
-      overlayText.textContent = "Submit failed";
-      setTimeout(() => overlay.classList.add("hide"), 800);
-    });
+        setTimeout(() => {
+          location.href = returnURL;
+        }, 120);
+      })
+      .catch((err) => {
+        console.error(err);
+        overlayText.textContent = "Submit failed";
+        setTimeout(() => overlay.classList.add("hide"), 800);
+      });
   });
 
 })();
