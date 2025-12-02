@@ -1,371 +1,49 @@
 /* ============================================================
-   GBRSA SCORE 2025 – MASTER STYLESHEET
-   Mobile-first • PWA-friendly • iOS-safe • Fast UI
+   TURBO GPU OPTIMIZATION (Smooth UI + Faster Animations)
    ============================================================ */
 
-/* ---------------------------------
-   iOS INPUT ZOOM PREVENTION
------------------------------------ */
-html, body {
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  touch-action: manipulation;
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
-}
-
-/* Prevent iOS zoom on form inputs */
-input[type='text'],
-input[type='number'],
-input[type='search'],
-input[type='tel'],
-input[type='email'],
-textarea,
-select,
-button {
-  font-size: 16px !important;
-  -webkit-text-size-adjust: 100% !important;
-  -webkit-appearance: none;
-}
-
-/* Let checkboxes & radio buttons stay native */
-input[type='checkbox'],
-input[type='radio'] {
-  -webkit-appearance: checkbox;
-  appearance: auto;
-}
-
-/* ---------------------------------
-   CSS VARIABLES
------------------------------------ */
-:root {
-  --bg: #f5f7fb;
-  --card: #ffffff;
-  --muted: #4b5563;
-  --text: #0b1020;
-  --accent: #2563eb;
-  --border: #e5e7eb;
-  --soft: #eef2f7;
-}
-
-/* ---------------------------------
-   GLOBAL RESETS
------------------------------------ */
-* { box-sizing: border-box; }
-.page { display: flex; flex-direction: column; }
-
-.scrollable { -webkit-overflow-scrolling: touch; }
-
-a:focus:not(:focus-visible),
-input:focus:not(:focus-visible),
-button:focus:not(:focus-visible) {
-  outline: none;
-  box-shadow: none;
-}
-
-/* Prevent scroll bounce on judge pages */
-body {
-  overscroll-behavior: none;
-  touch-action: manipulation;
-  max-height: 100vh;
-  overflow-x: hidden;
-}
-
-body.homepage {
-  overscroll-behavior: none;
-  touch-action: manipulation;
-  min-height: 100dvh;
-  height: auto;
-  overflow-y: auto;
-}
-
+/* Smooth scrolling on station page */
 body:not(.homepage) {
-  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
-/* ---------------------------------
-   TOP BAR
------------------------------------ */
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .75rem 1rem;
-  background: #ffffffd9;
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: saturate(1.2) blur(4px);
-}
-
-.logo {
-  height: 48px;
-  max-width: 220px;
-  object-fit: contain;
-  flex: 0 0 auto;
-}
-
-.titles h1 { margin: 0; font-size: 1.15rem; }
-.subtitle { margin: .125rem 0 0; color: var(--muted); font-size: .9rem; }
-
-/* ---------------------------------
-   CONTAINERS
------------------------------------ */
-.container {
-  padding: 1rem;
-  max-width: 900px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.block {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.2rem 1rem;
-  margin: 1rem 0;
-  box-shadow: 0 6px 18px #0000000d;
-}
-
-.hint {
-  color: var(--muted);
-  font-size: .9rem;
-  margin-top: .5rem;
-}
-
-/* ---------------------------------
-   BUTTONS
------------------------------------ */
-.btn {
-  appearance: none;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
-  padding: .75rem 1rem;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 12px #0000000a;
-}
-
-.btn.primary {
-  background: linear-gradient(180deg,#3b82f6,#2563eb);
-  border-color:#1d4ed8;
-  color:#fff;
-  box-shadow:0 10px 20px #2563eb33;
-}
-
-/* ---------------------------------
-   INPUTS & FORM ELEMENTS
------------------------------------ */
-.input {
-  width: 100%;
-  padding: .75rem;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
-}
-
-.field { display: flex; flex-direction: column; gap: .35rem; }
-.check { display: flex; align-items: center; gap: .5rem; }
-
-/* ---------------------------------
-   STATION CARD
------------------------------------ */
+/* Improve station card animation */
 .station-card {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 18px 20px;
-  margin: 12px 0;
-  border-radius: 14px;
-  border: none;
-  cursor: pointer;
-  transition: 0.2s ease;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
-  color: #fff;
-  appearance: none;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-.station-card.pending { background: #24c36b; }
-.station-card.done { background: #1e64e0; }
-
-.station-card .top-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  font-weight: 600;
-  opacity: .9;
-  margin-bottom: 6px;
+/* On tap, feel instant */
+.station-card:active {
+  transform: scale(0.985);
 }
 
-.station-card .name {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.3;
-  margin-bottom: 6px;
-}
-
-.station-card .team {
-  font-size: 13px;
-  opacity: .95;
-  margin-bottom: 6px;
-}
-
-.station-card .status {
-  font-size: 13px;
-  font-weight: 700;
-  opacity: .9;
-}
-
-/* ⭐ Event row improvement */
-.station-card .event-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.station-card .event {
-  font-size: 13px;
-  opacity: .95;
-  font-weight: 600;
-  text-align: right;
-}
-
-/* ---------------------------------
-   HOMEPAGE CARDS
------------------------------------ */
-.menu-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media(min-width: 720px) {
-  .menu-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.card {
-  display: block;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1rem;
-  text-decoration: none;
-  color: var(--text);
-  box-shadow: 0 6px 18px #00000012;
-  transition: 0.15s ease;
-}
-
-.card:hover {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* ---------------------------------
-   JUDGE LOGIN UI (UPGRADE)
------------------------------------ */
-.judge-login {
-  padding: 1.25rem 1.25rem 1.5rem;
-  border-left: 4px solid var(--accent);
-}
-
-.judge-desc {
-  margin: .25rem 0 1rem;
-  color: var(--muted);
-  font-size: .9rem;
-}
-
-.login-field {
-  display: flex;
-  gap: .5rem;
-  align-items: center;
-}
-
-.judge-error {
-  display: none;
-  color: #d00000;
-  font-weight: 600;
-  margin-top: .75rem;
-  animation: fadeIn .3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media(max-width: 480px) {
-  .login-field {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-/* ---------------------------------
-   SPEED JUDGE SUBMIT OVERLAY
------------------------------------ */
+/* Improve overlay fade-in speed */
 #submitOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(255,255,255,0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  transform: translateZ(0);
-  will-change: opacity, transform;
+  transition: opacity .12s ease-out;
 }
 
-#submitOverlay.hide {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
+/* Remove jank from overlay-card animations */
 .overlay-card {
-  background: #fff;
-  padding: 1.25rem 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px #0002;
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .75rem;
+  will-change: transform, opacity;
   transform: translateZ(0);
 }
 
-.overlay-text {
-  font-weight: 700;
-  color: #111827;
+/* Improve judge login input responsiveness */
+.input {
+  will-change: transform;
+  transform: translateZ(0);
 }
 
-.loading {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
+/* Improve button press responsiveness */
+.btn {
+  transform: translateZ(0);
+  will-change: transform;
 }
 
-.loading .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #9ca3af;
-  animation: blink 1s infinite ease-in-out;
-}
-
-.loading .dot:nth-child(2) { animation-delay: .15s }
-.loading .dot:nth-child(3) { animation-delay: .3s }
-
-@keyframes blink {
-  0%,80%,100%{ transform:scale(0); opacity:.3 }
-  40%{ transform:scale(1); opacity:1 }
+.btn:active {
+  transform: scale(0.97);
+  transition: transform .1s ease-out;
 }
