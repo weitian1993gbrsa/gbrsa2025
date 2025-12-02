@@ -66,13 +66,13 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 
     <div class="menu-grid">
 
-      <!-- Judge login ONLY (Speed + Freestyle removed) -->
+      <!-- Judge login ONLY -->
       <div class="card judge-login">
         <h3>Judge Access</h3>
         <p class="judge-desc">Enter your assigned access code to open your duty.</p>
 
         <div class="login-field">
-          <input id="judgeKey" class="input" placeholder="Enter access code">
+          <input id="judgeKey" class="input" placeholder="Enter access code" type="password">
           <button class="btn primary" id="btnJudgeLogin">Enter</button>
         </div>
 
