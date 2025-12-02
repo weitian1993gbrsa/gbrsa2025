@@ -1,12 +1,8 @@
 (function(){
   const $ = (q, el=document) => el.querySelector(q);
 
-  /* ============================================================
-     DOM ELEMENTS (UPDATED FOR NEW PARTICIPANT CARD UI)
-     ============================================================ */
-
+  /* DOM ELEMENTS */
   const entryInput = $('#entryIdInput');
-
   const participantCard = $('#participantCard');
 
   const pcID = $('#pcID');
@@ -17,9 +13,8 @@
   const pcState = $('#pcState');
   const pcEvent = $('#pcEvent');
   const pcDivision = $('#pcDivision');
-  const pcStatus = $('#pcStatus');   // ⭐ STATUS TAG
+  const pcStatus = $('#pcStatus');
 
-  const btnConfirm = $('#btnConfirm');
   const scoreFormWrap = $('#scoreFormWrap');
   const scoreForm = $('#scoreForm');
 
@@ -39,10 +34,6 @@
   const fEVENT = $('#fEVENT');
   const fDIVISION = $('#fDIVISION');
 
-  /* ============================================================
-     HELPERS
-     ============================================================ */
-
   function escapeHtml(s){
     return String(s||'').replace(/[&<>"']/g, m => ({
       '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
@@ -51,7 +42,10 @@
 
   function hideStep2(){
     scoreFormWrap.classList.add('hide');
-    btnConfirm.disabled = true;
+  }
+
+  function showStep2(){
+    scoreFormWrap.classList.remove('hide');
   }
 
   function showParticipant(){ participantCard.classList.remove('hide'); }
@@ -81,16 +75,11 @@
     pcStatus.className = "pc-status pc-pending";
 
     if (entryInput) entryInput.value = '';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-
-  /* ============================================================
-     🔥 CHECK IF ID HAS BEEN SCORED
-     ============================================================ */
 
   async function checkStatus(id, station) {
     try {
-      const res = await apiGet({ cmd: "stationlist", station });
+      const res = await apiGet({ cmd:"stationlist", station });
       if (!res || !res.entries) return "pending";
 
       const found = res.entries.find(e => e.entryId === id);
@@ -101,10 +90,7 @@
     }
   }
 
-  /* ============================================================
-     LOOKUP — UPDATE CARD + STATUS
-     ============================================================ */
-
+  /* LOOKUP PART */
   async function lookupById(raw){
     const id = String(raw||'').trim().toUpperCase();
     if (!id){
@@ -119,10 +105,9 @@
     showParticipant();
 
     pcID.textContent = "Loading…";
-    btnConfirm.disabled = true;
 
     try {
-      const data = await apiGet({ cmd:'participant', entryId: id });
+      const data = await apiGet({ cmd:'participant', entryId:id });
       if (!data || !data.participant){
         hideParticipant();
         hideStep2();
@@ -133,16 +118,13 @@
 
       const p = data.participant;
 
-      /* ⭐ Names comma-separated, one line */
       const names = [p.NAME1,p.NAME2,p.NAME3,p.NAME4]
         .filter(Boolean)
         .map(escapeHtml)
         .join(', ');
 
-      /* Fill visible card */
       pcID.textContent = id;
       pcName.textContent = names || '—';
-
       pcHeat.textContent = "Heat " + (p.HEAT || "—");
       pcTeam.textContent = "Team " + (p.TEAM || "—");
       pcStation.textContent = "Station " + (p.STATION || "—");
@@ -150,7 +132,6 @@
       pcEvent.textContent = "Event " + (p.EVENT || "—");
       pcDivision.textContent = "Division " + (p.DIVISION || "—");
 
-      /* Hidden fields */
       fId.value = id;
       fNAME1.value = p.NAME1 || '';
       fNAME2.value = p.NAME2 || '';
@@ -163,7 +144,6 @@
       fEVENT.value = p.EVENT || '';
       fDIVISION.value = p.DIVISION || '';
 
-      /* ⭐ Check judged status */
       const judgedStatus = await checkStatus(id, p.STATION);
 
       if (judgedStatus === "done") {
@@ -174,7 +154,8 @@
         pcStatus.className = "pc-status pc-pending";
       }
 
-      btnConfirm.disabled = false;
+      /* ⭐ NO CONFIRM BUTTON → Show Step 2 Automatically */
+      showStep2();
 
     } catch(e){
       console.error(e);
@@ -185,10 +166,7 @@
     }
   }
 
-  /* ============================================================
-     ENTRY INPUT EVENTS
-     ============================================================ */
-
+  /* INPUT EVENTS */
   if (entryInput){
     entryInput.addEventListener('input', e=>{
       e.target.value = e.target.value.toUpperCase();
@@ -207,24 +185,9 @@
     });
   }
 
-  /* ============================================================
-     CONFIRM BUTTON
-     ============================================================ */
-
-  if (btnConfirm){
-    btnConfirm.addEventListener('click', ()=>{
-      scoreFormWrap.classList.remove('hide');
-      if (window.toast) toast("Ready to enter score.");
-      scoreFormWrap.scrollIntoView({ behavior:"smooth", block:"start" });
-    });
-  }
-
-  /* ============================================================
-     SUBMIT SCORE
-     ============================================================ */
-
+  /* SUBMIT */
   if (scoreForm){
-    scoreForm.addEventListener('submit', async (e)=>{
+    scoreForm.addEventListener('submit', async e=>{
       e.preventDefault();
 
       if (submitOverlay){
@@ -259,10 +222,8 @@
     });
   }
 
-  /* EXPORT for station.html */
   window.speedLookupById = lookupById;
 
-  /* INITIAL STATE */
   hideParticipant();
   hideStep2();
 })();
