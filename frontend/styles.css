@@ -66,18 +66,15 @@ button:focus:not(:focus-visible) {
   box-shadow: none;
 }
 
-/* Prevent scroll bounce on judge pages */
+/* Prevent scroll bounce */
 body {
   overscroll-behavior: none;
   touch-action: manipulation;
-  max-height: 100vh;
   overflow-x: hidden;
 }
 
 body.homepage {
-  overscroll-behavior: none;
   min-height: 100dvh;
-  height: auto;
   overflow-y: auto;
 }
 
@@ -96,6 +93,16 @@ body:not(.homepage) {
   background: #ffffffd9;
   border-bottom: 1px solid var(--border);
   backdrop-filter: saturate(1.2) blur(4px);
+}
+
+/* ⭐ FIXED HEADER FOR STATION PAGE */
+body.station .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: #ffffffee;
+  backdrop-filter: blur(6px) saturate(1.2);
+  border-bottom: 1px solid var(--border);
 }
 
 .logo {
@@ -156,7 +163,7 @@ body:not(.homepage) {
 }
 
 /* ---------------------------------
-   INPUTS & FORM ELEMENTS
+   INPUTS
 ----------------------------------- */
 .input {
   width: 100%;
@@ -186,6 +193,11 @@ body:not(.homepage) {
   box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
   color: #fff;
   appearance: none;
+}
+
+/* FIX: prevent sticky header break */
+body.station .station-card {
+  transform: none !important;
 }
 
 .station-card.pending { background: #24c36b; }
@@ -255,7 +267,7 @@ body:not(.homepage) {
   border-radius: 16px;
   padding: 1rem;
   text-decoration: none;
-  color: var(--text);
+  color: var(--text));
   box-shadow: 0 6px 18px #00000012;
   transition: 0.15s ease;
 }
@@ -298,6 +310,7 @@ body:not(.homepage) {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Mobile fix */
 @media(max-width: 480px) {
   .login-field {
     flex-direction: column;
@@ -306,7 +319,7 @@ body:not(.homepage) {
 }
 
 /* ---------------------------------
-   SPEED JUDGE SUBMIT OVERLAY
+   SUBMIT OVERLAY
 ----------------------------------- */
 #submitOverlay {
   position: fixed;
@@ -337,8 +350,6 @@ body:not(.homepage) {
   flex-direction: column;
   align-items: center;
   gap: .75rem;
-  transform: translateZ(0);
-  will-change: transform, opacity;
 }
 
 .overlay-text {
@@ -369,44 +380,21 @@ body:not(.homepage) {
 }
 
 /* ============================================================
-   TURBO GPU OPTIMIZATION — Smooth UI + Faster Animations
-   ============================================================ */
+   TURBO GPU OPTIMIZATION
+============================================================ */
 
-body:not(.homepage) {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-}
-
-.station-card {
-  will-change: transform, opacity;
-  transform: translateZ(0);
-  transition: transform 0.15s ease, opacity 0.15s ease;
-}
-
-.station-card:active {
-  transform: scale(0.985);
-}
-
-#submitOverlay {
-  transition: opacity .12s ease-out;
-}
-
-.btn {
-  transform: translateZ(0);
-  will-change: transform;
-}
-
+.btn { transform: translateZ(0); }
 .btn:active {
   transform: scale(0.97);
   transition: transform .1s ease-out;
 }
 
 /* ============================================
-   NEW CENTERED HOMEPAGE LAYOUT (UI FIX)
-   ============================================ */
+   CENTERED HOMEPAGE LAYOUT
+============================================ */
 
 .home-wrapper {
-  max-width: 960px;        /* ⭐ Perfect centered width */
+  max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
@@ -414,11 +402,9 @@ body:not(.homepage) {
 .hero {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
   padding-top: 1rem;
 }
 
-/* Modern grid */
 .menu-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -426,24 +412,12 @@ body:not(.homepage) {
 }
 
 @media (min-width: 780px) {
-  .menu-grid {
-    grid-template-columns: 1fr 1fr;  /* 2-column cards */
-  }
-
-  .judge-login {
-    grid-column: span 2;             /* Full width */
-  }
+  .menu-grid { grid-template-columns: 1fr 1fr; }
+  .judge-login { grid-column: span 2; }
 }
 
-/* Better card feel */
 .card {
   border-radius: 18px;
   padding: 1.25rem 1.5rem;
   box-shadow: 0 4px 14px rgba(0,0,0,0.06);
 }
-
-/* Judge Login highlight */
-.judge-login {
-  border-left: 4px solid var(--accent);
-}
-
