@@ -55,7 +55,9 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </script>
 
 </head>
+
 <body class="page homepage">
+
 <header class="topbar">
   <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
   <div class="titles">
@@ -108,9 +110,9 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 // Get valid keys from config.js
 const validKeys = window.JUDGE_KEYS;
 
-const keyInput = document.getElementById("judgeKey");
-const keyError = document.getElementById("keyError");
-const btnLogin = document.getElementById("btnJudgeLogin");
+const keyInput  = document.getElementById("judgeKey");
+const keyError  = document.getElementById("keyError");
+const btnLogin  = document.getElementById("btnJudgeLogin");
 
 // Handle login button
 btnLogin.addEventListener("click", () => {
@@ -127,7 +129,7 @@ btnLogin.addEventListener("click", () => {
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  // Correct secure redirect
+  // Redirect technician/judge to their secure station
   location.href = `station.html?station=${station}&key=${key}`;
 });
 
@@ -136,11 +138,12 @@ keyInput.addEventListener("keyup", (e) => {
   if (e.key === "Enter") btnLogin.click();
 });
 
-// ⭐ FIX iPad/Safari BACK-FORWARD CACHE ISSUE
+// ⭐ FIX SAFARI BACK-FORWARD CACHE + CLEAR PASSWORD
 window.addEventListener("pageshow", () => {
-  btnLogin.disabled = false;       // restore button
-  btnLogin.textContent = "Enter";  // restore button label
-  keyError.style.display = "none"; // hide old error
+  btnLogin.disabled = false;      // re-enable button
+  btnLogin.textContent = "Enter"; // reset text
+  keyError.style.display = "none";
+  keyInput.value = "";            // 🔥 CLEAR PASSWORD
 });
 </script>
 
