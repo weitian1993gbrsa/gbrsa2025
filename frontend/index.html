@@ -63,21 +63,10 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 <!-- ⭐ CENTERED PAGE WRAPPER -->
 <main class="page-wrapper">
   <div class="home-wrapper">
+
     <div class="menu-grid">
 
-      <!-- Speed Judge -->
-      <a class="card" href="./speed.html">
-        <h3>Speed Judge</h3>
-        <p>ID → lookup → input score → submit.</p>
-      </a>
-
-      <!-- Freestyle Judge -->
-      <a class="card" href="./freestyle.html">
-        <h3>Freestyle Judge</h3>
-        <p>ID → lookup → input MISSES/BREAKS/DIFF/Missed RE → submit.</p>
-      </a>
-
-      <!-- Judge login -->
+      <!-- Judge login ONLY (Speed + Freestyle removed) -->
       <div class="card judge-login">
         <h3>Judge Access</h3>
         <p class="judge-desc">Enter your assigned access code to open your station.</p>
@@ -95,7 +84,7 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
   </div>
 </main>
 
-<footer class="foot">
+<footer class="foot" style="text-align:center;">
   <small>© 2025 GB Rope Skipping Academy</small>
 </footer>
 
@@ -163,8 +152,8 @@ window.addEventListener("pagehide", () => {
 </body>
 </html>
 
+<!-- EXTRA SAFETY CLEAR -->
 <script>
-// Fix Android Back-Swipe showing old password
 function clearJudgeField() {
   const keyInput = document.getElementById("judgeKey");
   const btnLogin = document.getElementById("btnJudgeLogin");
