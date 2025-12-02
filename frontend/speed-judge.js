@@ -1,127 +1,44 @@
-(function () {
+/* ============================================================
+   NUMBERPAD + SCORE SCREEN (MAX 3 DIGITS)
+============================================================ */
+const scoreScreen = $("#scoreScreen");
+const hiddenScore = $("#hiddenScore");
 
-  const $ = (q) => document.querySelector(q);
-  const params = new URLSearchParams(location.search);
+const numButtons = document.querySelectorAll(".numpad-grid button");
 
-  /* ============================================================
-     RETURN URL (secure) + PRELOAD
-  ============================================================ */
-  const returnURL =
-    `station.html?station=${params.get("station")}&key=${params.get("key")}`;
+numButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.key;
 
-  fetch(returnURL).catch(()=>{}); // preload
-
-  /* ============================================================
-     PRE-WARM BACKEND
-  ============================================================ */
-  fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
-
-  /* ============================================================
-     LOAD PARTICIPANT DATA INTO HIDDEN FIELDS
-  ============================================================ */
-  const set = (id, val) => {
-    const el = $(id);
-    if (el) el.value = val || "";
-  };
-
-  set("#fID", params.get("id"));
-  set("#fNAME1", params.get("name1"));
-  set("#fNAME2", params.get("name2"));
-  set("#fNAME3", params.get("name3"));
-  set("#fNAME4", params.get("name4"));
-  set("#fTEAM", params.get("team"));
-  set("#fSTATE", params.get("state"));
-  set("#fHEAT", params.get("heat"));
-  set("#fSTATION", params.get("station"));
-  set("#fEVENT", params.get("event"));
-  set("#fDIVISION", params.get("division"));
-
-  /* ============================================================
-     NUMBERPAD + SCORE SCREEN
-  ============================================================ */
-
-  const scoreScreen = $("#scoreScreen");
-  const hiddenScore = $("#hiddenScore");
-
-  const numButtons = document.querySelectorAll(".numpad-grid button");
-
-  numButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.key;
-
-      // Clear
-      if (key === "clear") {
-        scoreScreen.textContent = "0";
-        hiddenScore.value = "";
-        return;
-      }
-
-      // Enter (auto-submit)
-      if (key === "enter") {
-        const form = $("#scoreForm");
-        form.dispatchEvent(new Event("submit"));
-        return;
-      }
-
-      // Digits 0–9
-      if (/^[0-9]$/.test(key)) {
-        let current = scoreScreen.textContent.trim();
-
-        // Replace "0" with new digit
-        if (current === "0") {
-          scoreScreen.textContent = key;
-        } else {
-          scoreScreen.textContent = current + key;
-        }
-
-        hiddenScore.value = scoreScreen.textContent;
-      }
-    });
-  });
-
-  /* ============================================================
-     FORM SUBMISSION (TURBO MODE)
-  ============================================================ */
-  const scoreForm = $("#scoreForm");
-  const overlay = $("#submitOverlay");
-  const overlayText = $("#overlayText");
-
-  scoreForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    // Ensure score is not empty
-    const scoreVal = scoreScreen.textContent.trim();
-    if (scoreVal === "" || scoreVal === "0") {
-      alert("Please enter a score before submitting.");
+    // CLEAR
+    if (key === "clear") {
+      scoreScreen.textContent = "0";
+      hiddenScore.value = "";
       return;
     }
 
-    hiddenScore.value = scoreVal;
+    // ENTER → submit
+    if (key === "enter") {
+      const form = $("#scoreForm");
+      form.dispatchEvent(new Event("submit"));
+      return;
+    }
 
-    // Show overlay
-    overlay.style.opacity = "1";
-    overlay.classList.remove("hide");
-    overlayText.textContent = "Submitting…";
+    // DIGITS 0–9 with MAX LENGTH = 3
+    if (/^[0-9]$/.test(key)) {
+      let current = scoreScreen.textContent.trim();
 
-    const fd = new FormData(scoreForm);
-    const payload = Object.fromEntries(fd.entries());
+      // If current already has 3 digits → stop
+      if (current.length >= 3) return;
 
-    payload["FALSE START"] = fd.get("FALSE START") ? "YES" : "";
-    payload._form = "speed";
+      // Replace leading zero
+      if (current === "0") {
+        scoreScreen.textContent = key;
+      } else {
+        scoreScreen.textContent = current + key;
+      }
 
-    apiPost(payload)
-      .then(() => {
-        overlayText.textContent = "Saved ✔";
-
-        setTimeout(() => {
-          location.href = returnURL;
-        }, 120);
-      })
-      .catch((err) => {
-        console.error(err);
-        overlayText.textContent = "Submit failed";
-        setTimeout(() => overlay.classList.add("hide"), 800);
-      });
+      hiddenScore.value = scoreScreen.textContent;
+    }
   });
-
-})();
+});
