@@ -37,4 +37,4 @@ window.JUDGE_KEYS = {
 };
 
 // ===== ADMIN LOGIN KEY =====
-const ADMIN_KEY = "GBRSA2025ADMIN";
+const ADMIN_KEY = "admin2025";
