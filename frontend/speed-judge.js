@@ -4,23 +4,23 @@
   const params = new URLSearchParams(location.search);
 
   /* ============================================================
-     RETURN URL + PRELOAD
+     RETURN URL
   ============================================================ */
   const returnURL =
     `station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
-  fetch(returnURL).catch(() => {});
+  fetch(returnURL).catch(()=>{}); // preload next page
 
   /* ============================================================
      PRE-WARM BACKEND
   ============================================================ */
-  fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(() => {});
+  fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 
   /* ============================================================
-     LOAD PARTICIPANT DATA
+     LOAD PARTICIPANT INTO HIDDEN FIELDS
   ============================================================ */
-  const set = (id, val) => {
-    const el = $(id);
+  const set = (sel, val) => {
+    const el = $(sel);
     if (el) el.value = val || "";
   };
 
@@ -36,56 +36,52 @@
   set("#fEVENT", params.get("event"));
   set("#fDIVISION", params.get("division"));
 
- /* ============================================================
-   NUMBERPAD SAFE HANDLER (NO AUTO SUBMIT)
-============================================================ */
-const scoreScreen = $("#scoreScreen");
-const hiddenScore = $("#hiddenScore");
-const numberButtons = document.querySelectorAll(".simple-pad button");
+  /* ============================================================
+     NUMBERPAD (MAX 3 DIGITS)
+  ============================================================ */
+  const scoreScreen = $("#scoreScreen");
+  const hiddenScore = $("#hiddenScore");
 
-numberButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const key = btn.dataset.key;
+  const buttons = document.querySelectorAll(".numpad-grid button");
 
-    // If no key assigned → ignore completely
-    if (!key) return;
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
 
-    /* CLEAR BUTTON */
-    if (key === "clear") {
-      hiddenScore.value = "";
-      scoreScreen.textContent = "···";
-      return;
-    }
+      const key = btn.dataset.key;
+      if (!key) return;  // safety
 
-    /* ENTER BUTTON — manually submit */
-    if (key === "enter") {
-      $("#scoreForm").requestSubmit();
-      return;
-    }
+      /* CLEAR */
+      if (key === "clear") {
+        hiddenScore.value = "";
+        scoreScreen.textContent = "···";
+        return;
+      }
 
-    /* DIGITS ONLY */
-    if (/^[0-9]$/.test(key)) {
-      let stored = hiddenScore.value;
+      /* ENTER */
+      if (key === "enter") {
+        $("#scoreForm").requestSubmit();
+        return;
+      }
 
-      // MAX 3 digits
-      if (stored.length >= 3) return;
+      /* DIGIT ENTRY */
+      if (/^[0-9]$/.test(key)) {
 
-      stored += key;
-      hiddenScore.value = stored;
+        let value = hiddenScore.value;
 
-      // Update screen — dots only
-      scoreScreen.textContent =
-        "•".repeat(stored.length).padEnd(3, "·");
+        if (value.length >= 3) return;
 
-      return;
-    }
+        value += key;
+        hiddenScore.value = value;
 
+        // masked UI preview
+        scoreScreen.textContent =
+          "•".repeat(value.length).padEnd(3, "·");
+      }
+    });
   });
-});
-
 
   /* ============================================================
-     SUBMIT FORM
+     SUBMIT HANDLER
   ============================================================ */
   const scoreForm = $("#scoreForm");
   const overlay = $("#submitOverlay");
@@ -95,9 +91,8 @@ numberButtons.forEach(btn => {
     e.preventDefault();
 
     const scoreVal = hiddenScore.value.trim();
-
-    if (scoreVal === "" || scoreVal.length === 0) {
-      alert("Please enter a score before submitting.");
+    if (scoreVal === "") {
+      alert("Please enter a score.");
       return;
     }
 
@@ -113,16 +108,16 @@ numberButtons.forEach(btn => {
     apiPost(payload)
       .then(() => {
         overlayText.textContent = "Saved ✔";
+
         setTimeout(() => {
           location.href = returnURL;
         }, 120);
+
       })
       .catch(err => {
         console.error(err);
         overlayText.textContent = "Submit failed";
-        setTimeout(() => {
-          overlay.classList.add("hide");
-        }, 800);
+        setTimeout(() => overlay.classList.add("hide"), 800);
       });
   });
 
