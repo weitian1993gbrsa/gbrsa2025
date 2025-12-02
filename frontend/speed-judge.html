@@ -21,6 +21,9 @@
       background: #ffffffd9;
       border-bottom: 1px solid #e5e7eb;
       backdrop-filter: blur(4px);
+      position: sticky;
+      top: 0;
+      z-index: 999;
     }
     .judge-title { font-size: 1.4rem; font-weight: 700; }
     .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
@@ -30,7 +33,7 @@
 <body class="page judge">
 
 <header class="judge-header">
-  <button onclick="history.back()" class="btn">← Back</button>
+  <button onclick="manualBack()" class="btn">← Back</button>
   <div>
     <div class="judge-title">Speed Judge</div>
     <div class="judge-sub">Enter score and submit</div>
@@ -58,7 +61,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Hidden fields required by backend -->
+      <!-- Hidden fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -83,7 +86,7 @@
 
 </main>
 
-<!-- Submit Overlay (fixed + fully hidden by default) -->
+<!-- Submit Overlay -->
 <div id="submitOverlay" class="overlay hide">
   <div class="overlay-card">
     <div class="loading">
@@ -92,6 +95,29 @@
     <div id="overlayText" class="overlay-text">Submitting…</div>
   </div>
 </div>
+
+<!-- 🔒 PREVENT ACCIDENTAL SWIPE-BACK / BACK BUTTON -->
+<script>
+/* Prevent iOS Safari / Android Chrome left-edge BACK swipe */
+document.addEventListener('touchstart', function(e) {
+  if (e.touches[0].clientX < 25) {   // left edge
+    e.preventDefault();
+  }
+}, { passive: false });
+
+/* Lock back navigation */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+
+/* Allow ONLY manual back button (safe) */
+function manualBack() {
+  const station = document.getElementById("fSTATION").value;
+  const key = new URLSearchParams(location.search).get("key");
+  location.href = `station.html?station=${station}&key=${key}`;
+}
+</script>
 
 </body>
 </html>
