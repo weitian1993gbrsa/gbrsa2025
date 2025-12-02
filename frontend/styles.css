@@ -195,9 +195,8 @@ body.station .topbar {
   appearance: none;
 }
 
-/* FIX: prevent sticky header break */
 body.station .station-card {
-  transform: none !important;
+  transform: none !important; /* prevents sticky jump */
 }
 
 .station-card.pending { background: #24c36b; }
@@ -260,14 +259,21 @@ body.station .station-card {
   }
 }
 
+/* FIXED PURPLE LINK BUG — cards always stay black */
+.card,
+.card:visited,
+.card h3,
+.card p {
+  color: var(--text) !important;
+  text-decoration: none !important;
+}
+
 .card {
   display: block;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1rem;
-  text-decoration: none;
-  color: var(--text));
   box-shadow: 0 6px 18px #00000012;
   transition: 0.15s ease;
 }
