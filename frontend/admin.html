@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Admin Panel</title>
+
+<link rel="stylesheet" href="./styles.css"/>
+
+<script src="./config.js"></script>
+
+<style>
+  .admin-header {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    background: #ffffffd9;
+    border-bottom: 1px solid #e5e7eb;
+    backdrop-filter: blur(4px);
+  }
+  .admin-title { font-size: 1.4rem; font-weight: 700; }
+  .admin-sub { font-size: .9rem; color: #555; }
+  .admin-menu {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+</style>
+
+</head>
+
+<body class="page admin">
+
+<header class="admin-header">
+  <button onclick="location.href='index.html'" class="btn">← Home</button>
+  <div>
+    <div class="admin-title">Admin Panel</div>
+    <div class="admin-sub">System Tools & Access</div>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="block">
+    <h2>Admin Tools</h2>
+
+    <div class="admin-menu">
+      <a class="btn primary" href="speed.html">Open Speed Judge Page</a>
+      <a class="btn primary" href="freestyle.html">Open Freestyle Judge Page</a>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// =============================
+// SECURITY CHECK
+// =============================
+const qs = new URLSearchParams(location.search);
+const key = qs.get("key");
+
+// If no key → redirect
+if (!key) location.href = "index.html";
+
+// Validate admin
+const admins = window.ADMIN_KEYS || {};
+
+if (!admins[key]) {
+  alert("Access Denied: Admin key required.");
+  location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
