@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
 
-  <!-- IMPORTANT: disable caching -->
+  <!-- Disable caching to avoid stale judge page -->
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -11,6 +11,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>Speed Judge</title>
 
+  <!-- Styles -->
   <link rel="stylesheet" href="./styles.css"/>
 
   <!-- Core scripts -->
@@ -38,6 +39,7 @@
 
 <body class="page judge">
 
+<!-- HEADER -->
 <header class="judge-header">
   <button onclick="goBack()" class="btn">← Back</button>
   <div>
@@ -46,8 +48,8 @@
   </div>
 </header>
 
+<!-- MAIN CONTENT -->
 <main class="container">
-
   <section class="block">
 
     <form id="scoreForm" class="form">
@@ -67,7 +69,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Hidden fields required by backend -->
+      <!-- Hidden fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -89,7 +91,6 @@
     </form>
 
   </section>
-
 </main>
 
 <!-- Submit Overlay -->
@@ -104,10 +105,9 @@
 
 
 <!-- ============================================================
-     BACK-SWIPE FIX + SNAPSHOT KILLER + CLEAN REDIRECT
+     BACK NAVIGATION PROTECTION (iOS + Android)
 ============================================================ -->
 <script>
-/* Load station + key for redirect */
 function goBack() {
   const params = new URLSearchParams(location.search);
   const station = params.get("station");
@@ -115,48 +115,55 @@ function goBack() {
   location.href = `station.html?station=${station}&key=${key}`;
 }
 
-/* Smart history: force back-swipe to trigger popstate */
 history.pushState(null, null, location.href);
 
-/* When user swipes back → always go to station page */
 window.onpopstate = function () {
   goBack();
 };
 
-/* iOS & Android: prevent restoring frozen judge page */
-window.addEventListener("pageshow", function (event) {
-  if (event.persisted) {
-    // If browser attempts to restore cached page → force fresh load
-    goBack();
-  }
+window.addEventListener("pageshow", event => {
+  if (event.persisted) goBack();
 });
 </script>
 
-<!-- FORCE LOGOUT CHECK (SAFE VERSION) -->
+
+<!-- ============================================================
+     🔥 FORCE LOGOUT CHECK (FINAL PRODUCTION VERSION)
+============================================================ -->
 <script>
 window.addEventListener("load", async () => {
+
+    // Config not ready → cannot check logout yet
+    if (!window.CONFIG || !window.CONFIG.APPS_SCRIPT_URL) return;
+
     try {
-        if (!window.CONFIG || !window.CONFIG.APPS_SCRIPT_URL) return;
-
         const url = window.CONFIG.APPS_SCRIPT_URL + "?cmd=getLogoutVersion";
-        const res = await fetch(url);
+        const res = await fetch(url, { cache: "no-store" });
 
-        if (!res.ok) return; // server offline → skip logout
+        if (!res.ok) return; // backend offline
         const js = await res.json();
 
-        if (!js.ok) return;  // backend error → skip logout
+        if (!js || !js.ok || !js.logoutVersion) return;
 
         const serverV = String(js.logoutVersion);
         const localV  = localStorage.getItem("logoutVersion");
 
+        // 🔥 FORCE LOGOUT HERE
         if (localV !== serverV) {
             localStorage.setItem("logoutVersion", serverV);
-            location.href = "index.html"; // 🔥 FORCE LOGOUT
+
+            // Kill cached data
+            sessionStorage.clear();
+
+            // Redirect to home
+            location.href = "index.html";
+            return;
         }
 
-    } catch(e){
-        // offline → no logout
+    } catch (err) {
+        // Offline → do nothing
     }
+
 });
 </script>
 
