@@ -132,5 +132,33 @@ window.addEventListener("pageshow", function (event) {
 });
 </script>
 
+<!-- FORCE LOGOUT CHECK (SAFE VERSION) -->
+<script>
+window.addEventListener("load", async () => {
+    try {
+        if (!window.CONFIG || !window.CONFIG.APPS_SCRIPT_URL) return;
+
+        const url = window.CONFIG.APPS_SCRIPT_URL + "?cmd=getLogoutVersion";
+        const res = await fetch(url);
+
+        if (!res.ok) return; // server offline → skip logout
+        const js = await res.json();
+
+        if (!js.ok) return;  // backend error → skip logout
+
+        const serverV = String(js.logoutVersion);
+        const localV  = localStorage.getItem("logoutVersion");
+
+        if (localV !== serverV) {
+            localStorage.setItem("logoutVersion", serverV);
+            location.href = "index.html"; // 🔥 FORCE LOGOUT
+        }
+
+    } catch(e){
+        // offline → no logout
+    }
+});
+</script>
+
 </body>
 </html>
