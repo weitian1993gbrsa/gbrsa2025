@@ -4,12 +4,34 @@ window.CONFIG = {
   DATA_SHEET_NAME: "DATA",
   RESULT_SHEET_NAME: "RESULT"
 };
+
 // Login backend URL
 const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbzq3LYbSAoFRjt8wIbomxwehCOdAdGo4eCkpHlhj_ncTm27tpQJyMhzQHRQTfhKQ6WJ/exec";
-
 
 function forceRepaint() {
   document.body.classList.add("hidden");
   void document.body.offsetHeight;
   document.body.classList.remove("hidden");
 }
+
+/* ============================================================
+   JUDGE ACCESS KEYS (ONE SOURCE OF TRUTH)
+   ✔ Update judge keys here ONLY
+   ✔ index.html + station.js will automatically sync
+   ✔ No more double editing in different files
+============================================================ */
+
+window.JUDGE_KEYS = {
+  "abc123": 1,
+  "def456": 2,
+  "ghi789": 3,
+  "jkl555": 4,
+  "mno888": 5,
+  "pqr222": 6,
+  "stu333": 7,
+  "vwx444": 8,
+  "yyy111": 9,
+  "zzt777": 10,
+  "qqq101": 11,
+  "key999": 12
+};
