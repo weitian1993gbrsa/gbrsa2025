@@ -97,12 +97,23 @@ const keyInput  = document.getElementById("judgeKey");
 const keyError  = document.getElementById("keyError");
 const btnLogin  = document.getElementById("btnJudgeLogin");
 
-// Handle login button
+/* ================================================
+      🔐 MODIFIED LOGIN HANDLER — NOW WITH ADMIN
+   ================================================ */
 btnLogin.addEventListener("click", () => {
   const key = keyInput.value.trim();
-  const station = validKeys[key];
-
   keyError.style.display = "none";
+
+  // ========= ADMIN LOGIN CHECK =========
+  if (typeof ADMIN_KEY !== "undefined" && key === ADMIN_KEY) {
+    btnLogin.disabled = true;
+    btnLogin.textContent = "Loading…";
+    window.location.href = "admin.html";
+    return;
+  }
+
+  // ========= NORMAL JUDGE LOGIN =========
+  const station = validKeys[key];
 
   if (!station) {
     keyError.style.display = "block";
