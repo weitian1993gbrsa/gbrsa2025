@@ -166,3 +166,32 @@ window.addEventListener("pagehide", () => {
 
 </body>
 </html>
+
+<script>
+// Fix Android Back-Swipe showing old password
+function clearJudgeField() {
+  const keyInput = document.getElementById("judgeKey");
+  const btnLogin = document.getElementById("btnJudgeLogin");
+  const keyError = document.getElementById("keyError");
+
+  if (!keyInput) return;
+
+  keyInput.value = "";
+  keyError.style.display = "none";
+  btnLogin.disabled = false;
+  btnLogin.textContent = "Enter";
+}
+
+// iOS + modern browsers
+window.addEventListener("pageshow", clearJudgeField);
+
+// Android Chrome back-swipe
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    clearJudgeField();
+  }
+});
+
+// Extra safety: When page unloads, clear
+window.addEventListener("pagehide", clearJudgeField);
+</script>
