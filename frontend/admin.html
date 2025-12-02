@@ -38,7 +38,8 @@
 <body class="page admin">
 
 <header class="admin-header">
-  <button onclick="location.href='index.html'" class="btn">← Home</button>
+  <!-- FIXED HOME BUTTON (Logout only) -->
+  <button onclick="logoutToHome()" class="btn">← Home</button>
   <div>
     <div class="admin-title">Admin Panel</div>
     <div class="admin-sub">System Tools & Access</div>
@@ -51,12 +52,35 @@
     <h2>Admin Tools</h2>
 
     <div class="admin-menu">
-      <a class="btn primary" href="speed.html">Open Speed Judge Page</a>
-      <a class="btn primary" href="freestyle.html">Open Freestyle Judge Page</a>
+      <button class="btn primary" onclick="openSpeed()">Open Speed Judge Page</button>
+      <button class="btn primary" onclick="openFreestyle()">Open Freestyle Judge Page</button>
     </div>
   </section>
 
 </main>
+
+<script>
+/* --------------------------------------------
+   FIXED NAVIGATION FOR ADMIN → JUDGE PAGES
+   These use location.replace() so index.html 
+   is NOT stored in browser history anymore.
+-------------------------------------------- */
+
+function openSpeed() {
+  window.location.replace("speed.html");
+}
+
+function openFreestyle() {
+  window.location.replace("freestyle.html");
+}
+
+/* --------------------------------------------
+   Logout → Return to index.html
+-------------------------------------------- */
+function logoutToHome() {
+  window.location.href = "index.html";
+}
+</script>
 
 </body>
 </html>

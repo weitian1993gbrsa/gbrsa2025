@@ -7,7 +7,6 @@
 
   <link rel="stylesheet" href="./styles.css"/>
 
-  <!-- app glue & page logic -->
   <script defer src="./app.js"></script>
   <script defer src="./config.js"></script>
   <script defer src="./freestyle.js"></script>
@@ -41,141 +40,17 @@
 </head>
 
 <body data-mode="freestyle" class="page">
+
+<!-- ⭐ FIXED BACK BUTTON → ALWAYS GO TO admin.html -->
 <header class="topbar">
-  <a class="back" href="./index.html" aria-label="Back">←</a>
+  <button class="back" onclick="goBackToAdmin()" aria-label="Back">←</button>
   <img src="./assets/company-logo.png" alt="GBRSA" class="logo"/>
   <div class="titles"><h1>Freestyle Judge</h1></div>
   <button id="btnRefresh" class="refresh-btn" title="Refresh">↻ Refresh</button>
 </header>
 
-<main class="container">
-  <!-- Step 1 -->
-  <section class="block">
-    <h2>Step 1 — Identify Participant</h2>
-    <div class="scan-row">
-      <input id="entryIdInput" class="input" placeholder="Type participant ID then click Search ID." inputmode="text" autocapitalize="characters" spellcheck="false"/>
-      <button id="btnLookup" class="btn">Search ID</button>
-    </div>
-    <div class="hint">Type participant ID then click Search ID.</div>
-  </section>
-
-  <!-- Participant card -->
-  <section id="participantCard" class="block hide">
-    <div class="row space">
-      <h2>Participant</h2>
-      <div class="badges">
-        <span id="badgeHeat" class="badge">HEAT —</span>
-        <span id="badgeStation" class="badge">STATION —</span>
-        <span id="badgeEvent" class="badge">EVENT —</span>
-        <span id="badgeDivision" class="badge">DIVISION —</span>
-      </div>
-    </div>
-    <dl class="info">
-      <div><dt>ID</dt><dd id="pId">—</dd></div>
-      <div><dt>Names</dt><dd id="pNames">—</dd></div>
-      <div><dt>Team</dt><dd id="pRep">—</dd></div>
-      <div><dt>State</dt><dd id="pState">—</dd></div>
-    </dl>
-    <button id="btnConfirm" class="btn primary" disabled>Confirm & Start Scoring</button>
-  </section>
-
-  <!-- Step 2 -->
-  <section id="scoreFormWrap" class="block hide">
-    <h2>Step 2 — Enter Freestyle Scores</h2>
-    <form id="scoreForm" class="form">
-      <div class="grid">
-        <label class="field">
-          <span>MISSES</span>
-          <input name="MISSES" type="number" min="0" step="1" class="input" placeholder="0"/>
-        </label>
-
-        <label class="field">
-          <span>BREAKS</span>
-          <input name="BREAKS" type="number" min="0" step="1" class="input" placeholder="0"/>
-        </label>
-
-        <label class="field">
-          <span>DIFF J1</span>
-          <input name="DIFF J1" type="number" step="0.01" inputmode="decimal" class="input" placeholder="0.00"/>
-        </label>
-
-        <label class="field">
-          <span>DIFF J2</span>
-          <input name="DIFF J2" type="number" step="0.01" inputmode="decimal" class="input" placeholder="0.00"/>
-        </label>
-
-        <label class="field">
-          <span>Missed RE</span>
-          <input name="Missed RE" type="number" min="0" step="1" class="input" placeholder="0"/>
-        </label>
-
-        <label class="field col-span-2">
-          <span>REMARK</span>
-          <input name="REMARK" class="input" placeholder="Optional notes"/>
-        </label>
-      </div>
-
-      <!-- Hidden participant data -->
-      <input type="hidden" name="ID" id="fId"/>
-      <input type="hidden" name="NAME1" id="fNAME1"/>
-      <input type="hidden" name="NAME2" id="fNAME2"/>
-      <input type="hidden" name="NAME3" id="fNAME3"/>
-      <input type="hidden" name="NAME4" id="fNAME4"/>
-      <input type="hidden" name="TEAM" id="fREP"/>
-      <input type="hidden" name="STATE" id="fSTATE"/>
-      <input type="hidden" name="HEAT" id="fHEAT"/>
-      <input type="hidden" name="STATION" id="fSTATION"/>
-      <input type="hidden" name="EVENT" id="fEVENT"/>
-      <input type="hidden" name="DIVISION" id="fDIVISION"/>
-
-      <div class="row space">
-        <button type="submit" class="btn primary">Submit Result</button>
-      </div>
-    </form>
-  </section>
-</main>
-
-<!-- Submit overlay -->
-<div id="submitOverlay" class="overlay hide" aria-live="polite" aria-busy="true">
-  <div class="overlay-card">
-    <div class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-    <div id="overlayText" class="overlay-text">Sending…</div>
-  </div>
-</div>
-
-<script>judging=true;</script>
-
 <script>
-(function helpersInit(){
-  try{
-    async function hardRefresh(){
-      try{
-        if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
-          const regs=await navigator.serviceWorker.getRegistrations();
-          for(const r of regs){try{await r.unregister();}catch(_){ }}
-        }
-        if(window.caches&&caches.keys){
-          const keys=await caches.keys();
-          for(const k of keys){try{await caches.delete(k);}catch(_){ }}
-        }
-      }catch(_){}
-      location.reload(true);
-    }
-    window.hardRefresh=hardRefresh;
-    var btnRefresh=document.getElementById('btnRefresh');
-    if(btnRefresh){ btnRefresh.addEventListener('click',hardRefresh); }
-
-    // "Search ID" clicks should trigger the Enter handler on the input
-    var entryInput=document.getElementById('entryIdInput');
-    var btnLookup=document.getElementById('btnLookup');
-    if(btnLookup&&entryInput){
-      btnLookup.addEventListener('click',function(){
-        var evt=new KeyboardEvent('keyup',{key:'Enter',bubbles:true});
-        entryInput.dispatchEvent(evt);
-      });
-    }
-  }catch(e){}
-})();
+function goBackToAdmin() {
+    window.location.href = "admin.html";
+}
 </script>
-</body>
-</html>
