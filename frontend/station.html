@@ -7,28 +7,62 @@
 
   <link rel="stylesheet" href="./styles.css"/>
 
-  <!-- ORDER MATTERS -->
+  <!-- IMPORTANT: LOAD ORDER -->
   <script defer src="./config.js"></script>
-  <script defer src="./app.js"></script>        <!-- apiGet lives here -->
-  <script defer src="./station.js"></script>    <!-- must load last -->
+  <script defer src="./app.js"></script>
+  <script defer src="./station.js"></script>
+
+  <style>
+    /* Sticky header fix */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+  </style>
 </head>
 
 <body class="page station">
 
-  <header class="topbar">
-    <img src="./assets/company-logo.png" class="logo"/>
-    <div class="titles">
-      <h1>Speed Station <span id="stationLabel"></span></h1>
-    </div>
-    <button id="btnRefresh" class="btn" style="margin-left:auto">⟳ Refresh</button>
-  </header>
+<header class="topbar">
+  <img src="./assets/company-logo.png" class="logo"/>
 
-  <main class="container">
-    <section class="block">
-      <h2>Entries for this Station</h2>
-      <div id="entryList" class="entry-list"></div>
-    </section>
-  </main>
+  <div class="titles">
+    <h1>Speed Station <span id="stationLabel"></span></h1>
+  </div>
+
+  <!-- NEW HOME BUTTON -->
+  <button id="btnHome" class="btn" style="margin-left:auto;margin-right:.5rem;">
+    ⬅ Home
+  </button>
+
+  <!-- REFRESH BUTTON -->
+  <button id="btnRefresh" class="btn">⟳ Refresh</button>
+</header>
+
+<main class="container">
+  <section class="block">
+    <h2>Entries for this Station</h2>
+
+    <div id="entryList" class="entry-list"></div>
+  </section>
+</main>
+
+<!-- HARD BLOCK SWIPE BACK ON iOS + ANDROID -->
+<script>
+history.pushState(null, null, location.href);
+
+window.onpopstate = function () {
+  history.go(1);    // block gesture-back
+};
+</script>
+
+<!-- HOME BUTTON LOGIC -->
+<script>
+document.getElementById("btnHome").addEventListener("click", () => {
+  location.href = "index.html"; // always go clean home
+});
+</script>
 
 </body>
 </html>
