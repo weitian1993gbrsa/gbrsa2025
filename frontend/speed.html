@@ -51,16 +51,17 @@
 </head>
 <body class="page">
 
-  <!-- ⭐ FIXED BACK BUTTON -->
-  <header class="topbar">
-    <button class="back" onclick="goBackToAdmin()" aria-label="Back">←</button>
-    <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
-    <div class="titles"><h1>Speed Judge</h1></div>
-    <button id="btnRefresh" class="refresh-btn" title="Refresh">↻ Refresh</button>
-  </header>
+<!-- ⭐ FIXED BACK BUTTON -->
+<header class="topbar">
+  <button class="back" onclick="goBackToAdmin()" aria-label="Back">←</button>
+  <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
+  <div class="titles"><h1>Speed Judge</h1></div>
+  <button id="btnRefresh" class="refresh-btn" title="Refresh">↻ Refresh</button>
+</header>
 
 <script>
 function goBackToAdmin() {
-  window.location.href = "admin.html";
+    const key = new URLSearchParams(location.search).get("key");
+    window.location.href = `admin.html?key=${key}`;
 }
 </script>
