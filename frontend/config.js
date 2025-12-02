@@ -35,3 +35,6 @@ window.JUDGE_KEYS = {
   "qqq101": 11,
   "key999": 12
 };
+
+// ===== ADMIN LOGIN KEY =====
+const ADMIN_KEY = "GBRSA2025ADMIN";
