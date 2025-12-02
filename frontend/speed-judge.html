@@ -1,19 +1,20 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"/>
 
-  <!-- IMPORTANT: disable caching -->
+<head>
+  <meta charset="utf-8" />
+
+  <!-- Disable caching -->
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>Speed Judge</title>
 
-  <link rel="stylesheet" href="./styles.css"/>
+  <link rel="stylesheet" href="./styles.css" />
 
-  <!-- Core scripts -->
+  <!-- Scripts -->
   <script defer src="./config.js"></script>
   <script defer src="./app.js"></script>
   <script defer src="./speed-judge.js"></script>
@@ -31,52 +32,55 @@
       top: 0;
       z-index: 9999;
     }
-    .judge-title { font-size: 1.4rem; font-weight: 700; }
-    .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
 
-    /* SCORE SCREEN */
-    .score-screen {
-      width: 100%;
-      background: #111;
-      color: #0ff;
-      font-size: 2.8rem;
-      text-align: right;
-      padding: 18px;
-      border-radius: 14px;
-      margin-bottom: 18px;
-      font-family: monospace;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.45);
-      letter-spacing: 2px;
+    .judge-title {
+      font-size: 1.4rem;
+      font-weight: 700;
     }
 
-    /* NUMPAD */
-    .numpad-grid {
-      display: grid;
-      grid-template-columns: repeat(3,1fr);
-      gap: 14px;
+    .judge-sub {
+      color: #555;
+      margin-top: .15rem;
+      font-size: .9rem;
+    }
+
+    /* SIMPLE SCORE DISPLAY */
+    .score-screen {
+      width: 100%;
+      background: #fff;
+      border: 2px solid #333;
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 32px;
+      text-align: center;
+      letter-spacing: 10px;
       margin-bottom: 20px;
     }
 
-    .numpad-grid button {
-      padding: 18px 0;
-      font-size: 1.6rem;
+    /* SIMPLE NUMBERPAD */
+    .simple-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .simple-pad button {
+      padding: 22px 0;
+      font-size: 28px;
+      background: #eee;
+      border: 2px solid #444;
       border-radius: 12px;
-      background: #fff;
-      border: 1px solid #ddd;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-      font-weight: 600;
+      cursor: pointer;
     }
 
-    .np-clear {
-      background: #fee2e2;
-      border-color: #fca5a5;
-      color: #b91c1c;
+    .clear-btn {
+      color: red;
+      font-weight: 700;
     }
 
-    .np-enter {
-      background: #2563eb;
-      color: white;
-      border-color: #1d4ed8;
+    .enter-btn {
+      color: green;
       font-weight: 700;
     }
   </style>
@@ -84,107 +88,103 @@
 
 <body class="page judge">
 
-<header class="judge-header">
-  <button onclick="goBack()" class="btn">← Back</button>
-  <div>
-    <div class="judge-title">Speed Judge</div>
-    <div class="judge-sub">Enter score and submit</div>
-  </div>
-</header>
-
-<main class="container">
-
-  <section class="block">
-
-    <form id="scoreForm" class="form">
-
-      <!-- NEW SCORE DISPLAY (no keyboard popup) -->
-      <div id="scoreScreen" class="score-screen">0</div>
-
-      <!-- NUMBER PAD -->
-      <div class="numpad-grid">
-        <button type="button" data-key="1">1</button>
-        <button type="button" data-key="2">2</button>
-        <button type="button" data-key="3">3</button>
-
-        <button type="button" data-key="4">4</button>
-        <button type="button" data-key="5">5</button>
-        <button type="button" data-key="6">6</button>
-
-        <button type="button" data-key="7">7</button>
-        <button type="button" data-key="8">8</button>
-        <button type="button" data-key="9">9</button>
-
-        <button type="button" data-key="clear" class="np-clear">Clear</button>
-        <button type="button" data-key="0">0</button>
-        <button type="button" data-key="enter" class="np-enter">Enter</button>
-      </div>
-
-      <!-- HIDDEN REAL SCORE -->
-      <input type="hidden" name="SCORE" id="hiddenScore"/>
-
-      <label class="check">
-        <input type="checkbox" name="FALSE START">
-        <span>FALSE START</span>
-      </label>
-
-      <label class="field">
-        <span>REMARK</span>
-        <input type="text" name="REMARK" class="input">
-      </label>
-
-      <!-- Backend Hidden Fields -->
-      <input type="hidden" name="ID" id="fID">
-      <input type="hidden" name="NAME1" id="fNAME1">
-      <input type="hidden" name="NAME2" id="fNAME2">
-      <input type="hidden" name="NAME3" id="fNAME3">
-      <input type="hidden" name="NAME4" id="fNAME4">
-      <input type="hidden" name="TEAM" id="fTEAM">
-      <input type="hidden" name="STATE" id="fSTATE">
-      <input type="hidden" name="HEAT" id="fHEAT">
-      <input type="hidden" name="STATION" id="fSTATION">
-      <input type="hidden" name="EVENT" id="fEVENT">
-      <input type="hidden" name="DIVISION" id="fDIVISION">
-
-      <button type="submit" class="btn primary" 
-        style="width:100%;font-size:1.1rem;padding:1rem;margin-top:1rem;">
-        Submit Result →
-      </button>
-
-    </form>
-
-  </section>
-</main>
-
-<!-- Submit Overlay -->
-<div id="submitOverlay" class="overlay hide">
-  <div class="overlay-card">
-    <div class="loading">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+  <header class="judge-header">
+    <button onclick="goBack()" class="btn">← Back</button>
+    <div>
+      <div class="judge-title">Speed Judge</div>
+      <div class="judge-sub">Enter score and submit</div>
     </div>
-    <div id="overlayText" class="overlay-text">Submitting…</div>
+  </header>
+
+  <main class="container">
+
+    <section class="block">
+
+      <form id="scoreForm" class="form">
+
+        <!-- SIMPLE SCREEN -->
+        <div class="score-screen" id="scoreScreen">···</div>
+
+        <!-- SIMPLE NUMBER PAD -->
+        <div class="simple-pad">
+          <button data-key="1">1</button>
+          <button data-key="2">2</button>
+          <button data-key="3">3</button>
+
+          <button data-key="4">4</button>
+          <button data-key="5">5</button>
+          <button data-key="6">6</button>
+
+          <button data-key="7">7</button>
+          <button data-key="8">8</button>
+          <button data-key="9">9</button>
+
+          <button data-key="clear" class="clear-btn">Clear</button>
+          <button data-key="0">0</button>
+          <button data-key="enter" class="enter-btn">Enter</button>
+        </div>
+
+        <!-- Hidden SCORE field -->
+        <input type="hidden" name="SCORE" id="hiddenScore">
+
+        <label class="check">
+          <input type="checkbox" name="FALSE START">
+          <span>FALSE START</span>
+        </label>
+
+        <label class="field">
+          <span>REMARK</span>
+          <input type="text" name="REMARK" class="input">
+        </label>
+
+        <!-- BACKEND HIDDEN FIELDS -->
+        <input type="hidden" name="ID" id="fID">
+        <input type="hidden" name="NAME1" id="fNAME1">
+        <input type="hidden" name="NAME2" id="fNAME2">
+        <input type="hidden" name="NAME3" id="fNAME3">
+        <input type="hidden" name="NAME4" id="fNAME4">
+        <input type="hidden" name="TEAM" id="fTEAM">
+        <input type="hidden" name="STATE" id="fSTATE">
+        <input type="hidden" name="HEAT" id="fHEAT">
+        <input type="hidden" name="STATION" id="fSTATION">
+        <input type="hidden" name="EVENT" id="fEVENT">
+        <input type="hidden" name="DIVISION" id="fDIVISION">
+
+        <button type="submit" class="btn primary" style="width:100%;font-size:1.1rem;padding:1rem">
+          Submit Result →
+        </button>
+      </form>
+
+    </section>
+
+  </main>
+
+  <!-- SUBMIT OVERLAY -->
+  <div id="submitOverlay" class="overlay hide">
+    <div class="overlay-card">
+      <div class="loading">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <div id="overlayText" class="overlay-text">Submitting…</div>
+    </div>
   </div>
-</div>
 
-<!-- ============================================================
-     BACK NAV + CACHE FIX
-============================================================ -->
-<script>
-function goBack() {
-  const params = new URLSearchParams(location.search);
-  const station = params.get("station");
-  const key = params.get("key");
-  location.href = `station.html?station=${station}&key=${key}`;
-}
+  <!-- BACK REDIRECT FIX -->
+  <script>
+    function goBack() {
+      const params = new URLSearchParams(location.search);
+      const station = params.get("station");
+      const key = params.get("key");
+      location.href = `station.html?station=${station}&key=${key}`;
+    }
 
-/* Lock history for swipe-back */
-history.pushState(null, null, location.href);
-window.onpopstate = function () { goBack(); };
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () { goBack(); };
 
-window.addEventListener("pageshow", function (event) {
-  if (event.persisted) goBack();
-});
-</script>
+    window.addEventListener("pageshow", function (event) {
+      if (event.persisted) { goBack(); }
+    });
+  </script>
 
 </body>
 </html>

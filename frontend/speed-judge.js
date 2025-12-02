@@ -4,20 +4,20 @@
   const params = new URLSearchParams(location.search);
 
   /* ============================================================
-     RETURN URL (secure) + PRELOAD
+     RETURN URL + PRELOAD
   ============================================================ */
   const returnURL =
     `station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
-  fetch(returnURL).catch(()=>{}); // preload
+  fetch(returnURL).catch(() => {});
 
   /* ============================================================
      PRE-WARM BACKEND
   ============================================================ */
-  fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
+  fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(() => {});
 
   /* ============================================================
-     LOAD PARTICIPANT DATA INTO HIDDEN FIELDS
+     LOAD PARTICIPANT DATA
   ============================================================ */
   const set = (id, val) => {
     const el = $(id);
@@ -36,54 +36,53 @@
   set("#fEVENT", params.get("event"));
   set("#fDIVISION", params.get("division"));
 
-/* ============================================================
-   NUMBERPAD + SCORE SCREEN (MAX 3 DIGITS)
-============================================================ */
-const scoreScreen = $("#scoreScreen");
-const hiddenScore = $("#hiddenScore");
+  /* ============================================================
+     NUMBERPAD + SCORE SCREEN (MAX 3 DIGITS)
+  ============================================================ */
+  const scoreScreen = $("#scoreScreen");
+  const hiddenScore = $("#hiddenScore");
+  const numberButtons = document.querySelectorAll(".simple-pad button");
 
-const numButtons = document.querySelectorAll(".numpad-grid button");
+  numberButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.key;
 
-numButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const key = btn.dataset.key;
-
-    // CLEAR
-    if (key === "clear") {
-      scoreScreen.textContent = "0";
-      hiddenScore.value = "";
-      return;
-    }
-
-    // ENTER → submit
-    if (key === "enter") {
-      const form = $("#scoreForm");
-      form.dispatchEvent(new Event("submit"));
-      return;
-    }
-
-    // DIGITS 0–9 with MAX LENGTH = 3
-    if (/^[0-9]$/.test(key)) {
-      let current = scoreScreen.textContent.trim();
-
-      // If current already has 3 digits → stop
-      if (current.length >= 3) return;
-
-      // Replace leading zero
-      if (current === "0") {
-        scoreScreen.textContent = key;
-      } else {
-        scoreScreen.textContent = current + key;
+      /* CLEAR BUTTON */
+      if (key === "clear") {
+        scoreScreen.textContent = "···";
+        hiddenScore.value = "";
+        return;
       }
 
-      hiddenScore.value = scoreScreen.textContent;
-    }
-  });
-});
+      /* ENTER BUTTON */
+      if (key === "enter") {
+        const form = $("#scoreForm");
+        form.requestSubmit(); // safer submit
+        return;
+      }
 
+      /* DIGITS ONLY */
+      if (/^[0-9]$/.test(key)) {
+        let stored = hiddenScore.value;
+
+        // Prevent more than 3 digits
+        if (stored.length >= 3) return;
+
+        // Add digit
+        stored += key;
+        hiddenScore.value = stored;
+
+        // Update the screen using dots
+        scoreScreen.textContent =
+          "•".repeat(stored.length).padEnd(3, "·");
+
+        return;
+      }
+    });
+  });
 
   /* ============================================================
-     FORM SUBMISSION (TURBO MODE)
+     SUBMIT FORM
   ============================================================ */
   const scoreForm = $("#scoreForm");
   const overlay = $("#submitOverlay");
@@ -92,17 +91,13 @@ numButtons.forEach(btn => {
   scoreForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Ensure score is not empty
-    const scoreVal = scoreScreen.textContent.trim();
-    if (scoreVal === "" || scoreVal === "0") {
+    const scoreVal = hiddenScore.value.trim();
+
+    if (scoreVal === "" || scoreVal.length === 0) {
       alert("Please enter a score before submitting.");
       return;
     }
 
-    hiddenScore.value = scoreVal;
-
-    // Show overlay
-    overlay.style.opacity = "1";
     overlay.classList.remove("hide");
     overlayText.textContent = "Submitting…";
 
@@ -115,15 +110,16 @@ numButtons.forEach(btn => {
     apiPost(payload)
       .then(() => {
         overlayText.textContent = "Saved ✔";
-
         setTimeout(() => {
           location.href = returnURL;
         }, 120);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         overlayText.textContent = "Submit failed";
-        setTimeout(() => overlay.classList.add("hide"), 800);
+        setTimeout(() => {
+          overlay.classList.add("hide");
+        }, 800);
       });
   });
 
