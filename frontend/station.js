@@ -8,28 +8,22 @@
   const qs = new URLSearchParams(location.search);
   const station = qs.get("station") || "1";
   const key = qs.get("key");
+
   stationLabel.textContent = station;
 
   /* ============================================================
      🔐 SECURITY: BLOCK UNAUTHORIZED ACCESS
-     Each station has its own secret key.
+     Build station → key mapping dynamically.
   ============================================================ */
-  const validKeys = {
-    "1": "abc123",
-    "2": "def456",
-    "3": "ghi789",
-    "4": "jkl555",
-    "5": "mno888",
-    "6": "pqr222",
-    "7": "stu333",
-    "8": "vwx444",
-    "9": "yyy111",
-    "10": "zzt777",
-    "11": "qqq101",
-    "12": "key999"
-  };
+  const JUDGE_KEYS = window.JUDGE_KEYS || {};
 
-  // If key missing or correct key doesn't match station → deny access
+  // Convert { key: station } → { station: key }
+  const validKeys = {};
+  for (const [k, s] of Object.entries(JUDGE_KEYS)) {
+    validKeys[String(s)] = k;
+  }
+
+  // Check authorization
   if (!key || key !== validKeys[station]) {
     document.body.innerHTML = `
       <div style="padding:2rem;text-align:center;">
@@ -41,7 +35,7 @@
   }
 
   /* ============================================================
-     ESCAPE HTML (safe output)
+     ESCAPE HTML
   ============================================================ */
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, m => ({
@@ -54,7 +48,7 @@
   }
 
   /* ============================================================
-     JOIN NAMES ON ONE LINE
+     NAME FORMATTER
   ============================================================ */
   function formatNames(p) {
     const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
@@ -63,12 +57,12 @@
   }
 
   /* ============================================================
-     CARD CACHE (for fast updates)
+     CARD CACHE
   ============================================================ */
   const cardMap = {};
 
   /* ============================================================
-     CREATE CARD (first load only)
+     CREATE CARD (FIRST TIME ONLY)
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -82,7 +76,6 @@
       </div>
 
       <div class="name">${formatNames(p)}</div>
-
       <div class="team">${esc(p.team)}</div>
 
       <div class="event-row">
@@ -93,7 +86,7 @@
 
     const statusEl = card.querySelector(".status");
 
-    /* Build URL to speed-judge page */
+    // Build secure judge URL
     const judgeURL =
       `speed-judge.html`
       + `?id=${encodeURIComponent(p.entryId)}`
@@ -105,7 +98,7 @@
       + `&state=${encodeURIComponent(p.state || "")}`
       + `&heat=${encodeURIComponent(p.heat || "")}`
       + `&station=${encodeURIComponent(station)}`
-      + `&key=${encodeURIComponent(key)}`     /* ⭐ keep judge locked in */
+      + `&key=${encodeURIComponent(key)}`       /* keep judge locked */
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
@@ -118,13 +111,13 @@
   }
 
   /* ============================================================
-     FAST CARD UPDATE (status only)
+     UPDATE CARD (ONLY STATUS)
   ============================================================ */
   function updateCard(p) {
-    const cached = cardMap[p.entryId];
-    if (!cached) return;
+    const cache = cardMap[p.entryId];
+    if (!cache) return;
 
-    const { card, statusEl } = cached;
+    const { card, statusEl } = cache;
 
     if (p.status === "done") {
       card.classList.remove("pending");
@@ -169,33 +162,29 @@
       return;
     }
 
-    const entries = data.entries || [];
+    const arr = data.entries || [];
 
-    /* First load → build cards */
     if (firstLoad) {
       listEl.innerHTML = "";
-      entries.forEach((p, i) => {
+      arr.forEach((p, i) => {
         const card = createCard(p, i);
         listEl.appendChild(card);
       });
       return;
     }
 
-    /* Next loads → update only status */
-    entries.forEach(p => updateCard(p));
+    arr.forEach(p => updateCard(p));
   }
 
   /* ============================================================
-     REFRESH BUTTON (full page reload)
+     REFRESH BUTTON
   ============================================================ */
   if (btnRefresh) {
-    btnRefresh.addEventListener("click", () => {
-      location.reload();
-    });
+    btnRefresh.addEventListener("click", () => location.reload());
   }
 
   /* ============================================================
-     AUTO LOAD ON PAGE OPEN
+     AUTO LOAD
   ============================================================ */
   window.addEventListener("load", () => {
     setTimeout(loadStationList, 60);

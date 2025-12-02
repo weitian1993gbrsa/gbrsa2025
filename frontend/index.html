@@ -14,7 +14,6 @@
 <meta name="theme-color" content="#0b1020">
 
 <script>
-// iOS focus fix
 (function(){
   function ensureSize(el){
     try{
@@ -65,7 +64,7 @@
         <p>ID → lookup → input MISSES/BREAKS/DIFF/Missed RE → submit.</p>
       </a>
 
-      <!-- ⭐ NEW: Judge Login (PRIVATE STATION ACCESS) -->
+      <!-- ⭐ NEW: Judge Login -->
       <div class="card judge-login">
         <h3>Judge Access</h3>
         <p class="judge-desc">Enter your assigned access code to open your station.</p>
@@ -84,52 +83,11 @@
 
 <footer class="foot">
   <small>© 2025 GBRSA</small>
-  <div class="a2hs-tip" style="background:#e6faff; padding:6px; font-size:0.7em; line-height:1.4; margin-top:10px; color:#444;">
-    <p><strong>For best experience</strong>, add this web-app to your homescreen.</p>
-    <p><strong>On Android</strong>, open your browser menu and select “Add to homescreen”.</p>
-    <p><strong>On iOS</strong>, tap the “share” button and choose “Add to Home Screen”.</p>
-    <p style="margin-top:4px; font-weight:bold;">GBRSA ROPE SKIPPING ACADEMY 2025 – GBRSA SCORE</p>
-  </div>
 </footer>
 
-<!-- Preserve scroll behavior -->
 <script>
-window.addEventListener('pageshow', function () {
-  window.scrollTo(0, 0);
-  if (document.activeElement?.blur) document.activeElement.blur();
-});
-</script>
-
-<!-- Service Worker -->
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js").catch(()=>{});
-}
-</script>
-
-<script>
-(function(){
-  let startY = 0, pulling = false;
-  document.addEventListener('touchend', () => { pulling = false; }, {passive:true});
-})();
-</script>
-
-<!-- ⭐ JUDGE LOGIN SCRIPT -->
-<script>
-const validKeys = {
-  "abc123": 1,
-  "def456": 2,
-  "ghi789": 3,
-  "jkl555": 4,
-  "mno888": 5,
-  "pqr222": 6,
-  "stu333": 7,
-  "vwx444": 8,
-  "yyy111": 9,
-  "zzt777": 10,
-  "qqq101": 11,
-  "key999": 12
-};
+// Use global JUDGE_KEYS (from config.js)
+const validKeys = window.JUDGE_KEYS;
 
 const keyInput = document.getElementById("judgeKey");
 const keyError = document.getElementById("keyError");
@@ -147,12 +105,13 @@ btnLogin.addEventListener("click", () => {
   }
 
   btnLogin.disabled = true;
-  btnLogin.textContent = "Loading...";
+  btnLogin.textContent = "Loading…";
 
+  // Redirect judge to their secure station
   location.href = `station.html?station=${station}&key=${key}`;
 });
 
-// ENTER key support
+// Support ENTER key
 keyInput.addEventListener("keyup", (e) => {
   if (e.key === "Enter") btnLogin.click();
 });
