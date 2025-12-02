@@ -2,7 +2,7 @@
   const $ = (q, el=document) => el.querySelector(q);
 
   /* ============================================================
-     DOM ELEMENTS (UPDATED FOR NEW PARTICIPANT CARD)
+     DOM ELEMENTS (UPDATED FOR NEW PARTICIPANT CARD UI)
      ============================================================ */
 
   const entryInput = $('#entryIdInput');
@@ -17,6 +17,7 @@
   const pcState = $('#pcState');
   const pcEvent = $('#pcEvent');
   const pcDivision = $('#pcDivision');
+  const pcStatus = $('#pcStatus');   // ⭐ NEW STATUS ELEMENT
 
   const btnConfirm = $('#btnConfirm');
   const scoreFormWrap = $('#scoreFormWrap');
@@ -76,12 +77,32 @@
     pcEvent.textContent = 'Event —';
     pcDivision.textContent = 'Division —';
 
+    pcStatus.textContent = "● Pending";
+    pcStatus.className = "pc-status pc-pending";
+
     if (entryInput) entryInput.value = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /* ============================================================
-     LOOKUP — UPDATE NEW CARD UI
+     🔥 NEW: CHECK IF THIS ID IS ALREADY SCORED TODAY
+     ============================================================ */
+
+  async function checkStatus(id, station) {
+    try {
+      const res = await apiGet({ cmd: "stationlist", station });
+      if (!res || !res.entries) return "pending";
+
+      const found = res.entries.find(e => e.entryId === id);
+      return found ? found.status : "pending";
+
+    } catch(e){
+      return "pending";
+    }
+  }
+
+  /* ============================================================
+     LOOKUP — UPDATE NEW CARD UI + STATUS
      ============================================================ */
 
   async function lookupById(raw){
@@ -139,6 +160,19 @@
       fSTATION.value = p.STATION || '';
       fEVENT.value = p.EVENT || '';
       fDIVISION.value = p.DIVISION || '';
+
+      /* ======================================================
+         🔥 NEW: CHECK STATUS FROM BACKEND
+         ====================================================== */
+      const judgedStatus = await checkStatus(id, p.STATION);
+
+      if (judgedStatus === "done") {
+        pcStatus.textContent = "● Done";
+        pcStatus.className = "pc-status pc-done";
+      } else {
+        pcStatus.textContent = "● Pending";
+        pcStatus.className = "pc-status pc-pending";
+      }
 
       btnConfirm.disabled = false;
 

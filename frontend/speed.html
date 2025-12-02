@@ -26,9 +26,12 @@
     }catch(e){}
   }
   document.addEventListener('focusin', e => ensureSize(e.target), true);
-  document.addEventListener('focusout', e => { try{
-    e.target.style.fontSize=''; e.target.style.webkitTextSizeAdjust='';
-  }catch(_){ }}, true);
+  document.addEventListener('focusout', e => { 
+    try{
+      e.target.style.fontSize=''; 
+      e.target.style.webkitTextSizeAdjust='';
+    }catch(_){}
+  }, true);
 })();
 </script>
 
@@ -42,18 +45,22 @@
   .scan-row { display: flex; gap: .75rem; align-items: center; }
   .scan-row .input { flex: 1; }
 
-  .refresh-btn { margin-left: auto; padding: .5rem .9rem; border-radius: .6rem;
-    border: 1px solid rgba(0,0,0,.1); background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
-  .refresh-btn:active { transform: translateY(1px); }
+  .refresh-btn { 
+    margin-left: auto; 
+    padding: .5rem .9rem; 
+    border-radius: .6rem;
+    border: 1px solid rgba(0,0,0,.1); 
+    background: #fff; 
+    box-shadow: 0 1px 2px rgba(0,0,0,.06); 
+  }
 
-  /* Header button style */
   .btn.small {
     padding: 6px 12px;
     font-size: 14px;
     border-radius: 8px;
   }
 
-  /* NEW PARTICIPANT CARD STYLE (Same as station list card) */
+  /* NEW PARTICIPANT CARD STYLE */
   .participant-card {
     background: #fff;
     border-radius: 14px;
@@ -68,7 +75,7 @@
     gap: 8px;
   }
   .pc-id { color: #444; }
-  .pc-name { color: #111; }
+  .pc-name { color: #111; font-weight: 700; }
 
   .pc-line2,
   .pc-line3 {
@@ -86,7 +93,8 @@
     font-weight: 600;
     font-size: 0.95rem;
   }
-  .pc-pending { color: #d97b00; }
+  .pc-pending { color: #d97706; } /* orange */
+  .pc-done { color: #059669; }     /* green */
 
   .pc-btn {
     width: 100%;
@@ -101,24 +109,21 @@
 
 <body class="page">
 
-<!-- 🔥 REBUILT HEADER -->
+<!-- HEADER -->
 <header class="topbar"
   style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
 
-  <!-- LEFT: Logo + Title -->
   <div style="display:flex;align-items:center;gap:12px;">
     <img src="./assets/company-logo.png" alt="GBRSA" class="logo" style="height:38px;">
     <h1 style="font-size:20px;margin:0;">Speed</h1>
   </div>
 
-  <!-- RIGHT: Home + Refresh -->
   <div style="display:flex;align-items:center;gap:10px;">
     <button class="btn small" onclick="location.href='admin.html'">Home</button>
     <button id="btnRefresh" class="btn small refresh-btn">Refresh</button>
   </div>
 
 </header>
-<!-- END HEADER -->
 
 <main class="container">
   
@@ -144,12 +149,12 @@
     <div class="hint">After type ID and then click Search ID.</div>
   </section>
 
-  <!-- ⭐ NEW PARTICIPANT CARD (station card style) -->
+  <!-- NEW PARTICIPANT CARD -->
   <section id="participantCard" class="participant-card hide">
 
     <div class="pc-line1">
       <span id="pcID" class="pc-id">ID —</span>
-      <span id="pcName" class="pc-name">NAME</span>
+      <span id="pcName" class="pc-name">NAME —</span>
     </div>
 
     <div class="pc-line2">
@@ -164,16 +169,15 @@
       <span id="pcDivision" class="pc-meta">Division —</span>
     </div>
 
-    <div class="pc-status pc-pending">● Pending</div>
+    <div id="pcStatus" class="pc-status pc-pending">● Pending</div>
 
     <button id="btnConfirm" class="btn primary pc-btn" disabled>
       Confirm & Start Scoring
     </button>
 
   </section>
-  <!-- END NEW CARD -->
 
-  <!-- Step 2 — Score Form -->
+  <!-- Step 2 -->
   <section id="scoreFormWrap" class="block hide">
     <h2>Step 2 — Enter Score</h2>
 
@@ -229,6 +233,7 @@
 
 <script>judging = true;</script>
 
+<!-- iOS + Refresh Handling -->
 <script>
 (function iosHelpersInit(){
   try{
