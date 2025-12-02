@@ -33,7 +33,7 @@
 <body class="page judge">
 
 <header class="judge-header">
-  <button onclick="manualBack()" class="btn">← Back</button>
+  <button onclick="goBack()" class="btn">← Back</button>
   <div>
     <div class="judge-title">Speed Judge</div>
     <div class="judge-sub">Enter score and submit</div>
@@ -61,7 +61,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Hidden fields -->
+      <!-- Hidden fields required by backend -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -96,27 +96,27 @@
   </div>
 </div>
 
-<!-- 🔒 PREVENT ACCIDENTAL SWIPE-BACK / BACK BUTTON -->
+
 <script>
-/* Prevent iOS Safari / Android Chrome left-edge BACK swipe */
-document.addEventListener('touchstart', function(e) {
-  if (e.touches[0].clientX < 25) {   // left edge
-    e.preventDefault();
-  }
-}, { passive: false });
+/* ============================================================
+   SMART BACK-SWIPE HANDLER
+   Always redirect to station.html
+   Prevent returning to "saved" overlay ghost page
+============================================================ */
 
-/* Lock back navigation */
-history.pushState(null, null, location.href);
-window.onpopstate = function () {
-  history.go(1);
-};
-
-/* Allow ONLY manual back button (safe) */
-function manualBack() {
-  const station = document.getElementById("fSTATION").value;
-  const key = new URLSearchParams(location.search).get("key");
+function goBack() {
+  const params = new URLSearchParams(location.search);
+  const station = params.get("station");
+  const key = params.get("key");
   location.href = `station.html?station=${station}&key=${key}`;
 }
+
+// ❗ Force browser history so back-swipe hits onpopstate immediately
+history.pushState(null, null, location.href);
+
+window.onpopstate = function () {
+  goBack();
+};
 </script>
 
 </body>
