@@ -7,9 +7,42 @@
 
   const qs = new URLSearchParams(location.search);
   const station = qs.get("station") || "1";
+  const key = qs.get("key");
   stationLabel.textContent = station;
 
-  /** ESCAPE HTML **/
+  /* ============================================================
+     🔐 SECURITY: BLOCK UNAUTHORIZED ACCESS
+     Each station has its own secret key.
+  ============================================================ */
+  const validKeys = {
+    "1": "abc123",
+    "2": "def456",
+    "3": "ghi789",
+    "4": "jkl555",
+    "5": "mno888",
+    "6": "pqr222",
+    "7": "stu333",
+    "8": "vwx444",
+    "9": "yyy111",
+    "10": "zzt777",
+    "11": "qqq101",
+    "12": "key999"
+  };
+
+  // If key missing or correct key doesn't match station → deny access
+  if (!key || key !== validKeys[station]) {
+    document.body.innerHTML = `
+      <div style="padding:2rem;text-align:center;">
+        <h2 style="color:#b00020;">Access Denied</h2>
+        <p>You do not have permission to view this station.</p>
+      </div>
+    `;
+    throw new Error("Unauthorized access to station " + station);
+  }
+
+  /* ============================================================
+     ESCAPE HTML (safe output)
+  ============================================================ */
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, m => ({
       "&": "&amp;",
@@ -20,19 +53,23 @@
     }[m]));
   }
 
-  /** NAME FORMATTER **/
+  /* ============================================================
+     JOIN NAMES ON ONE LINE
+  ============================================================ */
   function formatNames(p) {
     const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
       .filter(n => n && String(n).trim() !== "");
     return names.map(esc).join(", ");
   }
 
-  /** CARD CACHE **/
+  /* ============================================================
+     CARD CACHE (for fast updates)
+  ============================================================ */
   const cardMap = {};
 
-  /** ============================================================
-   *  CREATE CARD
-   * ============================================================ **/
+  /* ============================================================
+     CREATE CARD (first load only)
+  ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
     card.type = "button";
@@ -56,6 +93,7 @@
 
     const statusEl = card.querySelector(".status");
 
+    /* Build URL to speed-judge page */
     const judgeURL =
       `speed-judge.html`
       + `?id=${encodeURIComponent(p.entryId)}`
@@ -67,6 +105,7 @@
       + `&state=${encodeURIComponent(p.state || "")}`
       + `&heat=${encodeURIComponent(p.heat || "")}`
       + `&station=${encodeURIComponent(station)}`
+      + `&key=${encodeURIComponent(key)}`     /* ⭐ keep judge locked in */
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
@@ -78,14 +117,14 @@
     return card;
   }
 
-  /** ============================================================
-   *  UPDATE CARD (fast)
-   * ============================================================ **/
+  /* ============================================================
+     FAST CARD UPDATE (status only)
+  ============================================================ */
   function updateCard(p) {
-    const entry = cardMap[p.entryId];
-    if (!entry) return;
+    const cached = cardMap[p.entryId];
+    if (!cached) return;
 
-    const { card, statusEl } = entry;
+    const { card, statusEl } = cached;
 
     if (p.status === "done") {
       card.classList.remove("pending");
@@ -98,9 +137,9 @@
     }
   }
 
-  /** ============================================================
-   *  LOAD DATA
-   * ============================================================ **/
+  /* ============================================================
+     LOAD STATION DATA
+  ============================================================ */
   async function loadStationList() {
     const firstLoad = Object.keys(cardMap).length === 0;
 
@@ -130,33 +169,36 @@
       return;
     }
 
-    const arr = data.entries || [];
+    const entries = data.entries || [];
 
-    /** First load → create all cards */
+    /* First load → build cards */
     if (firstLoad) {
       listEl.innerHTML = "";
-      arr.forEach((p, i) => {
+      entries.forEach((p, i) => {
         const card = createCard(p, i);
         listEl.appendChild(card);
       });
       return;
     }
 
-    /** Later → update status only */
-    arr.forEach(p => updateCard(p));
+    /* Next loads → update only status */
+    entries.forEach(p => updateCard(p));
   }
 
-  /** ============================================================
-   *  FULL PAGE REFRESH BUTTON
-   * ============================================================ **/
+  /* ============================================================
+     REFRESH BUTTON (full page reload)
+  ============================================================ */
   if (btnRefresh) {
     btnRefresh.addEventListener("click", () => {
       location.reload();
     });
   }
 
-  /** AUTO LOAD **/
+  /* ============================================================
+     AUTO LOAD ON PAGE OPEN
+  ============================================================ */
   window.addEventListener("load", () => {
     setTimeout(loadStationList, 60);
   });
+
 })();
