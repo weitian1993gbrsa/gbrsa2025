@@ -36,50 +36,53 @@
   set("#fEVENT", params.get("event"));
   set("#fDIVISION", params.get("division"));
 
-  /* ============================================================
-     NUMBERPAD + SCORE SCREEN (MAX 3 DIGITS)
-  ============================================================ */
-  const scoreScreen = $("#scoreScreen");
-  const hiddenScore = $("#hiddenScore");
-  const numberButtons = document.querySelectorAll(".simple-pad button");
+ /* ============================================================
+   NUMBERPAD SAFE HANDLER (NO AUTO SUBMIT)
+============================================================ */
+const scoreScreen = $("#scoreScreen");
+const hiddenScore = $("#hiddenScore");
+const numberButtons = document.querySelectorAll(".simple-pad button");
 
-  numberButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.key;
+numberButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.key;
 
-      /* CLEAR BUTTON */
-      if (key === "clear") {
-        scoreScreen.textContent = "···";
-        hiddenScore.value = "";
-        return;
-      }
+    // If no key assigned → ignore completely
+    if (!key) return;
 
-      /* ENTER BUTTON */
-      if (key === "enter") {
-        const form = $("#scoreForm");
-        form.requestSubmit(); // safer submit
-        return;
-      }
+    /* CLEAR BUTTON */
+    if (key === "clear") {
+      hiddenScore.value = "";
+      scoreScreen.textContent = "···";
+      return;
+    }
 
-      /* DIGITS ONLY */
-      if (/^[0-9]$/.test(key)) {
-        let stored = hiddenScore.value;
+    /* ENTER BUTTON — manually submit */
+    if (key === "enter") {
+      $("#scoreForm").requestSubmit();
+      return;
+    }
 
-        // Prevent more than 3 digits
-        if (stored.length >= 3) return;
+    /* DIGITS ONLY */
+    if (/^[0-9]$/.test(key)) {
+      let stored = hiddenScore.value;
 
-        // Add digit
-        stored += key;
-        hiddenScore.value = stored;
+      // MAX 3 digits
+      if (stored.length >= 3) return;
 
-        // Update the screen using dots
-        scoreScreen.textContent =
-          "•".repeat(stored.length).padEnd(3, "·");
+      stored += key;
+      hiddenScore.value = stored;
 
-        return;
-      }
-    });
+      // Update screen — dots only
+      scoreScreen.textContent =
+        "•".repeat(stored.length).padEnd(3, "·");
+
+      return;
+    }
+
   });
+});
+
 
   /* ============================================================
      SUBMIT FORM
