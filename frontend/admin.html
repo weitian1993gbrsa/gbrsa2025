@@ -62,16 +62,17 @@
 <script>
 /* --------------------------------------------
    FIXED NAVIGATION FOR ADMIN → JUDGE PAGES
-   These use location.replace() so index.html 
-   is NOT stored in browser history anymore.
+   Pass the admin key (?key=xxxx) to judge pages
 -------------------------------------------- */
 
 function openSpeed() {
-  window.location.replace("speed.html");
+  const key = new URLSearchParams(location.search).get("key");
+  window.location.replace(`speed.html?key=${key}`);
 }
 
 function openFreestyle() {
-  window.location.replace("freestyle.html");
+  const key = new URLSearchParams(location.search).get("key");
+  window.location.replace(`freestyle.html?key=${key}`);
 }
 
 /* --------------------------------------------
