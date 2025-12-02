@@ -86,7 +86,7 @@
 </footer>
 
 <!-- ===================================================
-     ADMIN LOGOUT + FORCE LOGOUT API
+     ADMIN LOGOUT + FORCE LOGOUT API (NO POPUP VERSION)
      =================================================== -->
 <script>
 function logoutAdmin() {
@@ -95,25 +95,27 @@ function logoutAdmin() {
 
 async function forceLogoutAll() {
 
-    // 🔥 FIXED: Ensure CONFIG IS LOADED
+    // Ensure config exists
     if (!window.CONFIG || !window.CONFIG.APPS_SCRIPT_URL) {
-        alert("CONFIG not loaded.");
+        console.error("CONFIG not loaded");
         return;
     }
 
     const url = window.CONFIG.APPS_SCRIPT_URL + "?cmd=forceLogout";
 
     try {
-        const res = await fetch(url);
+        const res = await fetch(url, { cache: "no-store" });
         const js = await res.json();
 
-        if (js.ok) {
-            alert("🔥 All judges have been logged out.\n\nLogout Version = " + js.logoutVersion);
+        if (js && js.ok) {
+            // SILENT SUCCESS — NO POPUP
+            console.log("All judges forced to logout. Version =", js.logoutVersion);
         } else {
-            alert("❌ ERROR: " + js.error);
+            console.error("Force logout error:", js.error);
         }
-    } catch(e){
-        alert("❌ Network error: " + e);
+
+    } catch (e) {
+        console.error("Force logout network error:", e);
     }
 }
 </script>
