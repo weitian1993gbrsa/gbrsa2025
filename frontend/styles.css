@@ -447,3 +447,15 @@ body:not(.homepage) {
   border-left: 4px solid var(--accent);
 }
 
+/* ============================================================
+   STICKY HEADER FOR STATION PAGE
+   ============================================================ */
+
+body.station .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: #ffffffd9;
+  backdrop-filter: saturate(1.2) blur(6px);
+  border-bottom: 1px solid var(--border);
+}
