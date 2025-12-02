@@ -17,21 +17,13 @@ html, body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
 }
 
-/* Prevent iOS zoom on form inputs */
-input[type='text'],
-input[type='number'],
-input[type='search'],
-input[type='tel'],
-input[type='email'],
-textarea,
-select,
-button {
+/* Prevent iOS zoom */
+input, textarea, select, button {
   font-size: 16px !important;
   -webkit-text-size-adjust: 100% !important;
-  -webkit-appearance: none;
 }
 
-/* Let checkboxes & radio buttons stay native */
+/* Keep checkboxes native */
 input[type='checkbox'],
 input[type='radio'] {
   -webkit-appearance: checkbox;
@@ -52,12 +44,11 @@ input[type='radio'] {
 }
 
 /* ---------------------------------
-   GLOBAL RESETS
+   GLOBAL / RESET
 ----------------------------------- */
 * { box-sizing: border-box; }
-.page { display: flex; flex-direction: column; }
 
-.scrollable { -webkit-overflow-scrolling: touch; }
+.page { display: flex; flex-direction: column; }
 
 a:focus:not(:focus-visible),
 input:focus:not(:focus-visible),
@@ -66,18 +57,14 @@ button:focus:not(:focus-visible) {
   box-shadow: none;
 }
 
-/* Prevent scroll bounce on judge pages */
+/* Prevent bounce */
 body {
   overscroll-behavior: none;
-  touch-action: manipulation;
-  max-height: 100vh;
   overflow-x: hidden;
 }
 
 body.homepage {
-  overscroll-behavior: none;
   min-height: 100dvh;
-  height: auto;
   overflow-y: auto;
 }
 
@@ -99,45 +86,18 @@ body:not(.homepage) {
 }
 
 .logo {
-  height: 48px;
-  max-width: 220px;
+  height: 56px;
+  width: auto;
   object-fit: contain;
-  flex: 0 0 auto;
 }
 
-.titles h1 { margin: 0; font-size: 1.15rem; }
-.subtitle { margin: .125rem 0 0; color: var(--muted); font-size: .9rem; }
-
-/* ---------------------------------
-   CONTAINERS
------------------------------------ */
-.container {
-  padding: 1rem;
-  max-width: 900px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.block {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.2rem 1rem;
-  margin: 1rem 0;
-  box-shadow: 0 6px 18px #0000000d;
-}
-
-.hint {
-  color: var(--muted);
-  font-size: .9rem;
-  margin-top: .5rem;
-}
+.titles h1 { margin: 0; font-size: 1.25rem; }
+.subtitle { margin: .25rem 0 0; color: var(--muted); }
 
 /* ---------------------------------
    BUTTONS
 ----------------------------------- */
 .btn {
-  appearance: none;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--text);
@@ -156,36 +116,46 @@ body:not(.homepage) {
 }
 
 /* ---------------------------------
-   INPUTS & FORM ELEMENTS
+   INPUTS
 ----------------------------------- */
 .input {
   width: 100%;
   padding: .75rem;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
 }
 
-.field { display: flex; flex-direction: column; gap: .35rem; }
-.check { display: flex; align-items: center; gap: .5rem; }
+/* ---------------------------------
+   CARD COMPONENTS
+----------------------------------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.25rem 1.5rem;
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: 0 6px 18px #00000012;
+  transition: 0.15s ease;
+}
+
+.card:hover {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 /* ---------------------------------
-   STATION CARD
+   STATION CARDS
 ----------------------------------- */
 .station-card {
-  display: block;
-  width: 100%;
-  text-align: left;
   padding: 18px 20px;
   margin: 12px 0;
   border-radius: 14px;
   border: none;
   cursor: pointer;
-  transition: 0.2s ease;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
   color: #fff;
-  appearance: none;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
+  transition: 0.2s ease;
 }
 
 .station-card.pending { background: #24c36b; }
@@ -196,14 +166,12 @@ body:not(.homepage) {
   justify-content: space-between;
   font-size: 13px;
   font-weight: 600;
-  opacity: .9;
   margin-bottom: 6px;
 }
 
 .station-card .name {
   font-size: 16px;
   font-weight: 600;
-  line-height: 1.3;
   margin-bottom: 6px;
 }
 
@@ -217,13 +185,11 @@ body:not(.homepage) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 4px;
 }
 
 .station-card .status {
   font-size: 13px;
   font-weight: 700;
-  opacity: .9;
 }
 
 .station-card .event {
@@ -234,55 +200,58 @@ body:not(.homepage) {
 }
 
 /* ---------------------------------
-   HOMEPAGE MENUS
+   HOME PAGE LAYOUT (FINAL FIX)
 ----------------------------------- */
+
+.page-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0 3rem;
+}
+
+.home-wrapper {
+  width: 100%;
+  max-width: 900px;
+  padding: 1rem 1.2rem;
+}
+
+/* GRID LAYOUT */
 .menu-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-@media(min-width: 720px) {
+@media (min-width: 780px) {
   .menu-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .judge-login {
+    grid-column: span 2;
   }
 }
 
-.card {
-  display: block;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1rem;
-  text-decoration: none;
-  color: var(--text);
-  box-shadow: 0 6px 18px #00000012;
-  transition: 0.15s ease;
-}
-
-.card:hover {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* ---------------------------------
-   JUDGE LOGIN UI
------------------------------------ */
+/* Judge Login */
 .judge-login {
-  padding: 1.25rem 1.25rem 1.5rem;
   border-left: 4px solid var(--accent);
 }
 
 .judge-desc {
-  margin: .25rem 0 1rem;
   color: var(--muted);
-  font-size: .9rem;
+  margin-bottom: 1rem;
 }
 
 .login-field {
   display: flex;
   gap: .5rem;
-  align-items: center;
+}
+
+@media(max-width: 480px) {
+  .login-field {
+    flex-direction: column;
+  }
 }
 
 .judge-error {
@@ -290,23 +259,10 @@ body:not(.homepage) {
   color: #d00000;
   font-weight: 600;
   margin-top: .75rem;
-  animation: fadeIn .3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media(max-width: 480px) {
-  .login-field {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
 
 /* ---------------------------------
-   SPEED JUDGE SUBMIT OVERLAY
+   OVERLAY (speed-judge)
 ----------------------------------- */
 #submitOverlay {
   position: fixed;
@@ -316,134 +272,23 @@ body:not(.homepage) {
   display: flex;
   justify-content: center;
   align-items: center;
-  will-change: opacity, transform;
-  transform: translateZ(0);
+  transition: opacity .15s ease-out;
 }
 
 #submitOverlay.hide {
   display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
 }
 
-.overlay-card {
-  background: #fff;
-  padding: 1.25rem 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px #0002;
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .75rem;
-  transform: translateZ(0);
-  will-change: transform, opacity;
-}
-
-.overlay-text {
-  font-weight: 700;
-  color: #111827;
-}
-
-.loading {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-}
-
-.loading .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #9ca3af;
-  animation: blink 1s infinite ease-in-out;
-}
-
-.loading .dot:nth-child(2){ animation-delay:.15s }
-.loading .dot:nth-child(3){ animation-delay:.3s }
-
-@keyframes blink {
-  0%,80%,100%{ transform:scale(0); opacity:.3 }
-  40%{ transform:scale(1); opacity:1 }
-}
-
-/* ============================================================
-   TURBO GPU OPTIMIZATION — Smooth UI + Faster Animations
-   ============================================================ */
-
-body:not(.homepage) {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-}
-
-.station-card {
-  will-change: transform, opacity;
-  transform: translateZ(0);
-  transition: transform 0.15s ease, opacity 0.15s ease;
-}
-
-.station-card:active {
-  transform: scale(0.985);
-}
-
-#submitOverlay {
-  transition: opacity .12s ease-out;
-}
-
+/* ---------------------------------
+   PERFORMANCE OPTIMIZATION
+----------------------------------- */
+.station-card,
 .btn {
+  will-change: transform, opacity;
   transform: translateZ(0);
-  will-change: transform;
 }
 
-.btn:active {
+.btn:active,
+.station-card:active {
   transform: scale(0.97);
-  transition: transform .1s ease-out;
 }
-
-/* ============================================
-   NEW CENTERED HOMEPAGE LAYOUT (UI FIX)
-   ============================================ */
-
-.home-wrapper {
-  max-width: 960px;        /* ⭐ Perfect centered width */
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.hero {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 1rem;
-}
-
-/* Modern grid */
-.menu-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-
-@media (min-width: 780px) {
-  .menu-grid {
-    grid-template-columns: 1fr 1fr;  /* 2-column cards */
-  }
-
-  .judge-login {
-    grid-column: span 2;             /* Full width */
-  }
-}
-
-/* Better card feel */
-.card {
-  border-radius: 18px;
-  padding: 1.25rem 1.5rem;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-}
-
-/* Judge Login highlight */
-.judge-login {
-  border-left: 4px solid var(--accent);
-}
-
