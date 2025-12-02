@@ -9,16 +9,16 @@
 <!-- CSS -->
 <link rel="stylesheet" href="./styles.css"/>
 
-<!-- 🔥 PREFETCH -->
+<!-- 🔥 PREFETCH (Speed Boost) -->
 <link rel="prefetch" href="speed-judge.html">
 <link rel="prefetch" href="speed-judge.js">
 <link rel="prefetch" href="styles.css">
 <link rel="prefetch" href="station.html">
 
-<!-- CONFIG -->
+<!-- Load config first -->
 <script src="./config.js"></script>
 
-<!-- Scripts -->
+<!-- Other scripts -->
 <script defer src="./app.js"></script>
 <script defer src="./nozoom.js"></script>
 
@@ -26,18 +26,18 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1020">
 
-<!-- API Warm-up -->
+<!-- 🔥 API Warm-Up -->
 <script>
 fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </script>
 
-<!-- iOS Input Zoom Fix -->
+<!-- iOS Zoom Fix -->
 <script>
 (function(){
   function ensureSize(el){
     try{
       if(!el) return;
-      var t = el.tagName.toLowerCase();
+      let t = el.tagName.toLowerCase();
       if (t==='input' || t==='textarea' || t==='select'){
         el.style.fontSize='16px';
         el.style.webkitTextSizeAdjust='100%';
@@ -60,8 +60,9 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
   </div>
 </header>
 
-<main class="hero">
-  <section class="home-wrapper">   <!-- ⭐ NEW CENTERED WRAPPER -->
+<!-- ⭐ CENTERED PAGE WRAPPER -->
+<main class="page-wrapper">
+  <div class="home-wrapper">
 
     <h2 class="hero-title">Input ID. Score. Sync.</h2>
     <p class="hero-text">Paperless judging for Speed Events.</p>
@@ -80,7 +81,7 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
         <p>ID → lookup → input MISSES/BREAKS/DIFF/Missed RE → submit.</p>
       </a>
 
-      <!-- ⭐ JUDGE LOGIN -->
+      <!-- Judge login -->
       <div class="card judge-login">
         <h3>Judge Access</h3>
         <p class="judge-desc">Enter your assigned access code to open your station.</p>
@@ -94,7 +95,8 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
       </div>
 
     </div>
-  </section>
+
+  </div>
 </main>
 
 <footer class="foot">
@@ -102,14 +104,15 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </footer>
 
 <script>
-// Get valid judge keys
+// Judge key mapping from config.js
 const validKeys = window.JUDGE_KEYS;
 
-const keyInput = document.getElementById("judgeKey");
-const keyError = document.getElementById("keyError");
-const btnLogin = document.getElementById("btnJudgeLogin");
+// UI elements
+const keyInput  = document.getElementById("judgeKey");
+const keyError  = document.getElementById("keyError");
+const btnLogin  = document.getElementById("btnJudgeLogin");
 
-// Submit handler
+// Handle login button
 btnLogin.addEventListener("click", () => {
   const key = keyInput.value.trim();
   const station = validKeys[key];
@@ -124,20 +127,40 @@ btnLogin.addEventListener("click", () => {
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
+  // Redirect to secure station
   location.href = `station.html?station=${station}&key=${key}`;
 });
 
-// ENTER key support
+// Support Enter key
 keyInput.addEventListener("keyup", e => {
   if (e.key === "Enter") btnLogin.click();
 });
 
-// ⭐ FIX SAFARI/BACK CACHE — clear password
-window.addEventListener("pageshow", () => {
+// ⭐ UNIVERSAL RESET FUNCTION
+function resetJudgeLogin() {
   btnLogin.disabled = false;
   btnLogin.textContent = "Enter";
   keyError.style.display = "none";
-  keyInput.value = "";  // Clear password
+  keyInput.value = ""; // 🔥 CLEAR PASSWORD
+}
+
+/* =============================
+   FIX BACK-NAV ON ALL DEVICES
+   ============================= */
+
+// iOS Safari — page restored from cache
+window.addEventListener("pageshow", resetJudgeLogin);
+
+// Android Chrome — swipe back triggers visibilitychange
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    resetJudgeLogin();
+  }
+});
+
+// Extra safety — Android memory snapshot restore
+window.addEventListener("pagehide", () => {
+  keyInput.value = "";
 });
 </script>
 
