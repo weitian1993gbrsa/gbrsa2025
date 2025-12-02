@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>GBRSA Admin Panel</title>
+
+<link rel="stylesheet" href="./styles.css"/>
+
+<!-- Core scripts -->
+<script defer src="./config.js"></script>
+<script defer src="./app.js"></script> 
+<script defer src="./admin.js"></script>  <!-- NEW -->
+
+<style>
+  .admin-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1rem;
+    background:#ffffffd9;
+    border-bottom:1px solid var(--border);
+    backdrop-filter:blur(6px) saturate(1.2);
+  }
+  .admin-title { font-size:1.4rem; font-weight:700; }
+  .admin-sub { color:#666; font-size:.9rem; }
+
+  .admin-menu {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:1rem;
+    margin-top:1.5rem;
+  }
+  @media (min-width:700px) {
+    .admin-menu { grid-template-columns:1fr 1fr; }
+  }
+</style>
+
+</head>
+
+<body class="page admin">
+
+<header class="admin-header">
+  <div>
+    <div class="admin-title">Admin Panel</div>
+    <div class="admin-sub">GBRSA RopeApp System Control</div>
+  </div>
+
+  <button class="btn" id="btnLogout">Logout</button>
+</header>
+
+<main class="container">
+
+  <section class="block">
+    <h2>Admin Controls</h2>
+
+    <div class="admin-menu">
+
+      <a href="speed.html" class="card">
+        <h3>Open Speed Judge</h3>
+        <p>Access speed input page directly</p>
+      </a>
+
+      <a href="freestyle.html" class="card">
+        <h3>Open Freestyle Judge</h3>
+        <p>Enter freestyle scores</p>
+      </a>
+
+      <a href="station.html?station=1&key=admin" class="card">
+        <h3>View Station 1</h3>
+        <p>Check station queue</p>
+      </a>
+
+      <a href="#" class="card" id="forceRefresh">
+        <h3>Force API Refresh</h3>
+        <p>Clear cache & reload data</p>
+      </a>
+
+    </div>
+  </section>
+
+</main>
+
+</body>
+</html>
