@@ -3,7 +3,9 @@
   const $ = (q) => document.querySelector(q);
   const params = new URLSearchParams(location.search);
 
-  const returnURL = `station.html?station=${params.get("station")}`;
+  // FIX: return with the same KEY to avoid Access Denied
+  const returnURL =
+    `station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
   // Load all participant fields from URL
   const set = (id, val) => { const el = $(id); if (el) el.value = val || ""; };
@@ -41,7 +43,7 @@
       overlayText.textContent = "Saved ✔";
 
       setTimeout(() => {
-        location.href = returnURL;
+        location.href = returnURL;   // SECURE RETURN
       }, 600);
 
     } catch (err) {
