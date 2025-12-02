@@ -439,64 +439,21 @@ body.station .station-card {
   width: 100%;
 }
 
-/* =========================================
-   Participant Card (same as station cards)
-   ========================================= */
-.participant-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 18px 20px;
-  margin: 16px 0;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+/* ===== PARTICIPANT CARD COLOR STATES ===== */
+
+.participant-card.done {
+  background: #059669 !important; /* green */
+  color: #fff !important;
 }
 
-.pc-line1 {
-  font-size: 1.05rem;
-  font-weight: 600;
-  display: flex;
-  gap: 8px;
+.participant-card.pending {
+  background: #d97706 !important; /* orange */
+  color: #fff !important;
 }
 
-.pc-id {
-  color: #444;
+/* Make inner texts white */
+.participant-card.done span,
+.participant-card.pending span {
+  color: #fff !important;
 }
 
-.pc-name {
-  color: #111;
-}
-
-.pc-line2,
-.pc-line3 {
-  margin-top: 6px;
-  font-size: 0.92rem;
-  color: #666;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.pc-meta {
-  color: #444;
-}
-
-.pc-status {
-  margin-top: 12px;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.pc-done {
-  color: #0b9e23;
-}
-
-.pc-pending {
-  color: #d97b00;
-}
-
-.pc-btn {
-  width: 100%;
-  margin-top: 16px;
-  padding: 0.9rem;
-  font-size: 1.05rem;
-  border-radius: 10px;
-}
