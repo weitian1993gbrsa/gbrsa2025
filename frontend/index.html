@@ -6,20 +6,26 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>GBRSA Score • Scoring</title>
 <link rel="stylesheet" href="./styles.css"/>
+
+<!-- IMPORTANT: LOAD CONFIG FIRST (for JUDGE_KEYS) -->
+<script src="./config.js"></script>
+
+<!-- Other scripts may load after -->
 <script defer src="./app.js"></script>
-<script defer src="./config.js"></script>
 <script defer src="./nozoom.js"></script>
+
 <style>html, body { touch-action: manipulation; }</style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1020">
 
 <script>
+/* iOS input zoom fix */
 (function(){
   function ensureSize(el){
     try{
       if(!el) return;
       var t = el.tagName.toLowerCase();
-      if(t==='input' || t==='textarea' || t==='select'){
+      if (t==='input' || t==='textarea' || t==='select'){
         el.style.fontSize='16px';
         el.style.webkitTextSizeAdjust='100%';
       }
@@ -64,7 +70,7 @@
         <p>ID → lookup → input MISSES/BREAKS/DIFF/Missed RE → submit.</p>
       </a>
 
-      <!-- ⭐ NEW: Judge Login -->
+      <!-- ⭐ JUDGE LOGIN BLOCK -->
       <div class="card judge-login">
         <h3>Judge Access</h3>
         <p class="judge-desc">Enter your assigned access code to open your station.</p>
@@ -86,13 +92,14 @@
 </footer>
 
 <script>
-// Use global JUDGE_KEYS (from config.js)
+// Get valid keys from config.js
 const validKeys = window.JUDGE_KEYS;
 
 const keyInput = document.getElementById("judgeKey");
 const keyError = document.getElementById("keyError");
 const btnLogin = document.getElementById("btnJudgeLogin");
 
+// Handle login button
 btnLogin.addEventListener("click", () => {
   const key = keyInput.value.trim();
   const station = validKeys[key];
@@ -107,7 +114,7 @@ btnLogin.addEventListener("click", () => {
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  // Redirect judge to their secure station
+  // Redirect technician/judge to their secure station
   location.href = `station.html?station=${station}&key=${key}`;
 });
 
