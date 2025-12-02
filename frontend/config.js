@@ -35,8 +35,3 @@ window.JUDGE_KEYS = {
   "qqq101": 11,
   "key999": 12
 };
-
-window.ADMIN_KEYS = {
-  "admin123": true,
-  "gbadmin": true
-};
