@@ -56,12 +56,12 @@
       if (isYes) {
         fsBtn.classList.remove("fs-yes");
         fsBtn.classList.add("fs-no");
-        fsBtn.textContent = "No False Start";
+        fsBtn.textContent = "False Start: No";
         fsVal.value = "NO";
       } else {
         fsBtn.classList.remove("fs-no");
         fsBtn.classList.add("fs-yes");
-        fsBtn.textContent = "False Start";
+        fsBtn.textContent = "False Start: Yes";
         fsVal.value = "YES";
       }
     });
