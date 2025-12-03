@@ -31,10 +31,7 @@
       top: 0;
       z-index: 9999;
     }
-    .judge-title { 
-      font-size: 1.4rem; 
-      font-weight: 700; 
-    }
+    .judge-title { font-size: 1.4rem; font-weight: 700; }
 
     /* SCORE SCREEN */
     .score-screen {
@@ -73,7 +70,6 @@
       color: #b91c1c;
     }
 
-    /* BLUE SUBMIT BUTTON */
     .np-enter {
       background: #2563eb !important;
       color: #fff !important;
@@ -81,22 +77,33 @@
       font-weight: 700;
     }
 
-    /* FALSE START BUTTON (same width as numpad buttons) */
+    /* FALSE START — same width as numpad buttons */
+    .fs-row {
+      display: flex;
+      justify-content: flex-start; /* align left */
+      margin-top: 5px;
+      margin-bottom: 20px;
+    }
+
     .fs-btn {
       width: 100%;
+      max-width: 120px;   /* EXACT same width as numpad buttons */
       padding: 20px 0;
       font-size: 1.6rem;
       border-radius: 12px;
       font-weight: 700;
       border: 1px solid transparent;
+      text-align: center;
     }
+
     .fs-no {
-      background: #22c55e;   /* green */
+      background: #22c55e;
       border-color: #16a34a;
       color: white;
     }
+
     .fs-yes {
-      background: #dc2626;   /* red */
+      background: #dc2626;
       border-color: #b91c1c;
       color: white;
     }
@@ -113,6 +120,7 @@
 </header>
 
 <main class="container">
+
   <section class="block">
 
     <form id="scoreForm" class="form">
@@ -137,15 +145,14 @@
         <button type="button" class="np-clear" data-key="clear">Clear</button>
         <button type="button" data-key="0">0</button>
 
-        <!-- BLUE SUBMIT BUTTON -->
         <button type="submit" class="np-enter">Submit</button>
       </div>
 
-      <!-- 🔥 FALSE START BUTTON (same width as CLEAR, inside 3-col grid) -->
-      <div class="numpad-grid">
+      <input type="hidden" name="SCORE" id="hiddenScore"/>
+
+      <!-- FALSE START BUTTON (same width as numpad buttons) -->
+      <div class="fs-row">
         <button type="button" id="falseStartBtn" class="fs-btn fs-no">NO</button>
-        <div></div>
-        <div></div>
       </div>
 
       <input type="hidden" name="FALSE START" id="falseStartVal" value="">
@@ -192,10 +199,8 @@ function goBack() {
   const key = params.get("key");
   location.href = `station.html?station=${station}&key=${key}`;
 }
-
 history.pushState(null, null, location.href);
 window.onpopstate = () => goBack();
-
 window.addEventListener("pageshow", (event) => {
   if (event.persisted) goBack();
 });
