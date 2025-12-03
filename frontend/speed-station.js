@@ -147,9 +147,30 @@
     }
 
     /* FILTER SPEED EVENTS */
-    const arr = (data.entries || []).filter(p =>
-      SPEED_EVENTS.includes(String(p.event).trim())
-    );
+let arr = (data.entries || []).filter(p =>
+  SPEED_EVENTS.includes(String(p.event).trim())
+);
+
+/* ============================================================
+   SORT: NEW FIRST, COMPLETED LAST
+   status === "done" → COMPLETED (blue)
+   status !== "done" → NEW (green)
+============================================================ */
+arr.sort((a, b) => {
+  const A = a.status === "done" ? "COMPLETED" : "NEW";
+  const B = b.status === "done" ? "COMPLETED" : "NEW";
+
+  // NEW goes to top
+  if (A === "NEW" && B !== "NEW") return -1;
+  if (B === "NEW" && A !== "NEW") return 1;
+
+  // COMPLETED goes to bottom
+  if (A === "COMPLETED" && B !== "COMPLETED") return 1;
+  if (B === "COMPLETED" && A !== "COMPLETED") return -1;
+
+  return 0;
+});
+
 
     listEl.innerHTML = "";
 
