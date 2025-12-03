@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
 
-  <!-- IMPORTANT: disable caching -->
+  <!-- Disable caching -->
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -34,7 +34,6 @@
     .judge-title { font-size: 1.4rem; font-weight: 700; }
     .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
 
-    /* SCORE SCREEN */
     .score-screen {
       width: 100%;
       background: #111;
@@ -48,7 +47,6 @@
       letter-spacing: 2px;
     }
 
-    /* NUMPAD */
     .numpad-grid {
       display: grid;
       grid-template-columns: repeat(3,1fr);
@@ -63,7 +61,7 @@
       background: #fff;
       border: 1px solid #ddd;
       font-weight: 600;
-      box-shadow: none; /* Remove shadow for 2D look */
+      box-shadow: none;
     }
 
     .np-clear {
@@ -77,15 +75,6 @@
       color: white;
       border-color: #1d4ed8;
       font-weight: 700;
-    }
-
-    /* Main submit button */
-    .btn.primary {
-      background: #2563eb;
-      color: #fff;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
     }
   </style>
 </head>
@@ -123,12 +112,10 @@
 
         <button type="button" data-key="clear" class="np-clear">Clear</button>
         <button type="button" data-key="0">0</button>
-
-        <!-- ✅ Real Submit Button styled like numpad -->
         <button type="submit" class="np-enter">Enter</button>
       </div>
 
-      <!-- HIDDEN REAL SCORE -->
+      <!-- Hidden actual score -->
       <input type="hidden" name="SCORE" id="hiddenScore"/>
 
       <label class="check">
@@ -141,7 +128,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Hidden Participant Fields -->
+      <!-- Hidden backend fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -154,17 +141,11 @@
       <input type="hidden" name="EVENT" id="fEVENT">
       <input type="hidden" name="DIVISION" id="fDIVISION">
 
-      <!-- ✅ Bottom Submit Button (also blue) -->
-      <button type="submit" class="btn primary"
-        style="width:100%;font-size:1.1rem;padding:1rem;margin-top:1rem;">
-        Submit Result →
-      </button>
-
     </form>
   </section>
 </main>
 
-<!-- Submit Overlay -->
+<!-- Submit overlay -->
 <div id="submitOverlay" class="overlay hide">
   <div class="overlay-card">
     <div class="loading">
@@ -174,7 +155,6 @@
   </div>
 </div>
 
-<!-- BACK-NAV + CACHE FIX -->
 <script>
 function goBack() {
   const params = new URLSearchParams(location.search);
@@ -182,11 +162,8 @@ function goBack() {
   const key = params.get("key");
   location.href = `station.html?station=${station}&key=${key}`;
 }
-
-// Force swipe-back to redirect
 history.pushState(null, null, location.href);
 window.onpopstate = function () { goBack(); };
-
 window.addEventListener("pageshow", function (event) {
   if (event.persisted) goBack();
 });
