@@ -11,13 +11,12 @@
 
   stationLabel.textContent = station;
 
-  const CACHE_KEY_DATA = "stationData_" + station;
-  const CACHE_KEY_HTML = "stationHTML_" + station;
-
   /* ============================================================
-     🔐 SECURITY
+     🔐 SECURITY — Verify Key is correct for this station
   ============================================================ */
   const JUDGE_KEYS = window.JUDGE_KEYS || {};
+
+  // Convert { key: station } → { station: key }
   const validKeys = {};
   for (const [k, s] of Object.entries(JUDGE_KEYS)) validKeys[String(s)] = k;
 
@@ -32,11 +31,15 @@
   }
 
   /* ============================================================
-     HELPERS
+     ESCAPE
   ============================================================ */
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, m => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;"
     }[m]));
   }
 
@@ -49,13 +52,14 @@
   const cardMap = {};
 
   /* ============================================================
-     CREATE CARD
+     CREATE CARD (Optimized DOM build)
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
     card.type = "button";
     card.className = `station-card ${p.status === "done" ? "done" : "pending"}`;
 
+    // Use template literal only once → faster browser rendering
     card.innerHTML = `
       <div class="top-row">
         <span>Heat ${esc(p.heat)}</span>
@@ -71,6 +75,9 @@
       </div>
     `;
 
+    const statusEl = card.querySelector(".status");
+
+    // Pre-build URL (faster)
     const judgeURL =
       `speed-judge.html`
       + `?id=${encodeURIComponent(p.entryId)}`
@@ -86,95 +93,49 @@
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
-    card.addEventListener("click", () => {
-      location.href = judgeURL;
-    });
+    // Faster click binding
+    card.onclick = () => location.href = judgeURL;
 
-    cardMap[p.entryId] = {
-      card,
-      statusEl: card.querySelector(".status")
-    };
+    // Save reference
+    cardMap[p.entryId] = { card, statusEl };
 
     return card;
   }
 
   /* ============================================================
-     UPDATE CARD FAST
+     UPDATE CARD (Fast DOM update)
   ============================================================ */
   function updateCard(p) {
     const cache = cardMap[p.entryId];
     if (!cache) return;
+
     const { card, statusEl } = cache;
 
     if (p.status === "done") {
-      card.classList.remove("pending");
-      card.classList.add("done");
-      statusEl.textContent = "COMPLETED";
+      if (!card.classList.contains("done")) {
+        card.classList.remove("pending");
+        card.classList.add("done");
+        statusEl.textContent = "COMPLETED";
+      }
     } else {
-      card.classList.remove("done");
-      card.classList.add("pending");
-      statusEl.textContent = "NEW";
+      if (!card.classList.contains("pending")) {
+        card.classList.remove("done");
+        card.classList.add("pending");
+        statusEl.textContent = "NEW";
+      }
     }
   }
 
   /* ============================================================
-     LOAD LIST (FAST WITH CACHE + INSTANT-COMPLETE)
+     LOAD STATION LIST (Faster & safe)
   ============================================================ */
   async function loadStationList() {
-    const savedHTML = localStorage.getItem(CACHE_KEY_HTML);
-    const savedData = localStorage.getItem(CACHE_KEY_DATA);
+    const firstLoad = Object.keys(cardMap).length === 0;
 
-    const justDone = sessionStorage.getItem("completedEntry");
-
-    /* 1️⃣ INSTANT LOAD FROM CACHE */
-    if (savedHTML && savedData) {
-      listEl.innerHTML = savedHTML;
-
-      const arr = JSON.parse(savedData);
-      const cardNodes = listEl.querySelectorAll(".station-card");
-
-      arr.forEach((p, i) => {
-        const card = cardNodes[i];
-        if (!card) return;
-
-        // rebuild cardMap
-        cardMap[p.entryId] = {
-          card,
-          statusEl: card.querySelector(".status")
-        };
-
-        // rebuild click event
-        const judgeURL =
-          `speed-judge.html`
-          + `?id=${encodeURIComponent(p.entryId)}`
-          + `&name1=${encodeURIComponent(p.NAME1 || "")}`
-          + `&name2=${encodeURIComponent(p.NAME2 || "")}`
-          + `&name3=${encodeURIComponent(p.NAME3 || "")}`
-          + `&name4=${encodeURIComponent(p.NAME4 || "")}`
-          + `&team=${encodeURIComponent(p.team || "")}`
-          + `&state=${encodeURIComponent(p.state || "")}`
-          + `&heat=${encodeURIComponent(p.heat || "")}`
-          + `&station=${encodeURIComponent(station)}`
-          + `&key=${encodeURIComponent(key)}`
-          + `&event=${encodeURIComponent(p.event || "")}`
-          + `&division=${encodeURIComponent(p.division || "")}`;
-
-        card.onclick = () => { location.href = judgeURL; };
-
-        /* 🔥 INSTANT COMPLETE FIX — update card immediately */
-        if (justDone && p.entryId === justDone) {
-          card.classList.remove("pending");
-          card.classList.add("done");
-
-          const statusEl = card.querySelector(".status");
-          if (statusEl) statusEl.textContent = "COMPLETED";
-        }
-      });
-    } else {
+    if (firstLoad) {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
-    /* 2️⃣ BACKGROUND REFRESH FROM SERVER */
     let data;
     try {
       data = await apiGet({
@@ -182,45 +143,48 @@
         station,
         _ts: Date.now()
       });
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error(err);
+      if (firstLoad) {
+        listEl.innerHTML = `<div class="hint error">Error loading.</div>`;
+      }
       return;
     }
 
-    if (!data || !data.ok) return;
+    if (!data || !data.ok) {
+      if (firstLoad) {
+        listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
+      }
+      return;
+    }
+
     const arr = data.entries || [];
 
-    /* FIRST LOAD (NO CACHE YET) */
-    if (!savedHTML) {
+    if (firstLoad) {
+      // Use fragment for super-fast DOM append
+      const frag = document.createDocumentFragment();
+      arr.forEach((p, i) => frag.appendChild(createCard(p, i)));
       listEl.innerHTML = "";
-      arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
-
-      localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
-      localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
-      sessionStorage.removeItem("completedEntry");
+      listEl.appendChild(frag);
       return;
     }
 
-    /* SUBSEQUENT LOAD: UPDATE STATUS ONLY */
+    // Fast incremental update
     arr.forEach(updateCard);
-
-    /* UPDATE CACHE */
-    localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
-    localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
-
-    /* CLEAR instant complete flag */
-    sessionStorage.removeItem("completedEntry");
   }
 
   /* ============================================================
      REFRESH BUTTON
   ============================================================ */
-  if (btnRefresh) btnRefresh.addEventListener("click", () => location.reload());
+  if (btnRefresh) {
+    btnRefresh.addEventListener("click", () => location.reload());
+  }
 
   /* ============================================================
      AUTO LOAD
   ============================================================ */
   window.addEventListener("load", () => {
+    // Small delay improves UX (avoid blank screen flash)
     setTimeout(loadStationList, 50);
   });
 })();
