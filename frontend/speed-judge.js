@@ -4,26 +4,24 @@
   const params = new URLSearchParams(location.search);
 
   /* ============================================================
-     RETURN URL (secure)
-     Preload station page so redirect feels instant
+     RETURN URL + PRELOAD
   ============================================================ */
   const returnURL =
     `station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
-  // Preload next station page for instant return
-  fetch(returnURL).catch(()=>{});
+  fetch(returnURL).catch(() => {});
 
   /* ============================================================
-     PRE-WARM BACKEND (eliminate first cold delay)
+     PRE-WARM BACKEND
   ============================================================ */
-  fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
+  fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(() => {});
 
   /* ============================================================
-     LOAD PARTICIPANT VALUES INTO FORM
+     LOAD PARTICIPANT HIDDEN FIELDS
   ============================================================ */
-  const set = (id, val) => { 
-    const el = $(id); 
-    if (el) el.value = val || ""; 
+  const set = (id, val) => {
+    const el = $(id);
+    if (el) el.value = val || "";
   };
 
   set("#fID", params.get("id"));
@@ -38,88 +36,93 @@
   set("#fEVENT", params.get("event"));
   set("#fDIVISION", params.get("division"));
 
+  /* ============================================================
+     NUMBERPAD (NO AUTO-SUBMIT BUG)
+  ============================================================ */
+  const scoreScreen = $("#scoreScreen");
+  const hiddenScore = $("#hiddenScore");
   const scoreForm = $("#scoreForm");
   const overlay = $("#submitOverlay");
   const overlayText = $("#overlayText");
 
-/* ============================================================
-   NUMBERPAD + SCORE SCREEN (MAX 3 DIGITS)
-============================================================ */
-const scoreScreen = $("#scoreScreen");
-const hiddenScore = $("#hiddenScore");
+  const numButtons = document.querySelectorAll(".numpad-grid button");
 
-const numButtons = document.querySelectorAll(".numpad-grid button");
+  numButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.key;
 
-numButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const key = btn.dataset.key;
-
-    // CLEAR
-    if (key === "clear") {
-      scoreScreen.textContent = "0";
-      hiddenScore.value = "";
-      return;
-    }
-
-    // ENTER → submit
-    if (key === "enter") {
-      const form = $("#scoreForm");
-      form.dispatchEvent(new Event("submit"));
-      return;
-    }
-
-    // DIGITS 0–9 with MAX LENGTH = 3
-    if (/^[0-9]$/.test(key)) {
-      let current = scoreScreen.textContent.trim();
-
-      // If current already has 3 digits → stop
-      if (current.length >= 3) return;
-
-      // Replace leading zero
-      if (current === "0") {
-        scoreScreen.textContent = key;
-      } else {
-        scoreScreen.textContent = current + key;
+      /* -----------------------------
+         CLEAR
+      ----------------------------- */
+      if (key === "clear") {
+        scoreScreen.textContent = "0";
+        hiddenScore.value = "";
+        return;
       }
 
-      hiddenScore.value = scoreScreen.textContent;
-    }
+      /* -----------------------------
+         ENTER (manual submit ONLY)
+      ----------------------------- */
+      if (key === "enter") {
+        scoreForm.requestSubmit();   // SAFE submit
+        return;
+      }
+
+      /* -----------------------------
+         DIGITS (MAX 3)
+      ----------------------------- */
+      if (/^[0-9]$/.test(key)) {
+        let current = scoreScreen.textContent.trim();
+
+        if (current.length >= 3) return;
+
+        if (current === "0") {
+          scoreScreen.textContent = key;
+        } else {
+          scoreScreen.textContent = current + key;
+        }
+
+        hiddenScore.value = scoreScreen.textContent;
+      }
+    });
   });
-});
 
   /* ============================================================
-     FORM SUBMISSION HANDLER (TURBO OPTIMIZED)
+     FORM SUBMISSION (CLEAN + SAFE)
   ============================================================ */
   scoreForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // ⚡ Overlay immediate + smooth
-    overlay.style.opacity = "1";
+    const scoreVal = scoreScreen.textContent.trim();
+
+    if (!scoreVal || scoreVal === "0") {
+      alert("Please enter a score before submitting.");
+      return;
+    }
+
+    hiddenScore.value = scoreVal;
+
     overlay.classList.remove("hide");
     overlayText.textContent = "Submitting…";
 
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
 
-    // Checkbox fix
     payload["FALSE START"] = fd.get("FALSE START") ? "YES" : "";
     payload._form = "speed";
 
-    // ⚡ Non-blocking API + ultra-fast UI
-    apiPost(payload).then(() => {
-
-      overlayText.textContent = "Saved ✔";
-
-      // ⚡ SUPER FAST REDIRECT (120ms)
-      setTimeout(() => {
-        location.href = returnURL;
-      }, 120);
-
-    }).catch(err => {
-      console.error(err);
-      overlayText.textContent = "Submit failed";
-      setTimeout(() => overlay.classList.add("hide"), 800);
-    });
+    apiPost(payload)
+      .then(() => {
+        overlayText.textContent = "Saved ✔";
+        setTimeout(() => {
+          location.href = returnURL;
+        }, 120);
+      })
+      .catch(err => {
+        console.error(err);
+        overlayText.textContent = "Submit failed";
+        setTimeout(() => overlay.classList.add("hide"), 800);
+      });
   });
 
 })();
