@@ -32,7 +32,6 @@
       z-index: 9999;
     }
     .judge-title { font-size: 1.4rem; font-weight: 700; }
-    .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
 
     /* SCORE SCREEN */
     .score-screen {
@@ -48,14 +47,12 @@
       letter-spacing: 2px;
     }
 
-    /* NUMPAD */
     .numpad-grid {
       display: grid;
       grid-template-columns: repeat(3,1fr);
       gap: 14px;
       margin-bottom: 20px;
     }
-
     .numpad-grid button {
       padding: 20px 0;
       font-size: 1.6rem;
@@ -71,12 +68,32 @@
       color: #b91c1c;
     }
 
-    /* BLUE SUBMIT BUTTON */
     .np-enter {
       background: #2563eb !important;
       color: #fff !important;
       border: 1px solid #1d4ed8 !important;
       font-weight: 700;
+    }
+
+    /* FALSE START TOGGLE */
+    .fs-btn {
+      width: 100%;
+      padding: 20px 0;
+      font-size: 1.6rem;
+      border-radius: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      margin-top: 10px;
+    }
+    .fs-no {
+      background: #22c55e; /* green */
+      border-color: #16a34a;
+      color: white;
+    }
+    .fs-yes {
+      background: #dc2626; /* red */
+      border-color: #b91c1c;
+      color: white;
     }
   </style>
 </head>
@@ -85,9 +102,7 @@
 
 <header class="judge-header">
   <button onclick="goBack()" class="btn">← Back</button>
-  <div>
-    <div class="judge-title">Unofficial Score</div>
-  </div>
+  <div><div class="judge-title">Unofficial Score</div></div>
 </header>
 
 <main class="container">
@@ -96,10 +111,8 @@
 
     <form id="scoreForm" class="form">
 
-      <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
-      <!-- NUMBER PAD -->
       <div class="numpad-grid">
         <button type="button" data-key="1">1</button>
         <button type="button" data-key="2">2</button>
@@ -116,24 +129,21 @@
         <button type="button" class="np-clear" data-key="clear">Clear</button>
         <button type="button" data-key="0">0</button>
 
-        <!-- BLUE SUBMIT BUTTON -->
         <button type="submit" class="np-enter">Submit</button>
       </div>
 
-      <!-- Hidden score -->
       <input type="hidden" name="SCORE" id="hiddenScore"/>
 
-      <label class="check">
-        <input type="checkbox" name="FALSE START">
-        <span>FALSE START</span>
-      </label>
+      <!-- 🔥 NEW FALSE START TOGGLE BUTTON -->
+      <button type="button" id="falseStartBtn" class="fs-btn fs-no">NO</button>
+      <input type="hidden" name="FALSE START" id="falseStartVal" value="">
 
       <label class="field">
         <span>REMARK</span>
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Backend Hidden Fields -->
+      <!-- Hidden backend fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -151,7 +161,6 @@
   </section>
 </main>
 
-<!-- Submit Overlay -->
 <div id="submitOverlay" class="overlay hide">
   <div class="overlay-card">
     <div class="loading">
@@ -161,7 +170,6 @@
   </div>
 </div>
 
-<!-- BACK HANDLER -->
 <script>
 function goBack() {
   const params = new URLSearchParams(location.search);
@@ -169,13 +177,9 @@ function goBack() {
   const key = params.get("key");
   location.href = `station.html?station=${station}&key=${key}`;
 }
-
 history.pushState(null, null, location.href);
 window.onpopstate = () => goBack();
-
-window.addEventListener("pageshow", (event) => {
-  if (event.persisted) goBack();
-});
+window.addEventListener("pageshow", (e)=>{ if (e.persisted) goBack(); });
 </script>
 
 </body>

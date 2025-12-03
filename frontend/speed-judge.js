@@ -3,24 +3,13 @@
   const $ = (q) => document.querySelector(q);
   const params = new URLSearchParams(location.search);
 
-  /* ============================================================
-     RETURN URL (secure) + PRELOAD
-  ============================================================ */
+  /* RETURN URL */
   const returnURL =
     `station.html?station=${params.get("station")}&key=${params.get("key")}`;
+  fetch(returnURL).catch(()=>{});
 
-  fetch(returnURL).catch(()=>{}); // preload future page
-
-
-  /* ============================================================
-     PRE-WARM BACKEND
-  ============================================================ */
   fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 
-
-  /* ============================================================
-     FILL HIDDEN FIELDS FROM URL
-  ============================================================ */
   const set = (id, val) => {
     const el = $(id);
     if (el) el.value = val || "";
@@ -38,10 +27,7 @@
   set("#fEVENT", params.get("event"));
   set("#fDIVISION", params.get("division"));
 
-
-  /* ============================================================
-     NUMBERPAD + SCORE SCREEN (MAX 3 DIGITS)
-  ============================================================ */
+  /* NUMBER PAD */
   const scoreScreen = $("#scoreScreen");
   const hiddenScore = $("#hiddenScore");
 
@@ -49,46 +35,52 @@
 
   numButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-
       const key = btn.dataset.key;
 
-      /* ---------------- CLEAR BUTTON ---------------- */
       if (key === "clear") {
         scoreScreen.textContent = "0";
         hiddenScore.value = "";
         return;
       }
 
-      /* ---------------- SUBMIT BUTTON ---------------- */
       if (key === "enter") {
-        const form = $("#scoreForm");
-        form.dispatchEvent(new Event("submit"));
+        $("#scoreForm").dispatchEvent(new Event("submit"));
         return;
       }
 
-      /* ---------------- DIGITS 0–9 ---------------- */
       if (/^[0-9]$/.test(key)) {
         let current = scoreScreen.textContent.trim();
+        if (current.length >= 3) return;
 
-        if (current.length >= 3) return; // max 3 digits
-
-        if (current === "0") {
-          // Replace leading zero (but allow zero as only value)
-          scoreScreen.textContent = key;
-        } else {
-          scoreScreen.textContent = current + key;
-        }
+        if (current === "0") scoreScreen.textContent = key;
+        else scoreScreen.textContent = current + key;
 
         hiddenScore.value = scoreScreen.textContent;
       }
-
     });
   });
 
+  /* 🔥 FALSE START TOGGLE */
+  const fsBtn = $("#falseStartBtn");
+  const fsVal = $("#falseStartVal");
 
-  /* ============================================================
-     FORM SUBMISSION
-  ============================================================ */
+  fsBtn.addEventListener("click", () => {
+    const yes = fsBtn.classList.contains("fs-yes");
+
+    if (yes) {
+      fsBtn.classList.remove("fs-yes");
+      fsBtn.classList.add("fs-no");
+      fsBtn.textContent = "NO";
+      fsVal.value = "";
+    } else {
+      fsBtn.classList.remove("fs-no");
+      fsBtn.classList.add("fs-yes");
+      fsBtn.textContent = "YES";
+      fsVal.value = "YES";
+    }
+  });
+
+  /* SUBMIT */
   const scoreForm = $("#scoreForm");
   const overlay = $("#submitOverlay");
   const overlayText = $("#overlayText");
@@ -97,8 +89,6 @@
     e.preventDefault();
 
     const scoreVal = scoreScreen.textContent.trim();
-
-    // FIXED: allow "0" as valid score
     if (scoreVal === "") {
       alert("Please enter a score before submitting.");
       return;
@@ -113,21 +103,17 @@
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
 
-    payload["FALSE START"] = fd.get("FALSE START") ? "YES" : "";
     payload._form = "speed";
 
     apiPost(payload)
       .then(() => {
         overlayText.textContent = "Saved ✔";
-
-        setTimeout(() => {
-          location.href = returnURL;
-        }, 120);
+        setTimeout(() => location.href = returnURL, 120);
       })
       .catch((err) => {
         console.error(err);
         overlayText.textContent = "Submit failed";
-        setTimeout(() => overlay.classList.add("hide"), 800);
+        setTimeout(()=>overlay.classList.add("hide"), 800);
       });
   });
 
