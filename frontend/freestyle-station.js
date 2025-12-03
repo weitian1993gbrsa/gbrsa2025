@@ -48,7 +48,7 @@
     top.className = "top-row";
 
     const heat = document.createElement("span");
-    heat.textContent = "Performance " + p.heat;
+    heat.textContent = "Heat " + p.heat;
 
     const num = document.createElement("span");
     num.textContent = `#${index + 1} • ${p.entryId}`;
