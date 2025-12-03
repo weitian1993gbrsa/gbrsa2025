@@ -1,130 +1,119 @@
-(function () {
+// ============================================================
+//  FREESTYLE DIFFICULTY — FINAL UPDATED JS (2025)
+//  Supports:
+//   - Tap to increase count
+//   - Single-step undo
+//   - Reset
+//   - Live scoring
+// ============================================================
 
-  const $ = s => document.querySelector(s);
-  const $$ = s => document.querySelectorAll(s);
+// IJRU Difficulty Point Table
+const DIFF_POINTS = {
+  0.5: 0.12,
+  1: 0.15,
+  2: 0.23,
+  3: 0.34,
+  4: 0.51,
+  5: 0.76,
+  6: 1.14,
+  7: 1.71,
+  8: 2.56
+};
 
-  const reps = {
-    "0.5": 0,
-    "1": 0,
-    "2": 0,
-    "3": 0,
-    "4": 0,
-    "5": 0,
-    "6": 0,
-    "7": 0,
-    "8": 0
-  };
+// Track counts for each level
+const countMap = {
+  "0.5": 0,
+  "1": 0,
+  "2": 0,
+  "3": 0,
+  "4": 0,
+  "5": 0,
+  "6": 0,
+  "7": 0,
+  "8": 0
+};
 
-  const points = {
-    "0.5": 0.12,
-    "1": 0.15,
-    "2": 0.23,
-    "3": 0.34,
-    "4": 0.51,
-    "5": 0.76,
-    "6": 1.14,
-    "7": 1.71,
-    "8": 2.56
-  };
+// Store the last tap for UNDO
+let lastAction = null;
 
-  let undoLevel = null;
+// DOM elements
+const totalScoreEl = document.getElementById("totalScore");
+const undoBtn = document.getElementById("btnUndo");
+const resetBtn = document.getElementById("btnReset");
+const skillButtons = document.querySelectorAll(".skill-btn");
 
-  const totalScoreEl = $("#totalScore");
-  const undoBtn = $("#undoBtn");
-  const resetBtn = $("#resetBtn");
-  const submitBtn = $("#btnSubmit");
 
-  /* Fill hidden fields */
-  const qs = new URLSearchParams(location.search);
-  const set = (id,val)=>{ const el=$(id); if(el) el.value=val||""; };
+// ============================================================
+//  ADD TAP HANDLERS
+// ============================================================
+skillButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const level = btn.dataset.level;
+    countMap[level]++;
 
-  set("#fID", qs.get("id"));
-  set("#fNAME1", qs.get("name1"));
-  set("#fNAME2", qs.get("name2"));
-  set("#fNAME3", qs.get("name3"));
-  set("#fNAME4", qs.get("name4"));
-  set("#fTEAM", qs.get("team"));
-  set("#fSTATE", qs.get("state"));
-  set("#fHEAT", qs.get("heat"));
-  set("#fSTATION", qs.get("station"));
-  set("#fEVENT", qs.get("event"));
-  set("#fDIVISION", qs.get("division"));
-  set("#fKEY", qs.get("key"));
+    // Save undo
+    lastAction = { level: level };
 
-  /* UPDATE SCORE */
-  function updateScore() {
-    let total = 0;
-    for (let lvl in reps) total += reps[lvl] * points[lvl];
-    totalScoreEl.textContent = "Total: " + total.toFixed(2);
+    updateUI();
+  });
+});
+
+
+// ============================================================
+//  UPDATE UI
+// ============================================================
+function updateUI() {
+  // Update counts on each button
+  skillButtons.forEach(btn => {
+    const level = btn.dataset.level;
+    const count = countMap[level];
+
+    btn.querySelector(".count").textContent = count;
+  });
+
+  // Recalculate score
+  let total = 0;
+  for (const level in countMap) {
+    const c = countMap[level];
+    const pts = DIFF_POINTS[level];
+    total += c * pts;
   }
 
-  /* TAP BUTTON */
-  $$(".level-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const lvl = btn.dataset.level;
-      reps[lvl]++;
+  // Update score display
+  totalScoreEl.textContent = total.toFixed(2);
+}
 
-      $(`#rep${lvl.replace(".", "_")}`).textContent = reps[lvl];
 
-      undoLevel = lvl;
-      undoBtn.disabled = false;
+// ============================================================
+//  UNDO (single-step)
+// ============================================================
+undoBtn.addEventListener("click", () => {
+  if (!lastAction) return;
 
-      updateScore();
-    });
-  });
+  const lvl = lastAction.level;
 
-  /* UNDO */
-  undoBtn.addEventListener("click", () => {
-    if (!undoLevel) return;
+  if (countMap[lvl] > 0) {
+    countMap[lvl]--;
+  }
 
-    if (reps[undoLevel] > 0) {
-      reps[undoLevel]--;
-      $(`#rep${undoLevel.replace(".", "_")}`).textContent = reps[undoLevel];
-    }
+  // clear undo history
+  lastAction = null;
 
-    undoLevel = null;
-    undoBtn.disabled = true;
-    updateScore();
-  });
+  updateUI();
+});
 
-  /* RESET */
-  resetBtn.addEventListener("click", () => {
-    for (let lvl in reps) {
-      reps[lvl] = 0;
-      $(`#rep${lvl.replace(".", "_")}`).textContent = 0;
-    }
-    undoLevel = null;
-    undoBtn.disabled = true;
-    updateScore();
-  });
 
-  /* SUBMIT */
-  submitBtn.addEventListener("click", async () => {
-    const payload = {
-      _form: "freestyle_difficulty",
-      ID: $("#fID").value,
-      STATION: $("#fSTATION").value,
-      EVENT: $("#fEVENT").value,
-      DIVISION: $("#fDIVISION").value,
-      KEY: $("#fKEY").value,
-      TOTAL_DIFFICULTY: totalScoreEl.textContent.replace("Total: ",""),
-      LEVEL_0_5: reps["0.5"],
-      LEVEL_1: reps["1"],
-      LEVEL_2: reps["2"],
-      LEVEL_3: reps["3"],
-      LEVEL_4: reps["4"],
-      LEVEL_5: reps["5"],
-      LEVEL_6: reps["6"],
-      LEVEL_7: reps["7"],
-      LEVEL_8: reps["8"]
-    };
+// ============================================================
+//  RESET
+// ============================================================
+resetBtn.addEventListener("click", () => {
+  for (const lvl in countMap) {
+    countMap[lvl] = 0;
+  }
+  lastAction = null;
+  updateUI();
+});
 
-    try {
-      await apiPost(payload);
-      location.href = `freestyle-station.html?station=${qs.get("station")}&judgeType=difficulty&key=${qs.get("key")}`;
-    } catch (e) {
-      alert("Submit failed");
-    }
-  });
 
-})();
+// INITIAL DISPLAY UPDATE
+updateUI();
