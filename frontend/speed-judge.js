@@ -97,16 +97,16 @@
     const isYes = fsBtn.classList.contains("fs-yes");
 
     if (isYes) {
-      // Switch to NO (Green)
+      // Switch to No (Green)
       fsBtn.classList.remove("fs-yes");
       fsBtn.classList.add("fs-no");
-      fsBtn.textContent = "NO";
-      fsVal.value = "";
+      fsBtn.textContent = "No False Start";
+      fsVal.value = "NO";
     } else {
       // Switch to YES (Red)
       fsBtn.classList.remove("fs-no");
       fsBtn.classList.add("fs-yes");
-      fsBtn.textContent = "YES";
+      fsBtn.textContent = "False Start";
       fsVal.value = "YES";
     }
   });
