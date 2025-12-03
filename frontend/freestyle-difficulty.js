@@ -1,119 +1,78 @@
-// ============================================================
-//  FREESTYLE DIFFICULTY — FINAL UPDATED JS (2025)
-//  Supports:
-//   - Tap to increase count
-//   - Single-step undo
-//   - Reset
-//   - Live scoring
-// ============================================================
+(function () {
+  // IJRU difficulty point values
+  const levelPoints = {
+    0:   0.00,
+    0.5: 0.12,
+    1:   0.15,
+    2:   0.23,
+    3:   0.34,
+    4:   0.51,
+    5:   0.76,
+    6:   1.14,
+    7:   1.71,
+    8:   2.56
+  };
 
-// IJRU Difficulty Point Table
-const DIFF_POINTS = {
-  0.5: 0.12,
-  1: 0.15,
-  2: 0.23,
-  3: 0.34,
-  4: 0.51,
-  5: 0.76,
-  6: 1.14,
-  7: 1.71,
-  8: 2.56
-};
+  const buttons     = document.querySelectorAll(".skill-btn");
+  const totalScoreEl= document.getElementById("totalScore");
+  const undoBtn     = document.getElementById("btnUndo");
+  const resetBtn    = document.getElementById("btnReset");
+  const submitBtn   = document.getElementById("btnSubmit");
 
-// Track counts for each level
-const countMap = {
-  "0.5": 0,
-  "1": 0,
-  "2": 0,
-  "3": 0,
-  "4": 0,
-  "5": 0,
-  "6": 0,
-  "7": 0,
-  "8": 0
-};
-
-// Store the last tap for UNDO
-let lastAction = null;
-
-// DOM elements
-const totalScoreEl = document.getElementById("totalScore");
-const undoBtn = document.getElementById("btnUndo");
-const resetBtn = document.getElementById("btnReset");
-const skillButtons = document.querySelectorAll(".skill-btn");
-
-
-// ============================================================
-//  ADD TAP HANDLERS
-// ============================================================
-skillButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
+  const counts = {};
+  buttons.forEach(btn => {
     const level = btn.dataset.level;
-    countMap[level]++;
+    counts[level] = 0;
+  });
 
-    // Save undo
-    lastAction = { level: level };
+  let lastAction = null; // e.g. "4", "0.5"
 
+  function updateUI() {
+    let total = 0;
+
+    buttons.forEach(btn => {
+      const level = btn.dataset.level;
+      const count = counts[level] || 0;
+      btn.querySelector(".skill-count").textContent = count;
+      total += count * (levelPoints[level] || 0);
+    });
+
+    totalScoreEl.textContent = `Total: ${total.toFixed(2)}`;
+  }
+
+  // Tap to add skill
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const level = btn.dataset.level;
+      counts[level] = (counts[level] || 0) + 1;
+      lastAction = level; // only remember the last tap
+      updateUI();
+    });
+  });
+
+  // Single-step undo
+  undoBtn.addEventListener("click", () => {
+    if (!lastAction) return;
+    if (counts[lastAction] > 0) {
+      counts[lastAction]--;
+    }
+    lastAction = null;
     updateUI();
   });
-});
 
-
-// ============================================================
-//  UPDATE UI
-// ============================================================
-function updateUI() {
-  // Update counts on each button
-  skillButtons.forEach(btn => {
-    const level = btn.dataset.level;
-    const count = countMap[level];
-
-    btn.querySelector(".count").textContent = count;
+  // Reset all
+  resetBtn.addEventListener("click", () => {
+    Object.keys(counts).forEach(k => counts[k] = 0);
+    lastAction = null;
+    updateUI();
   });
 
-  // Recalculate score
-  let total = 0;
-  for (const level in countMap) {
-    const c = countMap[level];
-    const pts = DIFF_POINTS[level];
-    total += c * pts;
-  }
+  // Submit placeholder (hook to backend later)
+  submitBtn.addEventListener("click", () => {
+    // later: send counts + total to Apps Script
+    alert("Submit difficulty: backend hookup coming later.");
+  });
 
-  // Update score display
-  totalScoreEl.textContent = total.toFixed(2);
-}
-
-
-// ============================================================
-//  UNDO (single-step)
-// ============================================================
-undoBtn.addEventListener("click", () => {
-  if (!lastAction) return;
-
-  const lvl = lastAction.level;
-
-  if (countMap[lvl] > 0) {
-    countMap[lvl]--;
-  }
-
-  // clear undo history
-  lastAction = null;
-
+  // Initial paint
   updateUI();
-});
-
-
-// ============================================================
-//  RESET
-// ============================================================
-resetBtn.addEventListener("click", () => {
-  for (const lvl in countMap) {
-    countMap[lvl] = 0;
-  }
-  lastAction = null;
-  updateUI();
-});
-
-
-// INITIAL DISPLAY UPDATE
-updateUI();
+})();

@@ -2,155 +2,176 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>Difficulty Judge</title>
 
   <link rel="stylesheet" href="./styles.css"/>
 
-  <!-- Scripts -->
-  <script defer src="./config.js"></script>
-  <script defer src="./app.js"></script>
-  <script defer src="./freestyle-difficulty.js"></script>
-
   <style>
-    body {
-      background: #f3f5f9;
+    /* GLOBAL */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #f3f4f6;
+      font-family: system-ui, -apple-system, sans-serif;
     }
 
-    /* Header */
-    .topbar {
+    body {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
       align-items: center;
+      justify-content: space-between;
       padding: 1rem;
       background: #fff;
-      border-bottom: 1px solid #e5e7eb;
+      box-shadow: 0 2px 6px rgba(0,0,0,.05);
     }
 
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-      padding: .75rem 1.5rem;
-      border-radius: 12px;
-      border: none;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .btn-back {
-      padding: .75rem 1rem;
-      border-radius: 12px;
+    .back-btn {
       background: #fff;
-      border: 1px solid #ddd;
+      border: 1px solid #e5e7eb;
+      padding: .75rem 1.25rem;
+      border-radius: 16px;
+      font-size: 1.1rem;
+    }
+
+    .submit-btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: .75rem 1.5rem;
+      border-radius: 16px;
+      font-size: 1.1rem;
       font-weight: 600;
     }
 
-    /* Undo + Reset Area */
-    .top-controls {
-      width: 100%;
+    /* SCORE ROW */
+    .score-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1.2rem 2rem;
+      padding: 1.2rem 1.4rem;
     }
 
-    .score-title {
+    .undo-btn {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      padding: .75rem 1.4rem;
+      border-radius: 16px;
+      font-size: 1.1rem;
+    }
+
+    .reset-btn {
+      background: #e11d48;
+      color: #fff;
+      border: none;
+      padding: .75rem 1.4rem;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .total-label {
       font-size: 1.8rem;
-      font-weight: 800;
-      margin: 0;
-      text-align: center;
+      font-weight: 700;
+      color: #111;
+    }
+
+    /* GRID WRAPPER */
+    .grid-wrapper {
       flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0 1rem;
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
-    .btn-undo {
-      background: #ffffff;
-      border: 1px solid #d1d5db;
-      padding: 0.75rem 1.5rem;
-      border-radius: 14px;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .btn-reset {
-      background: #dc2626;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 14px;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    /* GRID BUTTONS — EXACT MATCH TO PIC 2 */
+    /* GRID */
     .grid {
+      width: 100%;
+      max-width: 700px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-      padding: 0 1.5rem 2rem;
-      justify-items: center;
+      gap: 1.2rem;
     }
 
+    /* SKILL BUTTONS */
     .skill-btn {
-      width: 180px;
-      height: 180px;
-      border-radius: 32px;
+      background: #22c55e;
+      color: #fff;
+      border-radius: 28px;
+      border: 2px solid rgba(0,0,0,.15);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      text-align: center;
+
+      height: 30vw;
+      min-height: 140px;
+      max-height: 210px;
+
+      font-size: 1.35rem;
       font-weight: 700;
-      font-size: 1.25rem;
-      color: white;
-      border: none;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      transition: 0.1s scale;
+      cursor: pointer;
     }
 
-    .skill-btn:active {
-      transform: scale(0.96);
-    }
+    .skill-btn.highlight { background: #3b82f6; }
+    .skill-btn.power     { background: #9333ea; }
 
-    /* Colors */
-    .green { background: #22c55e; }
-    .purple { background: #7c3aed; }
-
-    @media(max-width: 480px) {
-      .skill-btn {
-        width: 130px;
-        height: 130px;
-        border-radius: 28px;
-      }
+    .skill-count {
+      font-size: 1.7rem;
+      margin-top: .2rem;
     }
   </style>
+
+  <!-- NOTE: uses dash, NOT underscore -->
+  <script defer src="./freestyle-difficulty.js"></script>
 </head>
 
 <body>
 
-<header class="topbar">
-  <button class="btn-back" onclick="history.back()">← Back</button>
-  <h1>Difficulty Judge</h1>
-  <button class="btn-primary">Submit</button>
-</header>
+  <!-- HEADER -->
+  <div class="header">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+    <div style="font-size:1.7rem;font-weight:700;">Difficulty Judge</div>
+    <button class="submit-btn" id="btnSubmit">Submit</button>
+  </div>
 
-<section class="top-controls">
-  <button class="btn-undo" id="btnUndo">Undo</button>
-  <h2 class="score-title">Total: <span id="totalScore">0.00</span></h2>
-  <button class="btn-reset" id="btnReset">Reset</button>
-</section>
+  <!-- SCORE ROW -->
+  <div class="score-row">
+    <button class="undo-btn" id="btnUndo">Undo</button>
+    <div class="total-label" id="totalScore">Total: 0.00</div>
+    <button class="reset-btn" id="btnReset">Reset</button>
+  </div>
 
-<!-- SKILL BUTTON GRID -->
-<div class="grid">
-  <button class="skill-btn green" data-level="1">Level 1<br><span class="count">0</span></button>
-  <button class="skill-btn green" data-level="0.5">Level 0.5<br><span class="count">0</span></button>
-  <button class="skill-btn green" data-level="4">Level 4<br><span class="count">0</span></button>
+  <!-- GRID -->
+  <div class="grid-wrapper">
+    <div class="grid">
 
-  <button class="skill-btn green" data-level="2">Level 2<br><span class="count">0</span></button>
-  <button class="skill-btn purple" data-level="7">Level 7<br><span class="count">0</span></button>
-  <button class="skill-btn green" data-level="5">Level 5<br><span class="count">0</span></button>
+      <!-- Row 1 -->
+      <button class="skill-btn"          data-level="1">Level 1  <div class="skill-count">0</div></button>
+      <button class="skill-btn highlight"data-level="0.5">Level 0.5<div class="skill-count">0</div></button>
+      <button class="skill-btn"          data-level="4">Level 4  <div class="skill-count">0</div></button>
 
-  <button class="skill-btn green" data-level="3">Level 3<br><span class="count">0</span></button>
-  <button class="skill-btn purple" data-level="8">Level 8<br><span class="count">0</span></button>
-  <button class="skill-btn green" data-level="6">Level 6<br><span class="count">0</span></button>
-</div>
+      <!-- Row 2 -->
+      <button class="skill-btn"      data-level="2">Level 2<div class="skill-count">0</div></button>
+      <button class="skill-btn power"data-level="7">Level 7<div class="skill-count">0</div></button>
+      <button class="skill-btn"      data-level="5">Level 5<div class="skill-count">0</div></button>
+
+      <!-- Row 3 -->
+      <button class="skill-btn"      data-level="3">Level 3<div class="skill-count">0</div></button>
+      <button class="skill-btn power"data-level="8">Level 8<div class="skill-count">0</div></button>
+      <button class="skill-btn"      data-level="6">Level 6<div class="skill-count">0</div></button>
+
+    </div>
+  </div>
 
 </body>
 </html>
