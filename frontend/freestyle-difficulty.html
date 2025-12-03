@@ -2,314 +2,204 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-  <title>Difficulty Judge</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>Freestyle Difficulty Judge</title>
 
   <link rel="stylesheet" href="./styles.css"/>
+
+  <!-- Load Order -->
   <script defer src="./config.js"></script>
   <script defer src="./app.js"></script>
+  <script defer src="./freestyle-difficulty.js"></script>
 
   <style>
     body {
       background: #f5f7fb;
-      padding: 0;
       margin: 0;
+      padding: 0;
       font-family: system-ui, -apple-system, sans-serif;
     }
 
-    /* SIMPLE TOP HEADER (NO STICKY) */
-    .dj-header {
+    /* SIMPLE HEADER (NO STICKY) */
+    .topbar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 1rem;
       background: #fff;
       border-bottom: 1px solid #e5e7eb;
     }
-
-    .btn-back {
-      padding: .6rem 1rem;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-weight: 600;
+    .topbar .btn {
+      margin-right: 10px;
     }
-
-    .btn-submit {
-      padding: .6rem 1rem;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-    }
-
-    .title {
+    .topbar-title {
       font-size: 1.4rem;
       font-weight: 700;
     }
 
-    main {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 1rem;
+    /* CONTROL ROW */
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 20px 0;
+      gap: 10px;
     }
 
-    /* ==== GRID LAYOUT (IJRU EXACT) ==== */
-    .skill-grid {
+    .score-box {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    /* ====== ROPESCORE FULL RECTANGLE TILES ====== */
+    .level-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
       width: 100%;
-      margin-top: 25px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 10px 0 40px;
     }
 
-    /* ==== BUTTON SIZE (IJRU EXACT) ==== */
-    .skill-btn {
+    .level-btn {
       background: #22c55e;
       color: #fff;
       border: none;
-      border-radius: 18px;
+      border-radius: 20px;
       font-weight: 700;
-      font-size: 1.35rem;
+      font-size: 1.6rem;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      height: 120px;
-      min-height: 120px;
+      height: 230px;      /* PHONE big rectangle */
+      min-height: 230px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     }
 
-    .skill-btn.blue { background:#2563eb; }
-    .skill-btn.purple { background:#7e22ce; }
+    .level-btn.blue { background:#2563eb; }
+    .level-btn.purple { background:#7e22ce; }
 
-    .skill-btn small {
-      font-size: 1.05rem;
-      margin-top: 6px;
+    .level-btn .rep {
+      font-size: 1.3rem;
+      margin-top: 8px;
+      opacity: .95;
     }
 
     /* TABLET */
     @media (min-width: 600px) {
-      .skill-btn {
-        height: 140px;
-        min-height: 140px;
-        font-size: 1.55rem;
+      .level-btn {
+        height: 280px;
+        min-height: 280px;
+        font-size: 1.9rem;
       }
-      .skill-btn small {
-        font-size: 1.25rem;
+      .level-btn .rep {
+        font-size: 1.5rem;
       }
     }
 
     /* DESKTOP */
     @media (min-width: 900px) {
-      .skill-btn {
-        height: 160px;
-        min-height: 160px;
-        font-size: 1.7rem;
+      .level-btn {
+        height: 340px;
+        min-height: 340px;
+        font-size: 2.1rem;
       }
-      .skill-btn small {
-        font-size: 1.35rem;
+      .level-btn .rep {
+        font-size: 1.8rem;
       }
     }
-
-    /* UNDO / RESET ROW */
-    .top-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 20px;
-    }
-
-    .btn-undo {
-      background: #fff;
-      border: 1px solid #ccc;
-      padding: .6rem 1rem;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-
-    .btn-reset {
-      background: #dc2626;
-      color: #fff;
-      border: none;
-      padding: .6rem 1rem;
-      border-radius: 10px;
-      font-weight: 700;
-    }
-
-    .total-score {
-      font-size: 1.4rem;
-      font-weight: 800;
-    }
-
   </style>
 </head>
 
-<body>
+<body class="page station">
 
-<header class="dj-header">
-  <button class="btn-back" onclick="goBack()">← Back</button>
-  <div class="title">Difficulty Judge</div>
-  <button class="btn-submit" onclick="submitDifficulty()">Submit</button>
+<header class="topbar">
+  <button onclick="goBack()" class="btn">← Back</button>
+  <div class="topbar-title">Difficulty Judge</div>
+  <button id="btnSubmit" class="btn primary" style="margin-left:auto;">Submit</button>
 </header>
 
-<main>
+<main class="container">
+  <section class="block">
 
-  <div class="top-controls">
-    <button class="btn-undo" id="btnUndo">Undo</button>
-    <div class="total-score">Total Score: <span id="totalScore">0.00</span></div>
-    <button class="btn-reset" id="btnReset">Reset</button>
-  </div>
+    <div class="control-row">
+      <button id="undoBtn" class="btn" disabled>Undo</button>
+      <button id="resetBtn" class="btn" style="background:#dc2626;color:white;">Reset</button>
+    </div>
 
-  <!-- SKILL BUTTON GRID (IJRU ORDER) -->
-  <div class="skill-grid">
+    <div class="score-box">
+      Total Score: <span id="totalScore">0.00</span>
+    </div>
 
-    <!-- ROW 1 -->
-    <button class="skill-btn" data-level="1">Level 1<br><small id="c1">0</small></button>
+    <!-- ==========================
+         IJRU OFFICIAL ORDER
+         (NO LEVEL 0)
+         ========================== -->
+    <div class="level-grid">
 
-    <button class="skill-btn blue" data-level="0.5">Level 0.5<br><small id="c0_5">0</small></button>
+      <!-- ROW 1 -->
+      <button class="level-btn" data-level="1">
+        Level 1<br><span class="rep" id="rep1">0</span>
+      </button>
 
-    <button class="skill-btn" data-level="4">Level 4<br><small id="c4">0</small></button>
+      <button class="level-btn blue" data-level="0.5">
+        Level 0.5<br><span class="rep" id="rep0_5">0</span>
+      </button>
 
-    <!-- ROW 2 -->
-    <button class="skill-btn" data-level="2">Level 2<br><small id="c2">0</small></button>
+      <button class="level-btn" data-level="4">
+        Level 4<br><span class="rep" id="rep4">0</span>
+      </button>
 
-    <button class="skill-btn purple" data-level="7">Level 7<br><small id="c7">0</small></button>
+      <!-- ROW 2 -->
+      <button class="level-btn" data-level="2">
+        Level 2<br><span class="rep" id="rep2">0</span>
+      </button>
 
-    <button class="skill-btn" data-level="5">Level 5<br><small id="c5">0</small></button>
+      <button class="level-btn purple" data-level="7">
+        Level 7<br><span class="rep" id="rep7">0</span>
+      </button>
 
-    <!-- ROW 3 -->
-    <button class="skill-btn" data-level="3">Level 3<br><small id="c3">0</small></button>
+      <button class="level-btn" data-level="5">
+        Level 5<br><span class="rep" id="rep5">0</span>
+      </button>
 
-    <button class="skill-btn purple" data-level="8">Level 8<br><small id="c8">0</small></button>
+      <!-- ROW 3 -->
+      <button class="level-btn" data-level="3">
+        Level 3<br><span class="rep" id="rep3">0</span>
+      </button>
 
-    <button class="skill-btn" data-level="6">Level 6<br><small id="c6">0</small></button>
+      <button class="level-btn purple" data-level="8">
+        Level 8<br><span class="rep" id="rep8">0</span>
+      </button>
 
-  </div>
+      <button class="level-btn" data-level="6">
+        Level 6<br><span class="rep" id="rep6">0</span>
+      </button>
 
-  <!-- HIDDEN FIELDS for backend -->
-  <form id="difficultyForm">
-    <input type="hidden" name="ID" id="fID">
-    <input type="hidden" name="NAME1" id="fNAME1">
-    <input type="hidden" name="NAME2" id="fNAME2">
-    <input type="hidden" name="NAME3" id="fNAME3">
-    <input type="hidden" name="NAME4" id="fNAME4">
-    <input type="hidden" name="TEAM" id="fTEAM">
-    <input type="hidden" name="STATE" id="fSTATE">
-    <input type="hidden" name="HEAT" id="fHEAT">
-    <input type="hidden" name="STATION" id="fSTATION">
-    <input type="hidden" name="EVENT" id="fEVENT">
-    <input type="hidden" name="DIVISION" id="fDIVISION">
+    </div>
 
-    <input type="hidden" name="TOTAL" id="fTOTAL">
-    <input type="hidden" name="_form" value="freestyle_difficulty">
-  </form>
-
+    <!-- Hidden Fields -->
+    <input type="hidden" id="fID">
+    <input type="hidden" id="fNAME1">
+    <input type="hidden" id="fNAME2">
+    <input type="hidden" id="fNAME3">
+    <input type="hidden" id="fNAME4">
+    <input type="hidden" id="fTEAM">
+    <input type="hidden" id="fSTATE">
+    <input type="hidden" id="fHEAT">
+    <input type="hidden" id="fSTATION">
+    <input type="hidden" id="fEVENT">
+    <input type="hidden" id="fDIVISION">
+    <input type="hidden" id="fKEY">
+  </section>
 </main>
 
 <script>
-/* ===================================================================
-   URL PARSING → FILL HIDDEN FIELDS
-=================================================================== */
-const qs = new URLSearchParams(location.search);
-const set = (id,val) => { const el = document.querySelector(id); if(el) el.value = val || ""; };
-
-set("#fID", qs.get("id"));
-set("#fNAME1", qs.get("name1"));
-set("#fNAME2", qs.get("name2"));
-set("#fNAME3", qs.get("name3"));
-set("#fNAME4", qs.get("name4"));
-set("#fTEAM", qs.get("team"));
-set("#fSTATE", qs.get("state"));
-set("#fHEAT", qs.get("heat"));
-set("#fSTATION", qs.get("station"));
-set("#fEVENT", qs.get("event"));
-set("#fDIVISION", qs.get("division"));
-
-/* ===================================================================
-   DIFFICULTY VALUES (IJRU)
-=================================================================== */
-const diffValues = {
-  0.5: 0.12, 1:0.15, 2:0.23, 3:0.34, 4:0.51, 5:0.76, 6:1.14, 7:1.71, 8:2.56
-};
-
-let counts = { "0.5":0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0 };
-let lastTap = null;
-
-/* ===================================================================
-   BUTTON CLICK LOGIC
-=================================================================== */
-document.querySelectorAll(".skill-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const level = btn.dataset.level;
-
-    counts[level]++;
-    lastTap = level;
-
-    document.querySelector("#c" + level.replace(".","_")).textContent = counts[level];
-
-    updateTotal();
-  });
-});
-
-/* ===================================================================
-   UNDO
-=================================================================== */
-document.querySelector("#btnUndo").addEventListener("click", () => {
-  if (!lastTap) return;
-
-  counts[lastTap] = Math.max(0, counts[lastTap] - 1);
-
-  document.querySelector("#c" + lastTap.replace(".","_")).textContent = counts[lastTap];
-
-  lastTap = null;
-  updateTotal();
-});
-
-/* ===================================================================
-   RESET
-=================================================================== */
-document.querySelector("#btnReset").addEventListener("click", () => {
-  for (let k in counts) counts[k] = 0;
-  document.querySelectorAll(".skill-btn small").forEach(s => s.textContent = "0");
-  lastTap = null;
-  updateTotal();
-});
-
-/* ===================================================================
-   UPDATE SCORE
-=================================================================== */
-function updateTotal() {
-  let sum = 0;
-  for (let k in counts) {
-    sum += counts[k] * diffValues[k];
-  }
-  document.querySelector("#totalScore").textContent = sum.toFixed(2);
-  document.querySelector("#fTOTAL").value = sum.toFixed(2);
-}
-
-/* ===================================================================
-   SUBMIT FORM
-=================================================================== */
-function submitDifficulty() {
-  const fd = new FormData(document.querySelector("#difficultyForm"));
-  const payload = Object.fromEntries(fd.entries());
-
-  apiPost(payload).then(() => {
-    alert("Saved!");
-    goBack();
-  }).catch(err => {
-    alert("Submit failed");
-    console.error(err);
-  });
-}
-
-/* ===================================================================
-   BACK BUTTON NAVIGATION
-=================================================================== */
 function goBack() {
-  history.back();
+  const p = new URLSearchParams(location.search);
+  location.href = `freestyle-station.html?station=${p.get("station")}&judgeType=difficulty&key=${p.get("key")}`;
 }
 </script>
 
