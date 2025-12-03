@@ -459,3 +459,24 @@ body.station .station-card {
   box-shadow: none !important;
   outline: none !important;
 }
+/* =========================================
+   GLOBAL: Disable text selection + long press
+   Prevent highlight, copy menu, etc.
+   ========================================= */
+
+* {
+  -webkit-user-select: none;  /* iOS & Safari */
+  -moz-user-select: none;     /* Firefox */
+  -ms-user-select: none;      /* IE */
+  user-select: none;          /* Standard */
+  -webkit-touch-callout: none;/* Disable long-press menu */
+}
+
+/* Allow text selection ONLY for inputs and textareas */
+input, textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
