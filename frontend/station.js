@@ -49,7 +49,7 @@
   const cardMap = {};
 
   /* ============================================================
-     CREATE CARD  (MOVE-ON-TAP)
+     CREATE CARD  (SAFE-TAP VERSION)
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -86,24 +86,15 @@
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
-    /* 🔥 MOVE ON TAP for instant judge UX */
+    /* 🔒 SAFE TAP — NO DOM MOVEMENT HERE */
     card.onclick = () => {
-      // Move card to bottom immediately
-      listEl.appendChild(card);
-
-      // Switch to completed immediately
-      card.classList.remove("pending");
-      card.classList.add("done");
-      const s = card.querySelector(".status");
-      if (s) s.textContent = "COMPLETED";
-
-      // Save new visual order
-      localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
-
-      // Mark which entry was just completed
+      // remember which entry is being judged
       sessionStorage.setItem("completedEntry", p.entryId);
 
-      // Go to scoring page
+      // prevent ghost taps
+      document.body.style.pointerEvents = "none";
+
+      // navigate safely
       location.href = judgeURL;
     };
 
@@ -116,7 +107,7 @@
   }
 
   /* ============================================================
-     UPDATE CARD (COLOR + POSITION)
+     UPDATE CARD (MOVE ON RETURN, NOT ON TAP)
   ============================================================ */
   function updateCard(p) {
     const entry = cardMap[p.entryId];
@@ -133,6 +124,7 @@
       card.classList.remove("done");
       card.classList.add("pending");
       statusEl.textContent = "NEW";
+
       const firstDone = listEl.querySelector(".station-card.done");
       if (firstDone) listEl.insertBefore(card, firstDone);
       else listEl.insertBefore(card, listEl.firstChild);
@@ -140,16 +132,16 @@
   }
 
   /* ============================================================
-     LOAD LIST (CACHE + SAFETY FIX + SERVER REORDER)
+     LOAD LIST (CACHE + SAFETY + SERVER REORDER)
   ============================================================ */
   async function loadStationList() {
     const savedHTML = localStorage.getItem(CACHE_KEY_HTML);
     const savedData = localStorage.getItem(CACHE_KEY_DATA);
     const justDone = sessionStorage.getItem("completedEntry");
 
-    /* 1️⃣ QUICK LOAD FROM CACHE */
     let cachedArr = null;
 
+    /* 1️⃣ LOAD FROM CACHE QUICKLY */
     if (savedHTML && savedData) {
       cachedArr = JSON.parse(savedData);
       listEl.innerHTML = savedHTML;
@@ -165,7 +157,7 @@
           statusEl: card.querySelector(".status")
         };
 
-        /* Rebuild tap handler */
+        /* safe tap rebuild */
         const judgeURL =
           `speed-judge.html`
           + `?id=${encodeURIComponent(p.entryId)}`
@@ -182,16 +174,12 @@
           + `&division=${encodeURIComponent(p.division || "")}`;
 
         card.onclick = () => {
-          listEl.appendChild(card);
-          card.classList.add("done");
-          const s = card.querySelector(".status");
-          if (s) s.textContent = "COMPLETED";
-          localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
           sessionStorage.setItem("completedEntry", p.entryId);
+          document.body.style.pointerEvents = "none";
           location.href = judgeURL;
         };
 
-        /* Apply instant-complete on return */
+        /* 🔥 move on return */
         if (justDone && p.entryId === justDone) {
           card.classList.add("done");
           const s = card.querySelector(".status");
@@ -203,7 +191,7 @@
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
-    /* 2️⃣ GET FRESH DATA FROM SERVER */
+    /* 2️⃣ GET FRESH SERVER DATA */
     let data;
     try {
       data = await apiGet({
@@ -217,10 +205,9 @@
     }
 
     if (!data || !data.ok) return;
-
     const arr = data.entries || [];
 
-    /* 3️⃣ SAFETY CHECK — AUTO RESET BAD CACHE */
+    /* 3️⃣ SAFETY RESET: if cached order mismatches server order */
     if (cachedArr) {
       if (cachedArr.length !== arr.length) {
         localStorage.removeItem(CACHE_KEY_HTML);
@@ -228,6 +215,7 @@
         location.reload();
         return;
       }
+
       for (let i = 0; i < arr.length; i++) {
         if (arr[i].entryId !== cachedArr[i].entryId) {
           localStorage.removeItem(CACHE_KEY_HTML);
@@ -238,7 +226,7 @@
       }
     }
 
-    /* FIRST-TIME BUILD (NO CACHE) */
+    /* 4️⃣ FIRST LOAD (NO CACHE) */
     if (!savedHTML) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
@@ -249,11 +237,10 @@
       return;
     }
 
-    /* 4️⃣ FULL SERVER REORDER (NEW top → DONE sorted by HEAT) */
+    /* 5️⃣ FULL SERVER-SORTED REORDER (NEW → DONE by HEAT) */
     const pending = arr.filter(p => p.status !== "done");
     const done = arr.filter(p => p.status === "done");
 
-    // Sort both groups by HEAT DESC (server truth)
     pending.sort((a, b) => Number(b.heat) - Number(a.heat));
     done.sort((a, b) => Number(b.heat) - Number(a.heat));
 
@@ -264,11 +251,12 @@
     merged.forEach(p => {
       const entry = cardMap[p.entryId];
       if (!entry) return;
+
       listEl.appendChild(entry.card);
       updateCard(p);
     });
 
-    /* update cache */
+    /* 6️⃣ update cache */
     localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
     localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
 
