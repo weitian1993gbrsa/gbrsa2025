@@ -47,7 +47,7 @@
   const fsVal = $("#falseStartVal");
 
   if (fsBtn && fsVal) {
-    fsVal.value = "NO"; // default
+    fsVal.value = ""; // default
 
     fsBtn.addEventListener("click", () => {
 
@@ -57,7 +57,7 @@
         fsBtn.classList.remove("fs-yes");
         fsBtn.classList.add("fs-no");
         fsBtn.textContent = "False Start: No";
-        fsVal.value = "NO";
+        fsVal.value = "";
       } else {
         fsBtn.classList.remove("fs-no");
         fsBtn.classList.add("fs-yes");
