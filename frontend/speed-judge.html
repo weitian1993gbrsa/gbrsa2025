@@ -45,15 +45,16 @@
       border-radius: 14px;
       margin-bottom: 18px;
       font-family: monospace;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.45);
       letter-spacing: 2px;
     }
 
-    /* NUMPAD */
+    /* ===============================
+       FLAT 2D NUMBERPAD BUTTONS
+    =============================== */
     .numpad-grid {
       display: grid;
       grid-template-columns: repeat(3,1fr);
-      gap: 14px;
+      gap: 12px;
       margin-bottom: 20px;
     }
 
@@ -61,23 +62,35 @@
       padding: 18px 0;
       font-size: 1.6rem;
       border-radius: 12px;
-      background: #fff;
-      border: 1px solid #ddd;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      background: #f3f4f6;        /* light grey */
+      border: 2px solid #d1d5db;  /* flat border */
       font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease;
     }
 
+    .numpad-grid button:active {
+      background: #e5e7eb;
+    }
+
+    /* CLEAR BUTTON */
     .np-clear {
       background: #fee2e2;
       border-color: #fca5a5;
       color: #b91c1c;
     }
 
+    /* SUBMIT BUTTON (Enter) */
     .np-enter {
       background: #2563eb;
       color: white;
       border-color: #1d4ed8;
       font-weight: 700;
+    }
+
+    .np-enter:active {
+      background: #1d4ed8;
     }
   </style>
 </head>
@@ -98,7 +111,7 @@
 
     <form id="scoreForm" class="form">
 
-      <!-- NEW SCORE DISPLAY (no keyboard popup) -->
+      <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
       <!-- NUMBER PAD -->
@@ -117,13 +130,15 @@
 
         <button type="button" data-key="clear" class="np-clear">Clear</button>
         <button type="button" data-key="0">0</button>
-        <button type="button" data-key="enter" class="np-enter">Enter</button>
+
+        <!-- NOW SHOWS SUBMIT -->
+        <button type="button" data-key="enter" class="np-enter">Submit</button>
       </div>
 
       <!-- HIDDEN REAL SCORE -->
       <input type="hidden" name="SCORE" id="hiddenScore"/>
 
-      <label class="check">
+      <label class="check" style="margin-top:10px;">
         <input type="checkbox" name="FALSE START">
         <span>FALSE START</span>
       </label>
@@ -166,9 +181,7 @@
   </div>
 </div>
 
-<!-- ============================================================
-     BACK NAV + CACHE FIX
-============================================================ -->
+<!-- BACK NAV + CACHE FIX -->
 <script>
 function goBack() {
   const params = new URLSearchParams(location.search);
@@ -177,7 +190,6 @@ function goBack() {
   location.href = `station.html?station=${station}&key=${key}`;
 }
 
-/* Lock history for swipe-back */
 history.pushState(null, null, location.href);
 window.onpopstate = function () { goBack(); };
 
