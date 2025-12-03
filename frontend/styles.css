@@ -438,3 +438,28 @@ body.station .station-card {
   font-size: 0.9rem;
   width: 100%;
 }
+/* ============================================================
+   REMOVE MOBILE TAP HIGHLIGHT (iOS + Android)
+   ============================================================ */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* Remove focus glow on buttons after tapping */
+button, .btn, .skill-btn {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+button:focus, .btn:focus, .skill-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove active flash highlight */
+button:active, .btn:active, .skill-btn:active {
+  background-color: inherit !important;
+  filter: brightness(1) !important;
+}
