@@ -49,7 +49,7 @@
   const cardMap = {};
 
   /* ============================================================
-     CREATE CARD (MOVE ON TAP)
+     CREATE CARD  (MOVE-ON-TAP)
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -86,24 +86,24 @@
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
-    /* 🔥 MOVE ON TAP */
+    /* 🔥 MOVE ON TAP for instant judge UX */
     card.onclick = () => {
-      // move card down immediately
+      // Move card to bottom immediately
       listEl.appendChild(card);
 
-      // turn green immediately
+      // Switch to completed immediately
       card.classList.remove("pending");
       card.classList.add("done");
-      const statusEl = card.querySelector(".status");
-      if (statusEl) statusEl.textContent = "COMPLETED";
+      const s = card.querySelector(".status");
+      if (s) s.textContent = "COMPLETED";
 
-      // cache updated HTML
+      // Save new visual order
       localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
 
-      // remember which card was completed
+      // Mark which entry was just completed
       sessionStorage.setItem("completedEntry", p.entryId);
 
-      // navigate to judge page
+      // Go to scoring page
       location.href = judgeURL;
     };
 
@@ -116,29 +116,23 @@
   }
 
   /* ============================================================
-     UPDATE CARD (COLOR + REORDER)
+     UPDATE CARD (COLOR + POSITION)
   ============================================================ */
   function updateCard(p) {
-    const cache = cardMap[p.entryId];
-    if (!cache) return;
+    const entry = cardMap[p.entryId];
+    if (!entry) return;
 
-    const { card, statusEl } = cache;
-    const isDone = p.status === "done";
+    const { card, statusEl } = entry;
 
-    if (isDone) {
+    if (p.status === "done") {
       card.classList.remove("pending");
       card.classList.add("done");
       statusEl.textContent = "COMPLETED";
-
-      // done cards always move bottom
       listEl.appendChild(card);
-
     } else {
       card.classList.remove("done");
       card.classList.add("pending");
       statusEl.textContent = "NEW";
-
-      // pending cards go before first done
       const firstDone = listEl.querySelector(".station-card.done");
       if (firstDone) listEl.insertBefore(card, firstDone);
       else listEl.insertBefore(card, listEl.firstChild);
@@ -146,21 +140,23 @@
   }
 
   /* ============================================================
-     LOAD LIST (CACHE + SERVER + FULL REORDER)
+     LOAD LIST (CACHE + SAFETY FIX + SERVER REORDER)
   ============================================================ */
   async function loadStationList() {
     const savedHTML = localStorage.getItem(CACHE_KEY_HTML);
     const savedData = localStorage.getItem(CACHE_KEY_DATA);
     const justDone = sessionStorage.getItem("completedEntry");
 
-    /* 1️⃣ INSTANT LOAD FROM CACHE */
+    /* 1️⃣ QUICK LOAD FROM CACHE */
+    let cachedArr = null;
+
     if (savedHTML && savedData) {
+      cachedArr = JSON.parse(savedData);
       listEl.innerHTML = savedHTML;
 
-      const arr = JSON.parse(savedData);
       const cardNodes = listEl.querySelectorAll(".station-card");
 
-      arr.forEach((p, i) => {
+      cachedArr.forEach((p, i) => {
         const card = cardNodes[i];
         if (!card) return;
 
@@ -169,7 +165,7 @@
           statusEl: card.querySelector(".status")
         };
 
-        /* rebuild click */
+        /* Rebuild tap handler */
         const judgeURL =
           `speed-judge.html`
           + `?id=${encodeURIComponent(p.entryId)}`
@@ -195,7 +191,7 @@
           location.href = judgeURL;
         };
 
-        // instant complete on return
+        /* Apply instant-complete on return */
         if (justDone && p.entryId === justDone) {
           card.classList.add("done");
           const s = card.querySelector(".status");
@@ -215,15 +211,34 @@
         station,
         _ts: Date.now()
       });
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error(err);
       return;
     }
+
     if (!data || !data.ok) return;
 
     const arr = data.entries || [];
 
-    /* FIRST LOAD IF NO CACHE */
+    /* 3️⃣ SAFETY CHECK — AUTO RESET BAD CACHE */
+    if (cachedArr) {
+      if (cachedArr.length !== arr.length) {
+        localStorage.removeItem(CACHE_KEY_HTML);
+        localStorage.removeItem(CACHE_KEY_DATA);
+        location.reload();
+        return;
+      }
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].entryId !== cachedArr[i].entryId) {
+          localStorage.removeItem(CACHE_KEY_HTML);
+          localStorage.removeItem(CACHE_KEY_DATA);
+          location.reload();
+          return;
+        }
+      }
+    }
+
+    /* FIRST-TIME BUILD (NO CACHE) */
     if (!savedHTML) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
@@ -234,31 +249,26 @@
       return;
     }
 
-    /* 3️⃣ SERVER-BASED FULL REORDER (⭐ FIX FOR YOUR ISSUE ⭐) */
-
-    // NEW first
+    /* 4️⃣ FULL SERVER REORDER (NEW top → DONE sorted by HEAT) */
     const pending = arr.filter(p => p.status !== "done");
-    // DONE next
     const done = arr.filter(p => p.status === "done");
 
-    // ⭐ Sort both groups by HEAT DESCENDING (server order)
+    // Sort both groups by HEAT DESC (server truth)
     pending.sort((a, b) => Number(b.heat) - Number(a.heat));
     done.sort((a, b) => Number(b.heat) - Number(a.heat));
 
     const merged = [...pending, ...done];
 
-    // rebuild DOM exactly matching server-sorted order
     listEl.innerHTML = "";
 
     merged.forEach(p => {
       const entry = cardMap[p.entryId];
       if (!entry) return;
-
       listEl.appendChild(entry.card);
       updateCard(p);
     });
 
-    // update cache
+    /* update cache */
     localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
     localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
 
