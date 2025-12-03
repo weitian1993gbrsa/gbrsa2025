@@ -45,8 +45,7 @@
   const scoreScreen = $("#scoreScreen");
   const hiddenScore = $("#hiddenScore");
 
-  // IMPORTANT FIX: EXCLUDE THE FALSE START BUTTON
-  const numButtons = document.querySelectorAll(".numpad-grid button:not(#falseStartBtn)");
+  const numButtons = document.querySelectorAll(".numpad-grid button");
 
   numButtons.forEach(btn => {
     btn.addEventListener("click", () => {
