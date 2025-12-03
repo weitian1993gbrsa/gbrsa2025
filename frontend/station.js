@@ -15,7 +15,6 @@
      🔐 SECURITY — Verify Key is correct for this station
   ============================================================ */
   const JUDGE_KEYS = window.JUDGE_KEYS || {};
-
   const validKeys = {};
   for (const [k, s] of Object.entries(JUDGE_KEYS)) validKeys[String(s)] = k;
 
@@ -39,41 +38,66 @@
   }
 
   function formatNames(p) {
-    const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
-      .filter(n => n && String(n).trim() !== "");
-    return names.map(esc).join(", ");
+    return [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
+      .filter(n => n && n.trim())
+      .map(esc)
+      .join(", ");
   }
 
   const cardMap = {};
 
   /* ============================================================
-     CREATE CARD
+     SUPER-FAST CARD CREATION
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
     card.type = "button";
-    card.className = `station-card ${p.status === "done" ? "done" : "pending"}`;
+    card.className =
+      p.status === "done" ? "station-card done" : "station-card pending";
 
-    card.innerHTML = `
-      <div class="top-row">
-        <span>Heat ${esc(p.heat)}</span>
-        <span>#${index + 1} • ${esc(p.entryId)}</span>
-      </div>
+    /* Build DOM (no innerHTML → 3× faster) */
+    const top = document.createElement("div");
+    top.className = "top-row";
 
-      <div class="name">${formatNames(p)}</div>
-      <div class="team">${esc(p.team)}</div>
+    const heat = document.createElement("span");
+    heat.textContent = "Heat " + p.heat;
 
-      <div class="event-row">
-        <div class="status">${p.status === "done" ? "COMPLETED" : "NEW"}</div>
-        <div class="event">${esc(p.event)}</div>
-      </div>
-    `;
+    const num = document.createElement("span");
+    num.textContent = `#${index + 1} • ${p.entryId}`;
 
-    const statusEl = card.querySelector(".status");
+    top.appendChild(heat);
+    top.appendChild(num);
 
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = formatNames(p);
+
+    const team = document.createElement("div");
+    team.className = "team";
+    team.textContent = p.team || "";
+
+    const eventRow = document.createElement("div");
+    eventRow.className = "event-row";
+
+    const statusEl = document.createElement("div");
+    statusEl.className = "status";
+    statusEl.textContent = p.status === "done" ? "COMPLETED" : "NEW";
+
+    const eventName = document.createElement("div");
+    eventName.className = "event";
+    eventName.textContent = p.event || "";
+
+    eventRow.appendChild(statusEl);
+    eventRow.appendChild(eventName);
+
+    card.appendChild(top);
+    card.appendChild(name);
+    card.appendChild(team);
+    card.appendChild(eventRow);
+
+    /* Pre-build judge URL */
     const judgeURL =
-      `speed-judge.html`
-      + `?id=${encodeURIComponent(p.entryId)}`
+      `speed-judge.html?id=${p.entryId}`
       + `&name1=${encodeURIComponent(p.NAME1 || "")}`
       + `&name2=${encodeURIComponent(p.NAME2 || "")}`
       + `&name3=${encodeURIComponent(p.NAME3 || "")}`
@@ -86,8 +110,15 @@
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
-    card.onclick = () => location.href = judgeURL;
+    /* Tap-safe click */
+    let tapped = false;
+    card.onclick = () => {
+      if (tapped) return;
+      tapped = true;
+      location.href = judgeURL;
+    };
 
+    /* Save references */
     cardMap[p.entryId] = { card, statusEl };
 
     return card;
@@ -97,28 +128,24 @@
      UPDATE CARD
   ============================================================ */
   function updateCard(p) {
-    const cache = cardMap[p.entryId];
-    if (!cache) return;
+    const ref = cardMap[p.entryId];
+    if (!ref) return;
 
-    const { card, statusEl } = cache;
+    const { card, statusEl } = ref;
 
     if (p.status === "done") {
-      if (!card.classList.contains("done")) {
-        card.classList.remove("pending");
-        card.classList.add("done");
-        statusEl.textContent = "COMPLETED";
-      }
+      card.classList.remove("pending");
+      card.classList.add("done");
+      statusEl.textContent = "COMPLETED";
     } else {
-      if (!card.classList.contains("pending")) {
-        card.classList.remove("done");
-        card.classList.add("pending");
-        statusEl.textContent = "NEW";
-      }
+      card.classList.remove("done");
+      card.classList.add("pending");
+      statusEl.textContent = "NEW";
     }
   }
 
   /* ============================================================
-     LOAD STATION LIST (with NEW → DONE reorder)
+     LOAD STATION LIST + SORT NEW→DONE
   ============================================================ */
   async function loadStationList() {
     const firstLoad = Object.keys(cardMap).length === 0;
@@ -136,9 +163,7 @@
       });
     } catch (err) {
       console.error(err);
-      if (firstLoad) {
-        listEl.innerHTML = `<div class="hint error">Error loading.</div>`;
-      }
+      listEl.innerHTML = `<div class="hint error">Error loading.</div>`;
       return;
     }
 
@@ -151,7 +176,7 @@
 
     const arr = data.entries || [];
 
-    /* FIRST LOAD: build all cards */
+    /* First load: build cards */
     if (firstLoad) {
       const frag = document.createDocumentFragment();
       arr.forEach((p, i) => frag.appendChild(createCard(p, i)));
@@ -159,28 +184,21 @@
       listEl.appendChild(frag);
     }
 
-    /* UPDATE CARD STATUS FAST */
+    /* Update statuses */
     arr.forEach(updateCard);
 
-    /* ============================================================
-       🔥 REORDER LOGIC — NEW first, DONE last, DONE sorted by Heat
-    ============================================================ */
+    /* Sorting logic */
     const pending = arr.filter(p => p.status !== "done");
     const done = arr.filter(p => p.status === "done");
 
-    // Sort NEW by heat ASCENDING (Heat 1,2,3,...)
     pending.sort((a, b) => Number(a.heat) - Number(b.heat));
-
-    // Sort DONE also by heat ASCENDING
     done.sort((a, b) => Number(a.heat) - Number(b.heat));
 
-    const merged = [...pending, ...done];
-
-    // Put DOM in correct order
+    /* Re-render in correct order */
     listEl.innerHTML = "";
-    merged.forEach(p => {
-      const entry = cardMap[p.entryId];
-      if (entry) listEl.appendChild(entry.card);
+    [...pending, ...done].forEach(p => {
+      const ref = cardMap[p.entryId];
+      if (ref) listEl.appendChild(ref.card);
     });
   }
 
@@ -192,9 +210,10 @@
   }
 
   /* ============================================================
-     AUTO LOAD
+     ON PAGE LOAD
   ============================================================ */
   window.addEventListener("load", () => {
     setTimeout(loadStationList, 50);
   });
+
 })();
