@@ -40,41 +40,6 @@
 
 
   /* ============================================================
-     FALSE START TOGGLE BUTTON
-  ============================================================ */
-  const fsBtn = $("#falseStartBtn");
-  const fsHidden = $("#fFALSESTART");
-
-  if (fsBtn && fsHidden) {
-
-    // default value
-    fsHidden.value = "NO";
-
-    const setNo = () => {
-      fsHidden.value = "NO";
-      fsBtn.textContent = "FALSE START: NO";
-      fsBtn.style.background = "#2ecc71"; // green
-      fsBtn.style.color = "#fff";
-    };
-
-    const setYes = () => {
-      fsHidden.value = "YES";
-      fsBtn.textContent = "FALSE START: YES";
-      fsBtn.style.background = "#d83131"; // red
-      fsBtn.style.color = "#fff";
-    };
-
-    // initialize UI
-    setNo();
-
-    fsBtn.addEventListener("click", () => {
-      if (fsHidden.value === "NO") setYes();
-      else setNo();
-    });
-  }
-
-
-  /* ============================================================
      NUMBERPAD + SCORE SCREEN (MAX 3 DIGITS)
   ============================================================ */
   const scoreScreen = $("#scoreScreen");
@@ -87,23 +52,26 @@
 
       const key = btn.dataset.key;
 
+      /* ---------------- CLEAR BUTTON ---------------- */
       if (key === "clear") {
         scoreScreen.textContent = "0";
         hiddenScore.value = "";
         return;
       }
 
+      /* ---------------- SUBMIT BUTTON ---------------- */
       if (key === "enter") {
         const form = $("#scoreForm");
         form.dispatchEvent(new Event("submit"));
         return;
       }
 
+      /* ---------------- DIGIT BUTTONS ---------------- */
       if (/^[0-9]$/.test(key)) {
 
         let current = scoreScreen.textContent.trim();
 
-        if (current.length >= 3) return;
+        if (current.length >= 3) return; // max 3 digits
 
         if (current === "0") {
           scoreScreen.textContent = key;
@@ -119,6 +87,32 @@
 
 
   /* ============================================================
+     FALSE START TOGGLE
+  ============================================================ */
+  const fsBtn = $("#falseStartBtn");
+  const fsVal = $("#falseStartVal");
+
+  fsBtn.addEventListener("click", () => {
+
+    const isYes = fsBtn.classList.contains("fs-yes");
+
+    if (isYes) {
+      // Switch to No (Green)
+      fsBtn.classList.remove("fs-yes");
+      fsBtn.classList.add("fs-no");
+      fsBtn.textContent = "No False Start";
+      fsVal.value = "NO";
+    } else {
+      // Switch to YES (Red)
+      fsBtn.classList.remove("fs-no");
+      fsBtn.classList.add("fs-yes");
+      fsBtn.textContent = "False Start";
+      fsVal.value = "YES";
+    }
+  });
+
+
+  /* ============================================================
      FORM SUBMISSION
   ============================================================ */
   const scoreForm = $("#scoreForm");
@@ -129,6 +123,7 @@
     e.preventDefault();
 
     const scoreVal = scoreScreen.textContent.trim();
+
     if (scoreVal === "") {
       alert("Please enter a score before submitting.");
       return;
@@ -143,12 +138,12 @@
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
 
-    // IMPORTANT — this *automatically includes* FALSESTART now
     payload._form = "speed";
 
     apiPost(payload)
       .then(() => {
         overlayText.textContent = "Saved ✔";
+
         setTimeout(() => {
           location.href = returnURL;
         }, 120);

@@ -79,6 +79,36 @@
       border: 1px solid #1d4ed8 !important;
       font-weight: 700;
     }
+
+    /* FALSE START BUTTON - identical width to numpad buttons */
+    .fs-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .fs-btn {
+      width: 100%;
+      padding: 20px 0;
+      font-size: 1.6rem;
+      border-radius: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      text-align: center;
+    }
+
+    .fs-no {
+      background: #22c55e;
+      border-color: #16a34a;
+      color: white;
+    }
+
+    .fs-yes {
+      background: #dc2626;
+      border-color: #b91c1c;
+      color: white;
+    }
   </style>
 </head>
 
@@ -94,25 +124,6 @@
 <main class="container">
   <section class="block">
     <form id="scoreForm" class="form">
-
-      <!-- ❗ FALSE START BUTTON (fixed name attribute) -->
-      <button id="falseStartBtn"
-        type="button"
-        style="
-          width: 100%;
-          padding: 14px;
-          font-size: 22px;
-          margin-bottom: 16px;
-          border-radius: 12px;
-          background: #2ecc71;
-          color: white;
-          border: none;
-        ">
-        FALSE START: NO
-      </button>
-
-      <input type="hidden" id="fFALSESTART" name="FALSESTART" value="NO">
-      <!-- END FALSE START BUTTON -->
 
       <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
@@ -138,6 +149,15 @@
       </div>
 
       <input type="hidden" name="SCORE" id="hiddenScore"/>
+
+      <!-- FALSE START BUTTON (center column, matching grid size) -->
+      <div class="fs-row">
+        <div></div>
+        <button type="button" id="falseStartBtn" class="fs-btn fs-no">No false start</button>
+        <div></div>
+      </div>
+
+      <input type="hidden" name="FALSE START" id="falseStartVal" value="">
 
       <!-- REMARK -->
       <label class="field">
