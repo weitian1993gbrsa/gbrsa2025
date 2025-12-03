@@ -34,6 +34,7 @@
     .judge-title { font-size: 1.4rem; font-weight: 700; }
     .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
 
+    /* SCORE SCREEN */
     .score-screen {
       width: 100%;
       background: #111;
@@ -48,6 +49,7 @@
       letter-spacing: 2px;
     }
 
+    /* NUMPAD */
     .numpad-grid {
       display: grid;
       grid-template-columns: repeat(3,1fr);
@@ -70,6 +72,7 @@
       color: #b91c1c;
     }
 
+    /* BLUE SUBMIT BUTTON */
     .np-enter {
       background: #2563eb !important;
       color: #fff !important;
@@ -82,7 +85,7 @@
 <body class="page judge">
 
 <header class="judge-header">
-  <button id="btnBack" class="btn">← Back</button>
+  <button onclick="goBack()" class="btn">← Back</button>
   <div>
     <div class="judge-title">Speed Judge</div>
     <div class="judge-sub">Enter score and submit</div>
@@ -95,24 +98,31 @@
 
     <form id="scoreForm" class="form">
 
+      <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
+      <!-- NUMBER PAD -->
       <div class="numpad-grid">
         <button type="button" data-key="1">1</button>
         <button type="button" data-key="2">2</button>
         <button type="button" data-key="3">3</button>
+
         <button type="button" data-key="4">4</button>
         <button type="button" data-key="5">5</button>
         <button type="button" data-key="6">6</button>
+
         <button type="button" data-key="7">7</button>
         <button type="button" data-key="8">8</button>
         <button type="button" data-key="9">9</button>
+
         <button type="button" class="np-clear" data-key="clear">Clear</button>
         <button type="button" data-key="0">0</button>
 
+        <!-- BLUE SUBMIT BUTTON -->
         <button type="submit" class="np-enter">Submit</button>
       </div>
 
+      <!-- Hidden score -->
       <input type="hidden" name="SCORE" id="hiddenScore"/>
 
       <label class="check">
@@ -125,6 +135,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
+      <!-- Backend Hidden Fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -152,34 +163,20 @@
   </div>
 </div>
 
+<!-- BACK HANDLER -->
 <script>
-/* ================================================
-   SAFE BACK NAVIGATION (NO HISTORY)
-================================================ */
-document.getElementById("btnBack").onclick = () => {
-  const p = new URLSearchParams(location.search);
-  const station = p.get("station");
-  const key = p.get("key");
+function goBack() {
+  const params = new URLSearchParams(location.search);
+  const station = params.get("station");
+  const key = params.get("key");
   location.href = `station.html?station=${station}&key=${key}`;
-};
+}
 
-/* BLOCK BROWSER BACK */
 history.pushState(null, null, location.href);
-window.onpopstate = () => {
-  const p = new URLSearchParams(location.search);
-  const station = p.get("station");
-  const key = p.get("key");
-  location.href = `station.html?station=${station}&key=${key}`;
-};
+window.onpopstate = () => goBack();
 
-/* SAFARI: Fix page-from-cache */
-window.addEventListener("pageshow", (e) => {
-  if (e.persisted) {
-    const p = new URLSearchParams(location.search);
-    const station = p.get("station");
-    const key = p.get("key");
-    location.href = `station.html?station=${station}&key=${key}`;
-  }
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) goBack();
 });
 </script>
 
