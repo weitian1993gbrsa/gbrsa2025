@@ -40,6 +40,39 @@
 
 
   /* ============================================================
+     FALSE START TOGGLE BUTTON
+  ============================================================ */
+  const fsBtn = $("#falseStartBtn");
+  const fsHidden = $("#fFALSESTART");
+
+  if (fsBtn && fsHidden) {
+    fsHidden.value = "NO"; // default
+
+    const setNo = () => {
+      fsHidden.value = "NO";
+      fsBtn.textContent = "FALSE START: NO";
+      fsBtn.style.background = "#2ecc71"; // green
+      fsBtn.style.color = "#fff";
+    };
+
+    const setYes = () => {
+      fsHidden.value = "YES";
+      fsBtn.textContent = "FALSE START: YES";
+      fsBtn.style.background = "#d83131"; // red
+      fsBtn.style.color = "#fff";
+    };
+
+    // default UI
+    setNo();
+
+    fsBtn.addEventListener("click", () => {
+      if (fsHidden.value === "NO") setYes();
+      else setNo();
+    });
+  }
+
+
+  /* ============================================================
      NUMBERPAD + SCORE SCREEN (MAX 3 DIGITS)
   ============================================================ */
   const scoreScreen = $("#scoreScreen");
@@ -83,32 +116,6 @@
       }
 
     });
-  });
-
-
-  /* ============================================================
-     FALSE START TOGGLE
-  ============================================================ */
-  const fsBtn = $("#falseStartBtn");
-  const fsVal = $("#falseStartVal");
-
-  fsBtn.addEventListener("click", () => {
-
-    const isYes = fsBtn.classList.contains("fs-yes");
-
-    if (isYes) {
-      // Switch to No (Green)
-      fsBtn.classList.remove("fs-yes");
-      fsBtn.classList.add("fs-no");
-      fsBtn.textContent = "No False Start";
-      fsVal.value = "NO";
-    } else {
-      // Switch to YES (Red)
-      fsBtn.classList.remove("fs-no");
-      fsBtn.classList.add("fs-yes");
-      fsBtn.textContent = "False Start";
-      fsVal.value = "YES";
-    }
   });
 
 
