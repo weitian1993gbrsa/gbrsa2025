@@ -1,183 +1,198 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-  <title>Difficulty Judge</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #f5f7fb;
-    }
+<title>Difficulty Judge</title>
 
-    /* ===========================
-       TOP HEADER (Simple IJRU)
-    ============================ */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px;
-      background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
-    }
+<link rel="stylesheet" href="styles.css"/>
 
-    .btn {
-      padding: 10px 18px;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      border: none;
-    }
+<style>
 
-    .btn-back { background: #fff; border:1px solid #ccc; }
-    .btn-submit { background:#2563eb; color:#fff; }
+/* ========================
+   BODY
+========================= */
+body {
+  margin: 0;
+  background: #f3f4f6; /* same as RopeScore gray-100 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
 
-    .title {
-      font-size: 22px;
-      font-weight: 700;
-    }
+/* ========================
+   TOP HEADER
+========================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
 
-    /* ===========================
-       CONTROLS ROW
-    ============================ */
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 18px 16px;
-    }
+/* RopeScore button style */
+.btn {
+  padding: 12px 22px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+}
 
-    .btn-undo { background:#fff; border:1px solid #ccc; }
-    .btn-reset { background:#dc2626; color:#fff; }
+.btn-back {
+  background: white;
+  border: 1px solid #d1d5db;
+}
 
-    .score {
-      font-size: 22px;
-      font-weight: 700;
-    }
+.btn-submit {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
 
-    /* ===========================
-       IJRU GRID LAYOUT
-    ============================ */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      padding: 0 16px 40px 16px;
-    }
+.title {
+  font-size: 26px;
+  font-weight: 800;
+}
 
-    /* ===========================
-       IJRU BUTTON STYLE
-    ============================ */
-    .skill-btn {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+/* ========================
+   CONTROL BAR
+========================= */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  margin-top: 10px;
+}
 
-      background: #22c55e;
-      border: none;
-      border-radius: 22px;
-      color: white;
-      font-size: 20px;
-      font-weight: 700;
+.btn-undo {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+}
 
-      /* IMPORTANT: IJRU SIZE SECRET */
-      height: 26vw;
-      max-height: 170px;
-      min-height: 120px;
+.btn-reset {
+  background: #dc2626;
+  color: white;
+}
 
-      box-shadow: 0 6px 18px rgba(0,0,0,0.10);
-    }
+.score {
+  font-size: 26px;
+  font-weight: 800;
+}
 
-    .blue  { background:#2563eb; }
-    .purple{ background:#7e22ce; }
+/* ========================
+   1:1 ROPESCORE GRID
+========================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;           /* gap-3 */
+  padding: 0 16px;     /* px-4 */
+  margin-top: 16px;    /* mt-4 */
+}
 
-    .skill-btn small {
-      margin-top: 6px;
-      font-size: 18px;
-    }
+/* ========================
+   1:1 ROPESCORE BUTTON STYLE
+========================= */
+.skill-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
-  </style>
+  border-radius: 24px; /* rounded-3xl */
+  font-size: 22px;
+  font-weight: 700;
+
+  color: white;
+
+  /* THE REAL SIZE FORMULA */
+  height: 26vw;       /* responsive */
+  max-height: 185px;  /* RopeScore max */
+  min-height: 130px;  /* RopeScore min */
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15); /* drop-shadow-lg */
+}
+
+.green  { background: #22c55e; }
+.blue   { background: #2563eb; }
+.purple { background: #7e22ce; }
+
+.skill-btn small {
+  font-size: 20px;
+  margin-top: 6px;
+}
+
+</style>
 </head>
 
 <body>
 
-<!-- ===========================
-     HEADER
-=========================== -->
+<!-- HEADER -->
 <div class="header">
   <button class="btn btn-back" onclick="history.back()">← Back</button>
   <div class="title">Difficulty Judge</div>
   <button class="btn btn-submit" onclick="submitDifficulty()">Submit</button>
 </div>
 
-<!-- ===========================
-     CONTROLS
-=========================== -->
+<!-- CONTROLS -->
 <div class="controls">
   <button class="btn btn-undo" id="btnUndo">Undo</button>
   <div class="score">Total: <span id="totalScore">0.00</span></div>
   <button class="btn btn-reset" id="btnReset">Reset</button>
 </div>
 
-<!-- ===========================
-     IJRU GRID
-=========================== -->
+<!-- GRID -->
 <div class="grid">
 
-  <!-- Row 1 -->
-  <button class="skill-btn" data-level="1">Level 1<br><small id="c1">0</small></button>
-  <button class="skill-btn blue" data-level="0.5">Level 0.5<br><small id="c0_5">0</small></button>
-  <button class="skill-btn" data-level="4">Level 4<br><small id="c4">0</small></button>
+  <button class="skill-btn green"  data-level="1">Level 1<br><small id="c1">0</small></button>
+  <button class="skill-btn blue"   data-level="0.5">Level 0.5<br><small id="c0_5">0</small></button>
+  <button class="skill-btn green"  data-level="4">Level 4<br><small id="c4">0</small></button>
 
-  <!-- Row 2 -->
-  <button class="skill-btn" data-level="2">Level 2<br><small id="c2">0</small></button>
+  <button class="skill-btn green"  data-level="2">Level 2<br><small id="c2">0</small></button>
   <button class="skill-btn purple" data-level="7">Level 7<br><small id="c7">0</small></button>
-  <button class="skill-btn" data-level="5">Level 5<br><small id="c5">0</small></button>
+  <button class="skill-btn green"  data-level="5">Level 5<br><small id="c5">0</small></button>
 
-  <!-- Row 3 -->
-  <button class="skill-btn" data-level="3">Level 3<br><small id="c3">0</small></button>
+  <button class="skill-btn green"  data-level="3">Level 3<br><small id="c3">0</small></button>
   <button class="skill-btn purple" data-level="8">Level 8<br><small id="c8">0</small></button>
-  <button class="skill-btn" data-level="6">Level 6<br><small id="c6">0</small></button>
+  <button class="skill-btn green"  data-level="6">Level 6<br><small id="c6">0</small></button>
 
 </div>
 
 <script>
-/* Difficulty values */
 const diff = {0.5:0.12,1:0.15,2:0.23,3:0.34,4:0.51,5:0.76,6:1.14,7:1.71,8:2.56};
 let count={0.5:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0};
 let last=null;
 
 document.querySelectorAll(".skill-btn").forEach(btn=>{
-  btn.addEventListener("click",()=>{
+  btn.onclick=()=>{
     let lvl=btn.dataset.level;
     count[lvl]++;
     last=lvl;
     document.querySelector("#c"+lvl.replace(".","_")).textContent=count[lvl];
     update();
-  });
+  };
 });
 
 function update(){
   let total=0;
   for(let k in count) total+=count[k]*diff[k];
-  totalScore.textContent=total.toFixed(2);
+  document.getElementById("totalScore").innerText=total.toFixed(2);
 }
 
 btnUndo.onclick=()=>{
   if(!last) return;
-  count[last]=Math.max(0,count[last]-1);
+  count[last] = Math.max(0, count[last] - 1);
   document.querySelector("#c"+last.replace(".","_")).textContent=count[last];
-  last=null;
+  last = null;
   update();
 };
 
 btnReset.onclick=()=>{
-  for(let k in count){count[k]=0;}
-  document.querySelectorAll("small").forEach(s=>s.textContent="0");
+  for(let k in count) count[k]=0;
+  document.querySelectorAll("small").forEach(s=>s.innerText="0");
   last=null;
   update();
 };
