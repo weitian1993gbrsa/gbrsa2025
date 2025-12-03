@@ -1,199 +1,156 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Difficulty Judge</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>Difficulty Judge</title>
 
-<link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="./styles.css"/>
 
-<style>
+  <!-- Scripts -->
+  <script defer src="./config.js"></script>
+  <script defer src="./app.js"></script>
+  <script defer src="./freestyle-difficulty.js"></script>
+
+  <style>
     body {
-        background: #f3f4f6;
-        margin: 0;
-        padding: 0;
-        font-family: system-ui, -apple-system, Arial;
+      background: #f3f5f9;
     }
 
-    /* HEADER */
+    /* Header */
     .topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 14px 18px;
-        background: #ffffff;
-        border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
     }
 
-    .topbar-title {
-        font-size: 26px;
-        font-weight: 700;
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+      padding: .75rem 1.5rem;
+      border-radius: 12px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
     }
 
-    .btn {
-        padding: 12px 26px;
-        border-radius: 12px;
-        font-size: 18px;
-        cursor: pointer;
-        border: none;
-        font-weight: 600;
+    .btn-back {
+      padding: .75rem 1rem;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid #ddd;
+      font-weight: 600;
     }
 
-    .btn-blue {
-        background: #2563eb;
-        color: white;
+    /* Undo + Reset Area */
+    .top-controls {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 2rem;
     }
 
-    .btn-white {
-        background: white;
-        border: 2px solid #e5e7eb;
+    .score-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 0;
+      text-align: center;
+      flex: 1;
     }
 
-    .btn-red {
-        background: #d93025;
-        color: white;
+    .btn-undo {
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      padding: 0.75rem 1.5rem;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 600;
     }
 
-    /* MAIN WRAPPER */
-    .panel {
-        max-width: 900px;
-        margin: 25px auto;
-        background: white;
-        padding: 22px;
-        border-radius: 18px;
-        box-shadow: 0 8px 20px #0001;
-        text-align: center;
+    .btn-reset {
+      background: #dc2626;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 600;
     }
 
-    #totalScore {
-        font-size: 32px;
-        font-weight: 800;
-        margin: 20px 0 25px;
-    }
-
-    /* SKILL BUTTON WRAPPER — DIRECT GRID (NO CONTAINER LIMIT) */
-    .grid-skill {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 22px;
-        padding: 0 18px 40px;
+    /* GRID BUTTONS — EXACT MATCH TO PIC 2 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      padding: 0 1.5rem 2rem;
+      justify-items: center;
     }
 
     .skill-btn {
-        padding: 24px 10px;
-        border-radius: 35px;
-        color: white;
-        font-size: 22px;
-        font-weight: 700;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-height: 150px;
+      width: 180px;
+      height: 180px;
+      border-radius: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: white;
+      border: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: 0.1s scale;
     }
 
+    .skill-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Colors */
     .green { background: #22c55e; }
-    .blue  { background: #2563eb; }
     .purple { background: #7c3aed; }
 
-    @media (max-width: 600px) {
-        .skill-btn {
-            min-height: 135px;
-            font-size: 20px;
-        }
+    @media(max-width: 480px) {
+      .skill-btn {
+        width: 130px;
+        height: 130px;
+        border-radius: 28px;
+      }
     }
-</style>
-
+  </style>
 </head>
+
 <body>
 
-<!-- HEADER -->
-<div class="topbar">
-    <button class="btn btn-white" onclick="history.back()">← Back</button>
-    <div class="topbar-title">Difficulty Judge</div>
-    <button id="btnSubmit" class="btn btn-blue">Submit</button>
+<header class="topbar">
+  <button class="btn-back" onclick="history.back()">← Back</button>
+  <h1>Difficulty Judge</h1>
+  <button class="btn-primary">Submit</button>
+</header>
+
+<section class="top-controls">
+  <button class="btn-undo" id="btnUndo">Undo</button>
+  <h2 class="score-title">Total: <span id="totalScore">0.00</span></h2>
+  <button class="btn-reset" id="btnReset">Reset</button>
+</section>
+
+<!-- SKILL BUTTON GRID -->
+<div class="grid">
+  <button class="skill-btn green" data-level="1">Level 1<br><span class="count">0</span></button>
+  <button class="skill-btn green" data-level="0.5">Level 0.5<br><span class="count">0</span></button>
+  <button class="skill-btn green" data-level="4">Level 4<br><span class="count">0</span></button>
+
+  <button class="skill-btn green" data-level="2">Level 2<br><span class="count">0</span></button>
+  <button class="skill-btn purple" data-level="7">Level 7<br><span class="count">0</span></button>
+  <button class="skill-btn green" data-level="5">Level 5<br><span class="count">0</span></button>
+
+  <button class="skill-btn green" data-level="3">Level 3<br><span class="count">0</span></button>
+  <button class="skill-btn purple" data-level="8">Level 8<br><span class="count">0</span></button>
+  <button class="skill-btn green" data-level="6">Level 6<br><span class="count">0</span></button>
 </div>
-
-<!-- PANEL -->
-<div class="panel">
-
-    <div style="display:flex; justify-content:space-between;">
-        <button id="undoBtn" class="btn btn-white">Undo</button>
-        <button id="resetBtn" class="btn btn-red">Reset</button>
-    </div>
-
-    <div id="totalScore">Total: 0.00</div>
-
-    <!-- SKILLS IN IJRU LAYOUT -->
-    <div class="grid-skill">
-
-        <!-- Row 1: 1 — 0.5 — 4 -->
-        <div class="skill-btn green level-btn" data-level="1">
-            Level 1
-            <div class="skill-count" id="rep1">0</div>
-        </div>
-
-        <div class="skill-btn blue level-btn" data-level="0.5">
-            Level 0.5
-            <div class="skill-count" id="rep0_5">0</div>
-        </div>
-
-        <div class="skill-btn green level-btn" data-level="4">
-            Level 4
-            <div class="skill-count" id="rep4">0</div>
-        </div>
-
-        <!-- Row 2: 2 — 7 — 5 -->
-        <div class="skill-btn green level-btn" data-level="2">
-            Level 2
-            <div class="skill-count" id="rep2">0</div>
-        </div>
-
-        <div class="skill-btn purple level-btn" data-level="7">
-            Level 7
-            <div class="skill-count" id="rep7">0</div>
-        </div>
-
-        <div class="skill-btn green level-btn" data-level="5">
-            Level 5
-            <div class="skill-count" id="rep5">0</div>
-        </div>
-
-        <!-- Row 3: 3 — 8 — 6 -->
-        <div class="skill-btn green level-btn" data-level="3">
-            Level 3
-            <div class="skill-count" id="rep3">0</div>
-        </div>
-
-        <div class="skill-btn purple level-btn" data-level="8">
-            Level 8
-            <div class="skill-count" id="rep8">0</div>
-        </div>
-
-        <div class="skill-btn green level-btn" data-level="6">
-            Level 6
-            <div class="skill-count" id="rep6">0</div>
-        </div>
-
-    </div>
-
-    <!-- Hidden fields for submission -->
-    <input type="hidden" id="fID">
-    <input type="hidden" id="fNAME1">
-    <input type="hidden" id="fNAME2">
-    <input type="hidden" id="fNAME3">
-    <input type="hidden" id="fNAME4">
-    <input type="hidden" id="fTEAM">
-    <input type="hidden" id="fSTATE">
-    <input type="hidden" id="fHEAT">
-    <input type="hidden" id="fSTATION">
-    <input type="hidden" id="fEVENT">
-    <input type="hidden" id="fDIVISION">
-    <input type="hidden" id="fKEY">
-
-</div>
-
-<script src="app.js"></script>
-<script src="freestyle-difficulty.js"></script>
 
 </body>
 </html>
