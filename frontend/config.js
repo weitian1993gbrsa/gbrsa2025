@@ -55,19 +55,19 @@ window.JUDGE_KEYS = {
   "key999": { event: "speed", station: 12 },
 
   // FREESTYLE station 1
-  "FD1": { event: "freestyle", station: 1, judgeType: "difficulty" },
-  "FT1": { event: "freestyle", station: 1, judgeType: "technical" },
-  "FP1": { event: "freestyle", station: 1, judgeType: "presentation" },
+  "fd1": { event: "freestyle", station: 1, judgeType: "difficulty" },
+  "ft1": { event: "freestyle", station: 1, judgeType: "technical" },
+  "fp1": { event: "freestyle", station: 1, judgeType: "presentation" },
 
   // FREESTYLE station 2
-  "FD2": { event: "freestyle", station: 2, judgeType: "difficulty" },
-  "FT2": { event: "freestyle", station: 2, judgeType: "technical" },
-  "FP2": { event: "freestyle", station: 2, judgeType: "presentation" },
+  "fd2": { event: "freestyle", station: 2, judgeType: "difficulty" },
+  "ft2": { event: "freestyle", station: 2, judgeType: "technical" },
+  "fp2": { event: "freestyle", station: 2, judgeType: "presentation" },
 
   // FREESTYLE station 3
-  "FD3": { event: "freestyle", station: 3, judgeType: "difficulty" },
-  "FT3": { event: "freestyle", station: 3, judgeType: "technical" },
-  "FP3": { event: "freestyle", station: 3, judgeType: "presentation" }
+  "fd3": { event: "freestyle", station: 3, judgeType: "difficulty" },
+  "ft3": { event: "freestyle", station: 3, judgeType: "technical" },
+  "fp3": { event: "freestyle", station: 3, judgeType: "presentation" }
 };
 
 

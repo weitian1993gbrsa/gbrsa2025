@@ -57,10 +57,14 @@ window.onpopstate = function () {
 };
 </script>
 
-<!-- HOME BUTTON LOGIC -->
+<!-- HOME + REFRESH BUTTON LOGIC -->
 <script>
 document.getElementById("btnHome").addEventListener("click", () => {
   location.href = "index.html"; // always go home
+});
+
+document.getElementById("btnRefresh").addEventListener("click", () => {
+  location.reload(); // ⭐ FIXED: refresh works now
 });
 </script>
 
