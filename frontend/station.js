@@ -11,16 +11,15 @@
 
   stationLabel.textContent = station;
 
+  const CACHE_KEY_DATA = "stationData_" + station;
+  const CACHE_KEY_HTML = "stationHTML_" + station;
+
   /* ============================================================
-     🔐 SECURITY — Verify Key is correct for this station
+     🔐 SECURITY
   ============================================================ */
   const JUDGE_KEYS = window.JUDGE_KEYS || {};
-
-  // Convert { key: station } → { station: key }
   const validKeys = {};
-  for (const [k, s] of Object.entries(JUDGE_KEYS)) {
-    validKeys[String(s)] = k;
-  }
+  for (const [k, s] of Object.entries(JUDGE_KEYS)) validKeys[String(s)] = k;
 
   if (!key || key !== validKeys[station]) {
     document.body.innerHTML = `
@@ -32,16 +31,9 @@
     throw new Error("Unauthorized access");
   }
 
-  /* ============================================================
-     ESCAPE
-  ============================================================ */
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, m => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      "\"": "&quot;",
-      "'": "&#39;"
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
     }[m]));
   }
 
@@ -76,8 +68,6 @@
       </div>
     `;
 
-    const statusEl = card.querySelector(".status");
-
     const judgeURL =
       `speed-judge.html`
       + `?id=${encodeURIComponent(p.entryId)}`
@@ -89,7 +79,7 @@
       + `&state=${encodeURIComponent(p.state || "")}`
       + `&heat=${encodeURIComponent(p.heat || "")}`
       + `&station=${encodeURIComponent(station)}`
-      + `&key=${encodeURIComponent(key)}`        // keep locked
+      + `&key=${encodeURIComponent(key)}`
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
@@ -97,12 +87,15 @@
       location.href = judgeURL;
     });
 
-    cardMap[p.entryId] = { card, statusEl };
+    cardMap[p.entryId] = {
+      card,
+      statusEl: card.querySelector(".status")
+    };
     return card;
   }
 
   /* ============================================================
-     UPDATE CARD
+     UPDATE CARD FAST
   ============================================================ */
   function updateCard(p) {
     const cache = cardMap[p.entryId];
@@ -121,15 +114,31 @@
   }
 
   /* ============================================================
-     LOAD STATION LIST
+     LOAD LIST
   ============================================================ */
   async function loadStationList() {
-    const firstLoad = Object.keys(cardMap).length === 0;
+    // 1️⃣ INSTANT LOAD FROM CACHE (if available)
+    const savedHTML = localStorage.getItem(CACHE_KEY_HTML);
+    const savedData = localStorage.getItem(CACHE_KEY_DATA);
 
-    if (firstLoad) {
+    if (savedHTML && savedData) {
+      listEl.innerHTML = savedHTML;
+
+      const arr = JSON.parse(savedData);
+      arr.forEach((p, i) => {
+        const card = listEl.children[i];
+        if (!card) return;
+
+        cardMap[p.entryId] = {
+          card,
+          statusEl: card.querySelector(".status")
+        };
+      });
+    } else {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
+    // 2️⃣ BACKGROUND REFRESH
     let data;
     try {
       data = await apiGet({
@@ -137,37 +146,35 @@
         station,
         _ts: Date.now()
       });
-    } catch (err) {
-      console.error(err);
-      if (firstLoad) listEl.innerHTML = `<div class="hint error">Error loading.</div>`;
+    } catch (e) {
+      console.error(e);
       return;
     }
 
-    if (!data || !data.ok) {
-      if (firstLoad) listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
-      return;
-    }
-
+    if (!data || !data.ok) return;
     const arr = data.entries || [];
 
-    if (firstLoad) {
+    // FIRST LOAD → FULL RENDER
+    if (!savedHTML) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
+
+      localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
+      localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
       return;
     }
 
-    arr.forEach(p => updateCard(p));
+    // SUBSEQUENT LOADS → FAST STATUS UPDATE
+    arr.forEach(updateCard);
+
+    // UPDATE CACHE
+    localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
+    localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
   }
 
-  /* ============================================================
-     REFRESH
-  ============================================================ */
   if (btnRefresh) btnRefresh.addEventListener("click", () => location.reload());
 
-  /* ============================================================
-     AUTO LOAD
-  ============================================================ */
   window.addEventListener("load", () => {
-    setTimeout(loadStationList, 60);
+    setTimeout(loadStationList, 50);
   });
 })();
