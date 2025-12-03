@@ -187,7 +187,7 @@ function goBack() {
   const params = new URLSearchParams(location.search);
   const station = params.get("station");
   const key = params.get("key");
-  location.href = `station.html?station=${station}&key=${key}`;
+  location.href = `speed-station.html?station=${station}&key=${key}`;
 }
 
 history.pushState(null, null, location.href);

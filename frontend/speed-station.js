@@ -31,7 +31,7 @@
   }
 
   /* ============================================================
-     🔥 FREESTYLE KEYS SHOULD BE REDIRECTED
+     🔥 FREESTYLE KEYS SHOULD REDIRECT (safety)
   ============================================================ */
   if (keyInfo.event === "freestyle") {
     const judgeType = keyInfo.judgeType;
@@ -59,15 +59,13 @@
       .join(", ");
   }
 
-  const cardMap = {};
-
   function createCard(p, index) {
     const card = document.createElement("button");
     card.type = "button";
-    card.className = p.status === "done"
-      ? "station-card done"
-      : "station-card pending";
+    card.className =
+      p.status === "done" ? "station-card done" : "station-card pending";
 
+    /* TOP ROW */
     const top = document.createElement("div");
     top.className = "top-row";
 
@@ -80,14 +78,17 @@
     top.appendChild(heat);
     top.appendChild(num);
 
+    /* NAME */
     const name = document.createElement("div");
     name.className = "name";
     name.textContent = formatNames(p);
 
+    /* TEAM */
     const team = document.createElement("div");
     team.className = "team";
     team.textContent = p.team || "";
 
+    /* EVENT ROW */
     const eventRow = document.createElement("div");
     eventRow.className = "event-row";
 
@@ -102,11 +103,13 @@
     eventRow.appendChild(statusEl);
     eventRow.appendChild(eventName);
 
+    /* Append */
     card.appendChild(top);
     card.appendChild(name);
     card.appendChild(team);
     card.appendChild(eventRow);
 
+    /* Click → speed-judge */
     card.onclick = () => {
       location.href =
         `speed-judge.html?id=${p.entryId}`
@@ -123,11 +126,12 @@
         + `&division=${encodeURIComponent(p.division || "")}`;
     };
 
-    cardMap[p.entryId] = { card, statusEl };
     return card;
   }
 
-  /* LOAD LIST */
+  /* ============================================================
+     LOAD LIST
+  ============================================================ */
   async function load() {
     listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
@@ -142,16 +146,20 @@
       return;
     }
 
+    /* FILTER SPEED EVENTS */
     const arr = (data.entries || []).filter(p =>
       SPEED_EVENTS.includes(String(p.event).trim())
     );
 
     listEl.innerHTML = "";
 
-    arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
+    arr.forEach((p, i) => {
+      const card = createCard(p, i);
+      listEl.appendChild(card);
+    });
   }
 
   if (btnRefresh) btnRefresh.addEventListener("click", () => location.reload());
-  window.addEventListener("load", () => setTimeout(load, 80));
 
+  window.addEventListener("load", () => setTimeout(load, 80));
 })();

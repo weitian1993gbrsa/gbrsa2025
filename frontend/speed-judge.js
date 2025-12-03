@@ -7,7 +7,7 @@
      RETURN URL (secure) + PRELOAD
   ============================================================ */
   const returnURL =
-    `station.html?station=${params.get("station")}&key=${params.get("key")}`;
+    `speed-station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
   fetch(returnURL).catch(()=>{});
 

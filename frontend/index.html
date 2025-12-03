@@ -148,17 +148,18 @@ btnLogin.addEventListener("click", () => {
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  // Speed
-  if (event === "speed") {
-    location.href = `station.html?station=${station}&event=speed&key=${key}`;
-    return;
-  }
+  // ⭐ SPEED → go to new speed-station.html
+if (event === "speed") {
+  location.href = `speed-station.html?station=${station}&key=${key}`;
+  return;
+}
 
-  // Freestyle (will activate later)
-  if (event === "freestyle") {
-    location.href = `station.html?station=${station}&event=freestyle&judgeType=${judgeType}&key=${key}`;
-    return;
-  }
+// ⭐ FREESTYLE → go to freestyle-station.html
+if (event === "freestyle") {
+  location.href =
+    `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
+  return;
+}
 });
 
 // Enter key support
