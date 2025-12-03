@@ -22,11 +22,47 @@
 <script defer src="./app.js"></script>
 <script defer src="./nozoom.js"></script>
 
-<style>html, body { touch-action: manipulation; }</style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1020">
 
-<!-- 🔥 API Warm-Up -->
+<style>
+  html, body { touch-action: manipulation; }
+
+  /* ============================================================
+     FIX — Judge Login Card Should NOT Glow or be Clickable
+     ============================================================ */
+
+  .judge-login {
+    cursor: default !important;
+    box-shadow: none !important;
+    border-left: 4px solid var(--accent);
+    transition: none !important;
+    outline: 5px !important;
+  }
+
+  .judge-login:hover {
+    cursor: default !important;
+    transform: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .judge-login input:focus,
+  .judge-login button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: var(--border) !important;
+  }
+
+  /* Remove blue outline from card itself */
+  .card.judge-login:focus,
+  .card.judge-login:active {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+</style>
+
+<!-- Warm up API -->
 <script>
 fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </script>
@@ -143,18 +179,14 @@ function resetJudgeLogin() {
 /* =============================
    FIX BACK-NAV ON ALL DEVICES
    ============================= */
-
-// iOS Safari — page restored from cache
 window.addEventListener("pageshow", resetJudgeLogin);
 
-// Android Chrome — swipe back triggers visibilitychange
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     resetJudgeLogin();
   }
 });
 
-// Extra safety — Android memory snapshot restore
 window.addEventListener("pagehide", () => {
   keyInput.value = "";
 });
@@ -162,32 +194,3 @@ window.addEventListener("pagehide", () => {
 
 </body>
 </html>
-
-<!-- EXTRA SAFETY CLEAR -->
-<script>
-function clearJudgeField() {
-  const keyInput = document.getElementById("judgeKey");
-  const btnLogin = document.getElementById("btnJudgeLogin");
-  const keyError = document.getElementById("keyError");
-
-  if (!keyInput) return;
-
-  keyInput.value = "";
-  keyError.style.display = "none";
-  btnLogin.disabled = false;
-  btnLogin.textContent = "Enter";
-}
-
-// iOS + modern browsers
-window.addEventListener("pageshow", clearJudgeField);
-
-// Android Chrome back-swipe
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    clearJudgeField();
-  }
-});
-
-// Extra safety: When page unloads, clear
-window.addEventListener("pagehide", clearJudgeField);
-</script>
