@@ -31,7 +31,10 @@
       top: 0;
       z-index: 9999;
     }
-    .judge-title { font-size: 1.4rem; font-weight: 700; }
+    .judge-title { 
+      font-size: 1.4rem; 
+      font-weight: 700; 
+    }
 
     /* SCORE SCREEN */
     .score-screen {
@@ -78,21 +81,20 @@
       font-weight: 700;
     }
 
-    /* FALSE START BUTTON (same size as numpad buttons) */
+    /* FALSE START BUTTON (same width as numpad buttons) */
     .fs-btn {
+      width: 100%;
       padding: 20px 0;
       font-size: 1.6rem;
       border-radius: 12px;
       font-weight: 700;
       border: 1px solid transparent;
     }
-
     .fs-no {
       background: #22c55e;   /* green */
       border-color: #16a34a;
       color: white;
     }
-
     .fs-yes {
       background: #dc2626;   /* red */
       border-color: #b91c1c;
@@ -111,7 +113,6 @@
 </header>
 
 <main class="container">
-
   <section class="block">
 
     <form id="scoreForm" class="form">
@@ -140,12 +141,13 @@
         <button type="submit" class="np-enter">Submit</button>
       </div>
 
-      <input type="hidden" name="SCORE" id="hiddenScore"/>
-
-      <!-- 🔥 FALSE START BUTTON (same width as numpad buttons) -->
+      <!-- 🔥 FALSE START BUTTON (same width as CLEAR, inside 3-col grid) -->
       <div class="numpad-grid">
         <button type="button" id="falseStartBtn" class="fs-btn fs-no">NO</button>
+        <div></div>
+        <div></div>
       </div>
+
       <input type="hidden" name="FALSE START" id="falseStartVal" value="">
 
       <!-- REMARK -->
@@ -190,8 +192,10 @@ function goBack() {
   const key = params.get("key");
   location.href = `station.html?station=${station}&key=${key}`;
 }
+
 history.pushState(null, null, location.href);
 window.onpopstate = () => goBack();
+
 window.addEventListener("pageshow", (event) => {
   if (event.persisted) goBack();
 });
