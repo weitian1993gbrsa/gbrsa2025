@@ -438,26 +438,36 @@ body.station .station-card {
   font-size: 0.9rem;
   width: 100%;
 }
-/* =========================================
-   GLOBAL: remove press animations
-   (no scale, no extra shadow)
-   ========================================= */
+/* ============================================================
+   FINAL GLOBAL FIX — REMOVE TAP FLASH + BLUE HIGHLIGHT
+============================================================ */
 
-/* Stop transitions / transforms on interactive blocks */
-.btn,
-.station-card,
-.card {
-  transition: none !important;
-  transform: none !important;
+html, body, * {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
 }
 
-/* Ensure :active does nothing special */
-.btn:active,
-.station-card:active,
-.card:active {
-  transform: none !important;
-  box-shadow: none !important;
+/* Allow typing + selection ONLY inside inputs */
+input, textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* Remove default button highlight WITHOUT removing their background */
+button, .btn, .station-card, .card {
   outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Stop active press animations */
+button:active, .btn:active, .station-card:active, .card:active {
+  transform: none !important;
+  filter: none !important;
 }
 /* ============================================================
    FINAL GLOBAL FIX — REMOVE TAP FLASH + BLUE HIGHLIGHT
