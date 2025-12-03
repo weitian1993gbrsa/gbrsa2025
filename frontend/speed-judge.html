@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
 
-  <!-- Disable caching -->
+  <!-- IMPORTANT: disable caching -->
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -34,19 +34,22 @@
     .judge-title { font-size: 1.4rem; font-weight: 700; }
     .judge-sub { color: #555; margin-top: .15rem; font-size: .9rem; }
 
+    /* SCORE SCREEN */
     .score-screen {
       width: 100%;
       background: #111;
       color: #0ff;
       font-size: 2.8rem;
       text-align: right;
-      padding: 18px;
+      padding: 22px;
       border-radius: 14px;
-      margin-bottom: 18px;
+      margin-bottom: 22px;
       font-family: monospace;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.45);
       letter-spacing: 2px;
     }
 
+    /* NUMPAD */
     .numpad-grid {
       display: grid;
       grid-template-columns: repeat(3,1fr);
@@ -55,13 +58,12 @@
     }
 
     .numpad-grid button {
-      padding: 18px 0;
+      padding: 20px 0;
       font-size: 1.6rem;
       border-radius: 12px;
       background: #fff;
       border: 1px solid #ddd;
       font-weight: 600;
-      box-shadow: none;
     }
 
     .np-clear {
@@ -70,10 +72,11 @@
       color: #b91c1c;
     }
 
+    /* BLUE SUBMIT BUTTON */
     .np-enter {
-      background: #2563eb;
-      color: white;
-      border-color: #1d4ed8;
+      background: #2563eb !important;
+      color: #fff !important;
+      border: 1px solid #1d4ed8 !important;
       font-weight: 700;
     }
   </style>
@@ -90,13 +93,15 @@
 </header>
 
 <main class="container">
+
   <section class="block">
+
     <form id="scoreForm" class="form">
 
       <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
-      <!-- NUMPAD -->
+      <!-- NUMBER PAD -->
       <div class="numpad-grid">
         <button type="button" data-key="1">1</button>
         <button type="button" data-key="2">2</button>
@@ -110,12 +115,14 @@
         <button type="button" data-key="8">8</button>
         <button type="button" data-key="9">9</button>
 
-        <button type="button" data-key="clear" class="np-clear">Clear</button>
+        <button type="button" class="np-clear" data-key="clear">Clear</button>
         <button type="button" data-key="0">0</button>
-        <button type="submit" class="np-enter">Enter</button>
+
+        <!-- BLUE SUBMIT BUTTON -->
+        <button type="submit" class="np-enter">Submit</button>
       </div>
 
-      <!-- Hidden actual score -->
+      <!-- Hidden score -->
       <input type="hidden" name="SCORE" id="hiddenScore"/>
 
       <label class="check">
@@ -128,7 +135,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Hidden backend fields -->
+      <!-- Backend Hidden Fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -142,10 +149,11 @@
       <input type="hidden" name="DIVISION" id="fDIVISION">
 
     </form>
+
   </section>
 </main>
 
-<!-- Submit overlay -->
+<!-- Submit Overlay -->
 <div id="submitOverlay" class="overlay hide">
   <div class="overlay-card">
     <div class="loading">
@@ -155,6 +163,7 @@
   </div>
 </div>
 
+<!-- BACK HANDLER -->
 <script>
 function goBack() {
   const params = new URLSearchParams(location.search);
@@ -162,9 +171,11 @@ function goBack() {
   const key = params.get("key");
   location.href = `station.html?station=${station}&key=${key}`;
 }
+
 history.pushState(null, null, location.href);
-window.onpopstate = function () { goBack(); };
-window.addEventListener("pageshow", function (event) {
+window.onpopstate = () => goBack();
+
+window.addEventListener("pageshow", (event) => {
   if (event.persisted) goBack();
 });
 </script>
