@@ -11,13 +11,11 @@
 
   stationLabel.textContent = station;
 
-  const CACHE_DATA = "station_data_" + station;
-  const CACHE_HTML = "station_html_" + station;
-
   /* ============================================================
-     🔐 SECURITY
+     🔐 SECURITY — Verify Key is correct for this station
   ============================================================ */
   const JUDGE_KEYS = window.JUDGE_KEYS || {};
+
   const validKeys = {};
   for (const [k, s] of Object.entries(JUDGE_KEYS)) validKeys[String(s)] = k;
 
@@ -28,23 +26,22 @@
         <p>You do not have permission to view this station.</p>
       </div>
     `;
-    throw new Error("Unauthorized");
+    throw new Error("Unauthorized access");
   }
 
   /* ============================================================
-     ESCAPES + NAME FORMAT
+     ESCAPE
   ============================================================ */
   function esc(s) {
-    return String(s || "").replace(/[&<>"']/g, c => ({
+    return String(s || "").replace(/[&<>"']/g, m => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
-    }[c]));
+    }[m]));
   }
 
   function formatNames(p) {
-    return [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
-      .filter(n => n && n.trim())
-      .map(esc)
-      .join(", ");
+    const names = [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
+      .filter(n => n && String(n).trim() !== "");
+    return names.map(esc).join(", ");
   }
 
   const cardMap = {};
@@ -62,13 +59,17 @@
         <span>Heat ${esc(p.heat)}</span>
         <span>#${index + 1} • ${esc(p.entryId)}</span>
       </div>
+
       <div class="name">${formatNames(p)}</div>
       <div class="team">${esc(p.team)}</div>
+
       <div class="event-row">
         <div class="status">${p.status === "done" ? "COMPLETED" : "NEW"}</div>
         <div class="event">${esc(p.event)}</div>
       </div>
     `;
+
+    const statusEl = card.querySelector(".status");
 
     const judgeURL =
       `speed-judge.html`
@@ -87,10 +88,7 @@
 
     card.onclick = () => location.href = judgeURL;
 
-    cardMap[p.entryId] = {
-      card,
-      statusEl: card.querySelector(".status")
-    };
+    cardMap[p.entryId] = { card, statusEl };
 
     return card;
   }
@@ -99,94 +97,36 @@
      UPDATE CARD
   ============================================================ */
   function updateCard(p) {
-    const entry = cardMap[p.entryId];
-    if (!entry) return;
+    const cache = cardMap[p.entryId];
+    if (!cache) return;
 
-    const { card, statusEl } = entry;
+    const { card, statusEl } = cache;
 
     if (p.status === "done") {
-      card.classList.remove("pending");
-      card.classList.add("done");
-      statusEl.textContent = "COMPLETED";
+      if (!card.classList.contains("done")) {
+        card.classList.remove("pending");
+        card.classList.add("done");
+        statusEl.textContent = "COMPLETED";
+      }
     } else {
-      card.classList.remove("done");
-      card.classList.add("pending");
-      statusEl.textContent = "NEW";
+      if (!card.classList.contains("pending")) {
+        card.classList.remove("done");
+        card.classList.add("pending");
+        statusEl.textContent = "NEW";
+      }
     }
   }
 
   /* ============================================================
-     APPLY SORT (NEW → DONE by heat)
+     LOAD STATION LIST (with NEW → DONE reorder)
   ============================================================ */
-  function applySortedLayout(arr) {
-    const pending = arr.filter(p => p.status !== "done");
-    const done = arr.filter(p => p.status === "done");
+  async function loadStationList() {
+    const firstLoad = Object.keys(cardMap).length === 0;
 
-    pending.sort((a, b) => Number(a.heat) - Number(b.heat));
-    done.sort((a, b) => Number(a.heat) - Number(b.heat));
+    if (firstLoad) {
+      listEl.innerHTML = `<div class="hint">Loading…</div>`;
+    }
 
-    listEl.innerHTML = "";
-
-    [...pending, ...done].forEach(p => {
-      const entry = cardMap[p.entryId];
-      if (entry) listEl.appendChild(entry.card);
-    });
-
-    localStorage.setItem(CACHE_HTML, listEl.innerHTML);
-  }
-
-  /* ============================================================
-     1️⃣ INSTANT LOAD FROM MEMORY FIRST
-  ============================================================ */
-  function tryLoadFromMemory() {
-    const mem = window.__stationCache?.[station];
-    if (!mem) return false;
-
-    console.log("Loaded from memory:", station, mem.length);
-
-    listEl.innerHTML = "";
-    mem.forEach((p, i) => {
-      if (!cardMap[p.entryId]) createCard(p, i);
-    });
-
-    applySortedLayout(mem);
-
-    // Update local cache too
-    localStorage.setItem(CACHE_DATA, JSON.stringify(mem));
-
-    return true;
-  }
-
-  /* ============================================================
-     2️⃣ INSTANT LOAD FROM LOCALSTORAGE
-  ============================================================ */
-  function tryLoadFromCache() {
-    const html = localStorage.getItem(CACHE_HTML);
-    const json = localStorage.getItem(CACHE_DATA);
-    if (!html || !json) return false;
-
-    listEl.innerHTML = html;
-
-    const arr = JSON.parse(json);
-    const cards = listEl.querySelectorAll(".station-card");
-
-    arr.forEach((p, i) => {
-      const card = cards[i];
-      if (!card) return;
-
-      cardMap[p.entryId] = {
-        card,
-        statusEl: card.querySelector(".status")
-      };
-    });
-
-    return true;
-  }
-
-  /* ============================================================
-     3️⃣ BACKGROUND REFRESH (SILENT)
-  ============================================================ */
-  async function backgroundRefresh() {
     let data;
     try {
       data = await apiGet({
@@ -195,52 +135,66 @@
         _ts: Date.now()
       });
     } catch (err) {
-      console.warn("Background refresh failed", err);
+      console.error(err);
+      if (firstLoad) {
+        listEl.innerHTML = `<div class="hint error">Error loading.</div>`;
+      }
       return;
     }
 
-    if (!data || !data.ok) return;
+    if (!data || !data.ok) {
+      if (firstLoad) {
+        listEl.innerHTML = `<div class="hint error">Unable to load entries.</div>`;
+      }
+      return;
+    }
 
     const arr = data.entries || [];
 
-    arr.forEach(updateCard);
-    applySortedLayout(arr);
+    /* FIRST LOAD: build all cards */
+    if (firstLoad) {
+      const frag = document.createDocumentFragment();
+      arr.forEach((p, i) => frag.appendChild(createCard(p, i)));
+      listEl.innerHTML = "";
+      listEl.appendChild(frag);
+    }
 
-    // save latest
-    localStorage.setItem(CACHE_DATA, JSON.stringify(arr));
-    window.__stationCache[station] = arr;
+    /* UPDATE CARD STATUS FAST */
+    arr.forEach(updateCard);
+
+    /* ============================================================
+       🔥 REORDER LOGIC — NEW first, DONE last, DONE sorted by Heat
+    ============================================================ */
+    const pending = arr.filter(p => p.status !== "done");
+    const done = arr.filter(p => p.status === "done");
+
+    // Sort NEW by heat ASCENDING (Heat 1,2,3,...)
+    pending.sort((a, b) => Number(a.heat) - Number(b.heat));
+
+    // Sort DONE also by heat ASCENDING
+    done.sort((a, b) => Number(a.heat) - Number(b.heat));
+
+    const merged = [...pending, ...done];
+
+    // Put DOM in correct order
+    listEl.innerHTML = "";
+    merged.forEach(p => {
+      const entry = cardMap[p.entryId];
+      if (entry) listEl.appendChild(entry.card);
+    });
   }
 
   /* ============================================================
      REFRESH BUTTON
   ============================================================ */
   if (btnRefresh) {
-    btnRefresh.onclick = () => {
-      localStorage.removeItem(CACHE_HTML);
-      localStorage.removeItem(CACHE_DATA);
-      location.reload();
-    };
+    btnRefresh.addEventListener("click", () => location.reload());
   }
 
   /* ============================================================
-     PAGE LOAD FLOW
+     AUTO LOAD
   ============================================================ */
   window.addEventListener("load", () => {
-
-    // 1️⃣ Memory-first = FASTEST
-    const memLoaded = tryLoadFromMemory();
-
-    // 2️⃣ If not in memory → load from cache
-    if (!memLoaded) {
-      const cacheLoaded = tryLoadFromCache();
-
-      // 3️⃣ If still nothing → show loading text
-      if (!cacheLoaded) {
-        listEl.innerHTML = `<div class="hint">Loading…</div>`;
-      }
-    }
-
-    // Always run background update (non-blocking)
-    backgroundRefresh();
+    setTimeout(loadStationList, 50);
   });
 })();
