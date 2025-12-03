@@ -46,7 +46,9 @@
   const fsHidden = $("#fFALSESTART");
 
   if (fsBtn && fsHidden) {
-    fsHidden.value = "NO"; // default
+
+    // default value
+    fsHidden.value = "NO";
 
     const setNo = () => {
       fsHidden.value = "NO";
@@ -62,7 +64,7 @@
       fsBtn.style.color = "#fff";
     };
 
-    // default UI
+    // initialize UI
     setNo();
 
     fsBtn.addEventListener("click", () => {
@@ -85,26 +87,23 @@
 
       const key = btn.dataset.key;
 
-      /* ---------------- CLEAR BUTTON ---------------- */
       if (key === "clear") {
         scoreScreen.textContent = "0";
         hiddenScore.value = "";
         return;
       }
 
-      /* ---------------- SUBMIT BUTTON ---------------- */
       if (key === "enter") {
         const form = $("#scoreForm");
         form.dispatchEvent(new Event("submit"));
         return;
       }
 
-      /* ---------------- DIGIT BUTTONS ---------------- */
       if (/^[0-9]$/.test(key)) {
 
         let current = scoreScreen.textContent.trim();
 
-        if (current.length >= 3) return; // max 3 digits
+        if (current.length >= 3) return;
 
         if (current === "0") {
           scoreScreen.textContent = key;
@@ -130,7 +129,6 @@
     e.preventDefault();
 
     const scoreVal = scoreScreen.textContent.trim();
-
     if (scoreVal === "") {
       alert("Please enter a score before submitting.");
       return;
@@ -145,12 +143,12 @@
     const fd = new FormData(scoreForm);
     const payload = Object.fromEntries(fd.entries());
 
+    // IMPORTANT — this *automatically includes* FALSESTART now
     payload._form = "speed";
 
     apiPost(payload)
       .then(() => {
         overlayText.textContent = "Saved ✔";
-
         setTimeout(() => {
           location.href = returnURL;
         }, 120);
