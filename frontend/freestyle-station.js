@@ -105,7 +105,7 @@
   }
 
   async function load() {
-    listEl.innerHTML = `<div class="hint">Loading performers…</div>`;
+    listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
     const data = await apiGet({
       cmd: "stationlist",
