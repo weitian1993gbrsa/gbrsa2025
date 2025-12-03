@@ -28,16 +28,13 @@
 <style>
   html, body { touch-action: manipulation; }
 
-  /* ============================================================
-     FIX — Judge Login Card Should NOT Glow or be Clickable
-     ============================================================ */
-
+  /* FIX — Judge Login Card Should Not Glow */
   .judge-login {
     cursor: default !important;
     box-shadow: none !important;
-    border-left: 4px solid var(--accent);
+    border-left: none !important;
     transition: none !important;
-    outline: 5px !important;
+    outline: none !important;
   }
 
   .judge-login:hover {
@@ -53,21 +50,14 @@
     box-shadow: none !important;
     border-color: var(--border) !important;
   }
-
-  /* Remove blue outline from card itself */
-  .card.judge-login:focus,
-  .card.judge-login:active {
-    outline: none !important;
-    box-shadow: none !important;
-  }
 </style>
 
-<!-- Warm up API -->
+<!-- API Warm-Up -->
 <script>
 fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </script>
 
-<!-- iOS Zoom Fix -->
+<!-- iOS zoom fix -->
 <script>
 (function(){
   function ensureSize(el){
@@ -96,7 +86,6 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
   </div>
 </header>
 
-<!-- ⭐ CENTERED PAGE WRAPPER -->
 <main class="page-wrapper">
   <div class="home-wrapper">
 
@@ -125,22 +114,19 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </footer>
 
 <script>
-// Judge key mapping from config.js
-const validKeys = window.JUDGE_KEYS;
+const JUDGE_MAP = window.JUDGE_KEYS;
 
 // UI elements
 const keyInput  = document.getElementById("judgeKey");
 const keyError  = document.getElementById("keyError");
 const btnLogin  = document.getElementById("btnJudgeLogin");
 
-/* ================================================
-      🔐 MODIFIED LOGIN HANDLER — NOW WITH ADMIN
-   ================================================ */
 btnLogin.addEventListener("click", () => {
+
   const key = keyInput.value.trim();
   keyError.style.display = "none";
 
-  // ========= ADMIN LOGIN CHECK =========
+  // Admin
   if (typeof ADMIN_KEY !== "undefined" && key === ADMIN_KEY) {
     btnLogin.disabled = true;
     btnLogin.textContent = "Loading…";
@@ -148,45 +134,50 @@ btnLogin.addEventListener("click", () => {
     return;
   }
 
-  // ========= NORMAL JUDGE LOGIN =========
-  const station = validKeys[key];
-
-  if (!station) {
+  // Judge key info
+  const info = JUDGE_MAP[key];
+  if (!info) {
     keyError.style.display = "block";
     return;
   }
 
+  const station = info.station;
+  const event = info.event;
+  const judgeType = info.judgeType || "";
+
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  // Redirect to secure station
-  location.href = `station.html?station=${station}&key=${key}`;
+  // Speed
+  if (event === "speed") {
+    location.href = `station.html?station=${station}&event=speed&key=${key}`;
+    return;
+  }
+
+  // Freestyle (will activate later)
+  if (event === "freestyle") {
+    location.href = `station.html?station=${station}&event=freestyle&judgeType=${judgeType}&key=${key}`;
+    return;
+  }
 });
 
-// Support Enter key
+// Enter key support
 keyInput.addEventListener("keyup", e => {
   if (e.key === "Enter") btnLogin.click();
 });
 
-// ⭐ UNIVERSAL RESET FUNCTION
+// Reset after back
 function resetJudgeLogin() {
   btnLogin.disabled = false;
   btnLogin.textContent = "Enter";
   keyError.style.display = "none";
-  keyInput.value = ""; // 🔥 CLEAR PASSWORD
+  keyInput.value = "";
 }
 
-/* =============================
-   FIX BACK-NAV ON ALL DEVICES
-   ============================= */
 window.addEventListener("pageshow", resetJudgeLogin);
-
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    resetJudgeLogin();
-  }
+  if (document.visibilityState === "visible") resetJudgeLogin();
 });
-
 window.addEventListener("pagehide", () => {
   keyInput.value = "";
 });

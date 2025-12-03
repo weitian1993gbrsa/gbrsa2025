@@ -3,47 +3,23 @@
 
   const listEl = $("#entryList");
   const stationLabel = $("#stationLabel");
-  const btnRefresh = $("#btnRefresh");
 
   const qs = new URLSearchParams(location.search);
 
-  const station = qs.get("station") || "1";
+  const station = qs.get("station");
   const key = qs.get("key");
+  const judgeType = qs.get("judgeType");
 
   stationLabel.textContent = station;
 
-  /* ============================================================
-     SECURITY — Key must match station
-  ============================================================ */
   const keyInfo = window.JUDGE_KEYS[key];
-  if (!keyInfo || String(keyInfo.station) !== String(station)) {
-    deny("Unauthorized access");
-    return;
-  }
-
-  function deny(msg) {
+  if (!keyInfo || keyInfo.event !== "freestyle") {
     document.body.innerHTML =
-      `<div style="padding:2rem;text-align:center;">
-         <h2 style="color:#b00020;">Access Denied</h2>
-         <p>${msg}</p>
-       </div>`;
-    throw new Error(msg);
-  }
-
-  /* ============================================================
-     🔥 FREESTYLE KEYS SHOULD BE REDIRECTED
-  ============================================================ */
-  if (keyInfo.event === "freestyle") {
-    const judgeType = keyInfo.judgeType;
-    location.href =
-      `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
+      `<h2 style="padding:2rem;color:#b00020;">Invalid Access</h2>`;
     return;
   }
 
-  /* ============================================================
-     SPEED MODE — FILTER ONLY SPEED EVENTS
-  ============================================================ */
-  const SPEED_EVENTS = window.SPEED_EVENTS || [];
+  const FREESTYLE_EVENTS = window.FREESTYLE_EVENTS || [];
 
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, c => ({
@@ -72,7 +48,7 @@
     top.className = "top-row";
 
     const heat = document.createElement("span");
-    heat.textContent = "Heat " + p.heat;
+    heat.textContent = "Performance " + p.heat;
 
     const num = document.createElement("span");
     num.textContent = `#${index + 1} • ${p.entryId}`;
@@ -109,7 +85,7 @@
 
     card.onclick = () => {
       location.href =
-        `speed-judge.html?id=${p.entryId}`
+        `freestyle-${judgeType}.html?id=${p.entryId}`
         + `&name1=${encodeURIComponent(p.NAME1 || "")}`
         + `&name2=${encodeURIComponent(p.NAME2 || "")}`
         + `&name3=${encodeURIComponent(p.NAME3 || "")}`
@@ -120,16 +96,16 @@
         + `&station=${station}`
         + `&key=${key}`
         + `&event=${encodeURIComponent(p.event || "")}`
-        + `&division=${encodeURIComponent(p.division || "")}`;
+        + `&division=${encodeURIComponent(p.division || "")}`
+        + `&judgeType=${judgeType}`;
     };
 
     cardMap[p.entryId] = { card, statusEl };
     return card;
   }
 
-  /* LOAD LIST */
   async function load() {
-    listEl.innerHTML = `<div class="hint">Loading…</div>`;
+    listEl.innerHTML = `<div class="hint">Loading performers…</div>`;
 
     const data = await apiGet({
       cmd: "stationlist",
@@ -138,20 +114,18 @@
     }).catch(() => null);
 
     if (!data || !data.ok) {
-      listEl.innerHTML = `<div class="hint error">Error loading.</div>`;
+      listEl.innerHTML = `<div class="hint error">Error loading data.</div>`;
       return;
     }
 
     const arr = (data.entries || []).filter(p =>
-      SPEED_EVENTS.includes(String(p.event).trim())
+      FREESTYLE_EVENTS.includes(String(p.event).trim())
     );
 
     listEl.innerHTML = "";
-
     arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
   }
 
-  if (btnRefresh) btnRefresh.addEventListener("click", () => location.reload());
   window.addEventListener("load", () => setTimeout(load, 80));
 
 })();

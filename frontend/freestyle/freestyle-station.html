@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>Freestyle Station</title>
+
+  <link rel="stylesheet" href="./styles.css"/>
+
+  <!-- LOAD ORDER MUST MATCH SPEED -->
+  <script defer src="./config.js"></script>
+  <script defer src="./app.js"></script>
+  <script defer src="./freestyle-station.js"></script>
+
+  <style>
+    /* Sticky header fix */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+  </style>
+</head>
+
+<body class="page station">
+
+<header class="topbar">
+  <img src="./assets/company-logo.png" class="logo"/>
+
+  <div class="titles">
+    <h1>Freestyle Station <span id="stationLabel"></span></h1>
+  </div>
+
+  <!-- HOME BUTTON -->
+  <button id="btnHome" class="btn" style="margin-left:auto;margin-right:.5rem;">
+    ⬅ Home
+  </button>
+
+  <!-- REFRESH BUTTON -->
+  <button id="btnRefresh" class="btn">⟳ Refresh</button>
+</header>
+
+<main class="container">
+  <section class="block">
+    <h2>Freestyle Performers</h2>
+
+    <div id="entryList" class="entry-list"></div>
+  </section>
+</main>
+
+<!-- HARD-BLOCK SWIPE BACK -->
+<script>
+history.pushState(null, null, location.href);
+
+window.onpopstate = function () {
+  history.go(1); // prevent gesture-back
+};
+</script>
+
+<!-- HOME BUTTON LOGIC -->
+<script>
+document.getElementById("btnHome").addEventListener("click", () => {
+  location.href = "index.html"; // always go home
+});
+</script>
+
+</body>
+</html>
