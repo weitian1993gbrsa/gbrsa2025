@@ -1,90 +1,94 @@
 /* ============================================================
-   GBRSA SCORE 2025 – MASTER STYLESHEET
-   Mobile-first • PWA-friendly • iOS-safe • Fast UI
+   GBRSA SCORE 2025 – CLEAN MASTER STYLESHEET
+   Zero highlight • Zero text-select • Fast mobile UI
    ============================================================ */
 
-/* ---------------------------------
-   iOS INPUT ZOOM PREVENTION
------------------------------------ */
-html, body {
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  touch-action: manipulation;
+/* ============================================================
+   GLOBAL RESET
+   ============================================================ */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+
+  /* Remove all tap highlights */
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+
+  /* Disable all text selection */
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+
+  /* Remove default animations */
+  transition: none !important;
+  animation: none !important;
+}
+
+html, body {
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
-}
-
-/* Prevent iOS zoom on form inputs */
-input[type='text'],
-input[type='number'],
-input[type='search'],
-input[type='tel'],
-input[type='email'],
-textarea,
-select,
-button {
-  font-size: 16px !important;
-  -webkit-text-size-adjust: 100% !important;
-  -webkit-appearance: none;
-}
-
-/* Let checkboxes & radio buttons stay native */
-input[type='checkbox'],
-input[type='radio'] {
-  -webkit-appearance: checkbox;
-  appearance: auto;
-}
-
-/* ---------------------------------
-   CSS VARIABLES
------------------------------------ */
-:root {
-  --bg: #f5f7fb;
-  --card: #ffffff;
-  --muted: #4b5563;
-  --text: #0b1020;
-  --accent: #2563eb;
-  --border: #e5e7eb;
-  --soft: #eef2f7;
-}
-
-/* ---------------------------------
-   GLOBAL RESETS
------------------------------------ */
-* { box-sizing: border-box; }
-.page { display: flex; flex-direction: column; }
-
-.scrollable { -webkit-overflow-scrolling: touch; }
-
-a:focus:not(:focus-visible),
-input:focus:not(:focus-visible),
-button:focus:not(:focus-visible) {
-  outline: none;
-  box-shadow: none;
-}
-
-/* Prevent scroll bounce */
-body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
   overscroll-behavior: none;
   touch-action: manipulation;
   overflow-x: hidden;
 }
 
-body.homepage {
-  min-height: 100dvh;
-  overflow-y: auto;
+input, textarea {
+  /* Allow text input to work normally */
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+  font-size: 16px !important;
 }
 
-body:not(.homepage) {
-  overflow-y: auto;
+/* ============================================================
+   CSS VARIABLES
+   ============================================================ */
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --text: #0b1020;
+  --muted: #4b5563;
+  --accent: #2563eb;
+  --border: #e5e7eb;
 }
 
-/* ---------------------------------
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+button, .btn {
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: .75rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  /* Remove hover / active animation */
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+button:active,
+.btn:active {
+  background: inherit !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn.primary {
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+/* ============================================================
    TOP BAR
------------------------------------ */
+   ============================================================ */
 .topbar {
   display: flex;
   align-items: center;
@@ -92,32 +96,23 @@ body:not(.homepage) {
   padding: .75rem 1rem;
   background: #ffffffd9;
   border-bottom: 1px solid var(--border);
-  backdrop-filter: saturate(1.2) blur(4px);
+  backdrop-filter: blur(4px);
 }
 
-/* ⭐ FIXED HEADER FOR STATION PAGE */
 body.station .topbar {
   position: sticky;
   top: 0;
   z-index: 9999;
-  background: #ffffffee;
-  backdrop-filter: blur(6px) saturate(1.2);
-  border-bottom: 1px solid var(--border);
 }
 
 .logo {
   height: 48px;
-  max-width: 220px;
   object-fit: contain;
-  flex: 0 0 auto;
 }
 
-.titles h1 { margin: 0; font-size: 1.15rem; }
-.subtitle { margin: .125rem 0 0; color: var(--muted); font-size: .9rem; }
-
-/* ---------------------------------
+/* ============================================================
    CONTAINERS
------------------------------------ */
+   ============================================================ */
 .container {
   padding: 1rem;
   max-width: 900px;
@@ -134,37 +129,9 @@ body.station .topbar {
   box-shadow: 0 6px 18px #0000000d;
 }
 
-.hint {
-  color: var(--muted);
-  font-size: .9rem;
-  margin-top: .5rem;
-}
-
-/* ---------------------------------
-   BUTTONS
------------------------------------ */
-.btn {
-  appearance: none;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
-  padding: .75rem 1rem;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 12px #0000000a;
-}
-
-.btn.primary {
-  background: linear-gradient(180deg,#3b82f6,#2563eb);
-  border-color:#1d4ed8;
-  color:#fff;
-  box-shadow:0 10px 20px #2563eb33;
-}
-
-/* ---------------------------------
-   INPUTS
------------------------------------ */
+/* ============================================================
+   INPUT FIELDS
+   ============================================================ */
 .input {
   width: 100%;
   padding: .75rem;
@@ -174,33 +141,35 @@ body.station .topbar {
   color: var(--text);
 }
 
-.field { display: flex; flex-direction: column; gap: .35rem; }
-.check { display: flex; align-items: center; gap: .5rem; }
+.field { 
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
 
-/* ---------------------------------
-   STATION CARD
------------------------------------ */
+/* ============================================================
+   STATION CARDS (Speed & Freestyle)
+   ============================================================ */
 .station-card {
-  display: block;
   width: 100%;
   text-align: left;
   padding: 18px 20px;
   margin: 12px 0;
   border-radius: 14px;
   border: none;
+  color: white;
+  display: block;
+  background: #24c36b;
   cursor: pointer;
-  transition: 0.2s ease;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
-  color: #fff;
-  appearance: none;
+
+  /* Remove click animation */
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-body.station .station-card {
-  transform: none !important; /* prevents sticky jump */
+.station-card.done {
+  background: #1e64e0;
 }
-
-.station-card.pending { background: #24c36b; }
-.station-card.done { background: #1e64e0; }
 
 .station-card .top-row {
   display: flex;
@@ -214,8 +183,8 @@ body.station .station-card {
 .station-card .name {
   font-size: 16px;
   font-weight: 600;
-  line-height: 1.3;
   margin-bottom: 6px;
+  line-height: 1.3;
 }
 
 .station-card .team {
@@ -228,46 +197,11 @@ body.station .station-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 4px;
 }
 
-.station-card .status {
-  font-size: 13px;
-  font-weight: 700;
-  opacity: .9;
-}
-
-.station-card .event {
-  font-size: 13px;
-  opacity: .95;
-  font-weight: 600;
-  text-align: right;
-}
-
-/* ---------------------------------
-   HOMEPAGE MENUS
------------------------------------ */
-.menu-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media(min-width: 720px) {
-  .menu-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* FIXED PURPLE LINK BUG — cards always stay black */
-.card,
-.card:visited,
-.card h3,
-.card p {
-  color: var(--text) !important;
-  text-decoration: none !important;
-}
-
+/* ============================================================
+   HOMEPAGE CARDS
+   ============================================================ */
 .card {
   display: block;
   background: var(--card);
@@ -275,208 +209,44 @@ body.station .station-card {
   border-radius: 16px;
   padding: 1rem;
   box-shadow: 0 6px 18px #00000012;
-  transition: 0.15s ease;
+
+  /* No animations on tap */
+  outline: none !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .card:hover {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
-/* ---------------------------------
-   JUDGE LOGIN UI
------------------------------------ */
-.judge-login {
-  padding: 1.25rem 1.25rem 1.5rem;
-  border-left: 4px solid var(--accent);
-}
-
-.judge-desc {
-  margin: .25rem 0 1rem;
-  color: var(--muted);
-  font-size: .9rem;
-}
-
-.login-field {
-  display: flex;
-  gap: .5rem;
-  align-items: center;
-}
-
-.judge-error {
-  display: none;
-  color: #d00000;
-  font-weight: 600;
-  margin-top: .75rem;
-  animation: fadeIn .3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Mobile fix */
-@media(max-width: 480px) {
-  .login-field {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-/* ---------------------------------
+/* ============================================================
    SUBMIT OVERLAY
------------------------------------ */
+   ============================================================ */
 #submitOverlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
   background: rgba(255,255,255,0.85);
   display: flex;
   justify-content: center;
   align-items: center;
-  will-change: opacity, transform;
-  transform: translateZ(0);
+  z-index: 9999;
 }
 
 #submitOverlay.hide {
   display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-.overlay-card {
-  background: #fff;
-  padding: 1.25rem 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px #0002;
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .75rem;
-}
-
-.overlay-text {
-  font-weight: 700;
-  color: #111827;
-}
-
-.loading {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-}
-
-.loading .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #9ca3af;
-  animation: blink 1s infinite ease-in-out;
-}
-
-.loading .dot:nth-child(2){ animation-delay:.15s }
-.loading .dot:nth-child(3){ animation-delay:.3s }
-
-@keyframes blink {
-  0%,80%,100%{ transform:scale(0); opacity:.3 }
-  40%{ transform:scale(1); opacity:1 }
 }
 
 /* ============================================================
-   TURBO GPU OPTIMIZATION
-============================================================ */
-
-.btn { transform: translateZ(0); }
-.btn:active {
-  transform: scale(0.97);
-  transition: transform .1s ease-out;
-}
-
-/* ============================================
-   CENTERED HOMEPAGE LAYOUT
-============================================ */
-
-.home-wrapper {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.hero {
-  display: flex;
-  justify-content: center;
-  padding-top: 1rem;
-}
-
-.menu-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-
-@media (min-width: 780px) {
-  .menu-grid { grid-template-columns: 1fr 1fr; }
-  .judge-login { grid-column: span 2; }
-}
-
-.card {
-  border-radius: 18px;
-  padding: 1.25rem 1.5rem;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-}
-
-/* =============================
-   FOOTER CENTER FIX
-   ============================= */
+   FOOTER
+   ============================================================ */
 .foot {
   text-align: center;
   padding: 1.5rem 0;
   color: var(--muted);
   font-size: 0.9rem;
-  width: 100%;
-}
-/* =========================================
-   GLOBAL: remove press animations
-   (no scale, no extra shadow)
-   ========================================= */
-
-/* Stop transitions / transforms on interactive blocks */
-.btn,
-.station-card,
-.card {
-  transition: none !important;
-  transform: none !important;
 }
 
-/* Ensure :active does nothing special */
-.btn:active,
-.station-card:active,
-.card:active {
-  transform: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-}
-/* =========================================
-   GLOBAL: Disable text selection + long press
-   Prevent highlight, copy menu, etc.
-   ========================================= */
-
-* {
-  -webkit-user-select: none;  /* iOS & Safari */
-  -moz-user-select: none;     /* Firefox */
-  -ms-user-select: none;      /* IE */
-  user-select: none;          /* Standard */
-  -webkit-touch-callout: none;/* Disable long-press menu */
-}
-
-/* Allow text selection ONLY for inputs and textareas */
-input, textarea {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-  -webkit-touch-callout: default;
-}
+/* ============================================================
+   END
+   ============================================================ */
