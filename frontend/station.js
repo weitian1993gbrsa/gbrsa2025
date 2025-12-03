@@ -96,7 +96,7 @@
   }
 
   /* ============================================================
-     UPDATE CARD
+     UPDATE CARD STATUS
   ============================================================ */
   function updateCard(p) {
     const entry = cardMap[p.entryId];
@@ -116,7 +116,7 @@
   }
 
   /* ============================================================
-     APPLY SORT (NEW → DONE, sorted by heat)
+     SORT CARDS: NEW first → DONE later (both sorted by heat)
   ============================================================ */
   function applySortedLayout(arr) {
     const pending = arr.filter(p => p.status !== "done");
@@ -132,12 +132,11 @@
       if (entry) listEl.appendChild(entry.card);
     });
 
-    // Cache the updated HTML
     localStorage.setItem(CACHE_HTML, listEl.innerHTML);
   }
 
   /* ============================================================
-     LOAD FROM CACHE INSTANTLY (0ms)
+     INSTANT LOAD FROM CACHE (0ms)
   ============================================================ */
   function instantLoadFromCache() {
     const html = localStorage.getItem(CACHE_HTML);
@@ -147,10 +146,8 @@
 
     const arr = JSON.parse(json);
 
-    // Restore instantly
     listEl.innerHTML = html;
 
-    // Restore cardMap from DOM
     const cards = listEl.querySelectorAll(".station-card");
 
     arr.forEach((p, i) => {
@@ -163,7 +160,7 @@
       };
     });
 
-    // If user just completed a result → update card immediately
+    // Instant update of recently completed entry
     const justDone = sessionStorage.getItem("completedEntry");
     if (justDone) {
       const entry = cardMap[justDone];
@@ -181,7 +178,7 @@
   }
 
   /* ============================================================
-     BACKGROUND REFRESH (doesn't block UI)
+     BACKGROUND REFRESH (Build DOM if empty)
   ============================================================ */
   async function backgroundRefresh() {
     let data;
@@ -200,13 +197,17 @@
 
     const arr = data.entries || [];
 
-    // Update card status
-    arr.forEach(updateCard);
+    // FIRST LOAD → build cards
+    if (Object.keys(cardMap).length === 0) {
+      listEl.innerHTML = "";
+      arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
+    } else {
+      // Otherwise update existing cards
+      arr.forEach(updateCard);
+    }
 
-    // Apply sorting
+    // Sort and save cache
     applySortedLayout(arr);
-
-    // Update cache
     localStorage.setItem(CACHE_DATA, JSON.stringify(arr));
   }
 
@@ -225,15 +226,15 @@
      PAGE LOAD
   ============================================================ */
   window.addEventListener("load", () => {
-    // 1️⃣ Instant load if cache exists
+    // 1️⃣ Instant load
     const loaded = instantLoadFromCache();
 
-    // 2️⃣ If no cache — fallback slow load
+    // 2️⃣ If cache empty → show loading text
     if (!loaded) {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
-    // 3️⃣ Background update always runs
+    // 3️⃣ Background update (async)
     backgroundRefresh();
   });
 })();
