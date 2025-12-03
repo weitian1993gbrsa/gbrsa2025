@@ -16,7 +16,6 @@
   ============================================================ */
   const JUDGE_KEYS = window.JUDGE_KEYS || {};
 
-  // Convert { key: station } → { station: key }
   const validKeys = {};
   for (const [k, s] of Object.entries(JUDGE_KEYS)) validKeys[String(s)] = k;
 
@@ -35,11 +34,7 @@
   ============================================================ */
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, m => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      "\"": "&quot;",
-      "'": "&#39;"
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
     }[m]));
   }
 
@@ -52,14 +47,13 @@
   const cardMap = {};
 
   /* ============================================================
-     CREATE CARD (Optimized DOM build)
+     CREATE CARD
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
     card.type = "button";
     card.className = `station-card ${p.status === "done" ? "done" : "pending"}`;
 
-    // Use template literal only once → faster browser rendering
     card.innerHTML = `
       <div class="top-row">
         <span>Heat ${esc(p.heat)}</span>
@@ -77,7 +71,6 @@
 
     const statusEl = card.querySelector(".status");
 
-    // Pre-build URL (faster)
     const judgeURL =
       `speed-judge.html`
       + `?id=${encodeURIComponent(p.entryId)}`
@@ -93,17 +86,15 @@
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
-    // Faster click binding
     card.onclick = () => location.href = judgeURL;
 
-    // Save reference
     cardMap[p.entryId] = { card, statusEl };
 
     return card;
   }
 
   /* ============================================================
-     UPDATE CARD (Fast DOM update)
+     UPDATE CARD
   ============================================================ */
   function updateCard(p) {
     const cache = cardMap[p.entryId];
@@ -127,7 +118,7 @@
   }
 
   /* ============================================================
-     LOAD STATION LIST (Faster & safe)
+     LOAD STATION LIST (with NEW → DONE reorder)
   ============================================================ */
   async function loadStationList() {
     const firstLoad = Object.keys(cardMap).length === 0;
@@ -160,17 +151,37 @@
 
     const arr = data.entries || [];
 
+    /* FIRST LOAD: build all cards */
     if (firstLoad) {
-      // Use fragment for super-fast DOM append
       const frag = document.createDocumentFragment();
       arr.forEach((p, i) => frag.appendChild(createCard(p, i)));
       listEl.innerHTML = "";
       listEl.appendChild(frag);
-      return;
     }
 
-    // Fast incremental update
+    /* UPDATE CARD STATUS FAST */
     arr.forEach(updateCard);
+
+    /* ============================================================
+       🔥 REORDER LOGIC — NEW first, DONE last, DONE sorted by Heat
+    ============================================================ */
+    const pending = arr.filter(p => p.status !== "done");
+    const done = arr.filter(p => p.status === "done");
+
+    // Sort NEW by heat ASCENDING (Heat 1,2,3,...)
+    pending.sort((a, b) => Number(a.heat) - Number(b.heat));
+
+    // Sort DONE also by heat ASCENDING
+    done.sort((a, b) => Number(a.heat) - Number(b.heat));
+
+    const merged = [...pending, ...done];
+
+    // Put DOM in correct order
+    listEl.innerHTML = "";
+    merged.forEach(p => {
+      const entry = cardMap[p.entryId];
+      if (entry) listEl.appendChild(entry.card);
+    });
   }
 
   /* ============================================================
@@ -184,7 +195,6 @@
      AUTO LOAD
   ============================================================ */
   window.addEventListener("load", () => {
-    // Small delay improves UX (avoid blank screen flash)
     setTimeout(loadStationList, 50);
   });
 })();
