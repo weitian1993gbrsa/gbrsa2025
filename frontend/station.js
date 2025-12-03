@@ -94,6 +94,7 @@
       card,
       statusEl: card.querySelector(".status")
     };
+
     return card;
   }
 
@@ -117,14 +118,15 @@
   }
 
   /* ============================================================
-     LOAD LIST (FAST WITH CACHE)
+     LOAD LIST (FAST WITH CACHE + INSTANT-COMPLETE)
   ============================================================ */
   async function loadStationList() {
-
-    /* 1️⃣ INSTANT LOAD FROM CACHE */
     const savedHTML = localStorage.getItem(CACHE_KEY_HTML);
     const savedData = localStorage.getItem(CACHE_KEY_DATA);
 
+    const justDone = sessionStorage.getItem("completedEntry");
+
+    /* 1️⃣ INSTANT LOAD FROM CACHE */
     if (savedHTML && savedData) {
       listEl.innerHTML = savedHTML;
 
@@ -158,6 +160,15 @@
           + `&division=${encodeURIComponent(p.division || "")}`;
 
         card.onclick = () => { location.href = judgeURL; };
+
+        /* 🔥 INSTANT COMPLETE FIX — update card immediately */
+        if (justDone && p.entryId === justDone) {
+          card.classList.remove("pending");
+          card.classList.add("done");
+
+          const statusEl = card.querySelector(".status");
+          if (statusEl) statusEl.textContent = "COMPLETED";
+        }
       });
     } else {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
@@ -179,22 +190,26 @@
     if (!data || !data.ok) return;
     const arr = data.entries || [];
 
-    /* FIRST TIME → BUILD EVERYTHING */
+    /* FIRST LOAD (NO CACHE YET) */
     if (!savedHTML) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
 
       localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
       localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
+      sessionStorage.removeItem("completedEntry");
       return;
     }
 
-    /* SUBSEQUENT → FAST STATUS UPDATE ONLY */
+    /* SUBSEQUENT LOAD: UPDATE STATUS ONLY */
     arr.forEach(updateCard);
 
     /* UPDATE CACHE */
     localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
     localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
+
+    /* CLEAR instant complete flag */
+    sessionStorage.removeItem("completedEntry");
   }
 
   /* ============================================================
