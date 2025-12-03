@@ -49,7 +49,7 @@
   const cardMap = {};
 
   /* ============================================================
-     CREATE CARD (Now with move-on-tap)
+     CREATE CARD (with move-on-tap)
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -86,28 +86,28 @@
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
-    /* 🔥 MOVE ON TAP: Instant visual update */
+    /* 🔥 MOVE ON TAP — instant UX */
     card.onclick = () => {
-      // 1. Move card to bottom immediately
+      // Move card to bottom immediately
       listEl.appendChild(card);
 
-      // 2. Turn it into "completed" instantly
+      // Mark visually completed instantly
       card.classList.remove("pending");
       card.classList.add("done");
       const statusEl = card.querySelector(".status");
       if (statusEl) statusEl.textContent = "COMPLETED";
 
-      // 3. Save updated HTML order to cache
+      // Store updated order in cache
       localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
 
-      // 4. Mark which entry was completed (for return sync)
+      // Mark completed entry for return sync
       sessionStorage.setItem("completedEntry", p.entryId);
 
-      // 5. Navigate to judge page
+      // Go to judge page
       location.href = judgeURL;
     };
 
-    // Save reference for updateCard()
+    // Save reference for updateCard() and reordering later
     cardMap[p.entryId] = {
       card,
       statusEl: card.querySelector(".status")
@@ -117,7 +117,7 @@
   }
 
   /* ============================================================
-     UPDATE CARD (Keeps bottom sort consistent)
+     UPDATE CARD (color + reorder logic)
   ============================================================ */
   function updateCard(p) {
     const cache = cardMap[p.entryId];
@@ -131,14 +131,15 @@
       card.classList.add("done");
       statusEl.textContent = "COMPLETED";
 
-      // Always move done cards down
+      // Move done cards to bottom
       listEl.appendChild(card);
+
     } else {
       card.classList.remove("done");
       card.classList.add("pending");
       statusEl.textContent = "NEW";
 
-      // Always move pending cards above done ones
+      // Move pending cards above done
       const firstDone = listEl.querySelector(".station-card.done");
       if (firstDone) {
         listEl.insertBefore(card, firstDone);
@@ -149,7 +150,7 @@
   }
 
   /* ============================================================
-     LOAD LIST (with cached HTML, instant-complete, reorder)
+     LOAD LIST (with caching + reorder from server)
   ============================================================ */
   async function loadStationList() {
     const savedHTML = localStorage.getItem(CACHE_KEY_HTML);
@@ -174,7 +175,7 @@
           statusEl: card.querySelector(".status")
         };
 
-        // rebuild click event (move-on-tap)
+        // rebuild click event
         const judgeURL =
           `speed-judge.html`
           + `?id=${encodeURIComponent(p.entryId)}`
@@ -191,7 +192,6 @@
           + `&division=${encodeURIComponent(p.division || "")}`;
 
         card.onclick = () => {
-          // move on tap
           listEl.appendChild(card);
           card.classList.remove("pending");
           card.classList.add("done");
@@ -202,7 +202,7 @@
           location.href = judgeURL;
         };
 
-        // 🔥 apply instant-complete when returning
+        // Instant-complete when returning
         if (justDone && p.entryId === justDone) {
           card.classList.remove("pending");
           card.classList.add("done");
@@ -215,7 +215,7 @@
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
-    /* 2️⃣ BACKGROUND REFRESH FROM SERVER */
+    /* 2️⃣ BACKGROUND REFRESH FROM SERVER (FULL REORDER) */
     let data;
     try {
       data = await apiGet({
@@ -229,22 +229,38 @@
     }
 
     if (!data || !data.ok) return;
+
     const arr = data.entries || [];
 
-    /* FIRST LOAD (NO CACHE) */
+    /* FIRST LOAD (no cache yet) */
     if (!savedHTML) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
+
       localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
       localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
       sessionStorage.removeItem("completedEntry");
       return;
     }
 
-    /* SUBSEQUENT LOAD — UPDATE ONLY */
-    arr.forEach(updateCard);
+    /* 3️⃣ SUBSEQUENT REFRESH — FULL REORDER BASED ON SERVER */
+    const pending = arr.filter(p => p.status !== "done");  // NEW on top
+    const done = arr.filter(p => p.status === "done");     // DONE below
 
-    /* UPDATE CACHE */
+    const merged = [...pending, ...done];
+
+    // rebuild DOM from server truth
+    listEl.innerHTML = "";
+
+    merged.forEach(p => {
+      const entry = cardMap[p.entryId];
+      if (!entry) return;
+
+      listEl.appendChild(entry.card);
+      updateCard(p);
+    });
+
+    /* update cache */
     localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
     localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
 
