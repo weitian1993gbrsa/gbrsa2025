@@ -31,6 +31,9 @@
     throw new Error("Unauthorized access");
   }
 
+  /* ============================================================
+     HELPERS
+  ============================================================ */
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, m => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
@@ -114,10 +117,11 @@
   }
 
   /* ============================================================
-     LOAD LIST
+     LOAD LIST (FAST WITH CACHE)
   ============================================================ */
   async function loadStationList() {
-    // 1️⃣ INSTANT LOAD FROM CACHE (if available)
+
+    /* 1️⃣ INSTANT LOAD FROM CACHE */
     const savedHTML = localStorage.getItem(CACHE_KEY_HTML);
     const savedData = localStorage.getItem(CACHE_KEY_DATA);
 
@@ -125,20 +129,41 @@
       listEl.innerHTML = savedHTML;
 
       const arr = JSON.parse(savedData);
+      const cardNodes = listEl.querySelectorAll(".station-card");
+
       arr.forEach((p, i) => {
-        const card = listEl.children[i];
+        const card = cardNodes[i];
         if (!card) return;
 
+        // rebuild cardMap
         cardMap[p.entryId] = {
           card,
           statusEl: card.querySelector(".status")
         };
+
+        // rebuild click event
+        const judgeURL =
+          `speed-judge.html`
+          + `?id=${encodeURIComponent(p.entryId)}`
+          + `&name1=${encodeURIComponent(p.NAME1 || "")}`
+          + `&name2=${encodeURIComponent(p.NAME2 || "")}`
+          + `&name3=${encodeURIComponent(p.NAME3 || "")}`
+          + `&name4=${encodeURIComponent(p.NAME4 || "")}`
+          + `&team=${encodeURIComponent(p.team || "")}`
+          + `&state=${encodeURIComponent(p.state || "")}`
+          + `&heat=${encodeURIComponent(p.heat || "")}`
+          + `&station=${encodeURIComponent(station)}`
+          + `&key=${encodeURIComponent(key)}`
+          + `&event=${encodeURIComponent(p.event || "")}`
+          + `&division=${encodeURIComponent(p.division || "")}`;
+
+        card.onclick = () => { location.href = judgeURL; };
       });
     } else {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
-    // 2️⃣ BACKGROUND REFRESH
+    /* 2️⃣ BACKGROUND REFRESH FROM SERVER */
     let data;
     try {
       data = await apiGet({
@@ -154,7 +179,7 @@
     if (!data || !data.ok) return;
     const arr = data.entries || [];
 
-    // FIRST LOAD → FULL RENDER
+    /* FIRST TIME → BUILD EVERYTHING */
     if (!savedHTML) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
@@ -164,16 +189,22 @@
       return;
     }
 
-    // SUBSEQUENT LOADS → FAST STATUS UPDATE
+    /* SUBSEQUENT → FAST STATUS UPDATE ONLY */
     arr.forEach(updateCard);
 
-    // UPDATE CACHE
+    /* UPDATE CACHE */
     localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
     localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
   }
 
+  /* ============================================================
+     REFRESH BUTTON
+  ============================================================ */
   if (btnRefresh) btnRefresh.addEventListener("click", () => location.reload());
 
+  /* ============================================================
+     AUTO LOAD
+  ============================================================ */
   window.addEventListener("load", () => {
     setTimeout(loadStationList, 50);
   });
