@@ -31,7 +31,7 @@
   }
 
   /* ============================================================
-     🔥 FREESTYLE KEYS SHOULD REDIRECT (safety)
+     FREESTYLE REDIRECT
   ============================================================ */
   if (keyInfo.event === "freestyle") {
     const judgeType = keyInfo.judgeType;
@@ -40,10 +40,28 @@
     return;
   }
 
-  /* ============================================================
-     SPEED MODE — FILTER ONLY SPEED EVENTS
-  ============================================================ */
+  /* SPEED EVENTS */
   const SPEED_EVENTS = window.SPEED_EVENTS || [];
+
+  /* ============================================================
+     SAFE CACHE SYSTEM (Instant Load)
+  ============================================================ */
+  const CACHE_KEY = "station_cache_" + station;
+
+  function saveCache(data) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function loadCache() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, c => ({
@@ -59,11 +77,17 @@
       .join(", ");
   }
 
+  /* ============================================================
+     CARD CREATION (with SAFE click handler)
+  ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
     card.type = "button";
     card.className =
       p.status === "done" ? "station-card done" : "station-card pending";
+
+    /* Prevent ghost-taps */
+    card.style.touchAction = "manipulation";
 
     /* TOP ROW */
     const top = document.createElement("div");
@@ -103,14 +127,32 @@
     eventRow.appendChild(statusEl);
     eventRow.appendChild(eventName);
 
-    /* Append */
     card.appendChild(top);
     card.appendChild(name);
     card.appendChild(team);
     card.appendChild(eventRow);
 
-    /* Click → speed-judge */
-    card.onclick = () => {
+    /* ============================================================
+       SAFEST CLICK HANDLER (no ghost taps, no double clicks)
+    ============================================================ */
+    card.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      if (!navigator.onLine) {
+        alert("No internet connection — cannot judge.");
+        return;
+      }
+
+      // prevent double-tap
+      if (card.dataset.clicked === "1") return;
+      card.dataset.clicked = "1";
+      setTimeout(() => (card.dataset.clicked = "0"), 500);
+
+      // block touch through
+      card.style.pointerEvents = "none";
+      setTimeout(() => (card.style.pointerEvents = ""), 800);
+
       location.href =
         `speed-judge.html?id=${p.entryId}`
         + `&name1=${encodeURIComponent(p.NAME1 || "")}`
@@ -124,16 +166,45 @@
         + `&key=${key}`
         + `&event=${encodeURIComponent(p.event || "")}`
         + `&division=${encodeURIComponent(p.division || "")}`;
-    };
+    });
 
     return card;
   }
 
   /* ============================================================
-     LOAD LIST
+     RENDER LIST
+  ============================================================ */
+  function renderList(data) {
+    let arr = (data.entries || []).filter(p =>
+      SPEED_EVENTS.includes(String(p.event).trim())
+    );
+
+    /* Sort NEW (green) → COMPLETED (blue) */
+    arr.sort((a, b) => {
+      const A = a.status === "done" ? "COMPLETED" : "NEW";
+      const B = b.status === "done" ? "COMPLETED" : "NEW";
+
+      if (A === "NEW" && B !== "NEW") return -1;
+      if (B === "NEW" && A !== "NEW") return 1;
+      if (A === "COMPLETED" && B !== "COMPLETED") return 1;
+      if (B === "COMPLETED" && A !== "COMPLETED") return -1;
+      return 0;
+    });
+
+    listEl.innerHTML = "";
+    arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
+  }
+
+  /* ============================================================
+     LOAD (Instant Cache → Fresh Data)
   ============================================================ */
   async function load() {
-    listEl.innerHTML = `<div class="hint">Loading…</div>`;
+    const cached = loadCache();
+    if (cached) {
+      renderList(cached);
+    } else {
+      listEl.innerHTML = `<div class="hint">Loading…</div>`;
+    }
 
     const data = await apiGet({
       cmd: "stationlist",
@@ -141,46 +212,19 @@
       _ts: Date.now()
     }).catch(() => null);
 
-    if (!data || !data.ok) {
-      listEl.innerHTML = `<div class="hint error">Error loading.</div>`;
-      return;
-    }
+    if (!data || !data.ok) return;
 
-    /* FILTER SPEED EVENTS */
-let arr = (data.entries || []).filter(p =>
-  SPEED_EVENTS.includes(String(p.event).trim())
-);
-
-/* ============================================================
-   SORT: NEW FIRST, COMPLETED LAST
-   status === "done" → COMPLETED (blue)
-   status !== "done" → NEW (green)
-============================================================ */
-arr.sort((a, b) => {
-  const A = a.status === "done" ? "COMPLETED" : "NEW";
-  const B = b.status === "done" ? "COMPLETED" : "NEW";
-
-  // NEW goes to top
-  if (A === "NEW" && B !== "NEW") return -1;
-  if (B === "NEW" && A !== "NEW") return 1;
-
-  // COMPLETED goes to bottom
-  if (A === "COMPLETED" && B !== "COMPLETED") return 1;
-  if (B === "COMPLETED" && A !== "COMPLETED") return -1;
-
-  return 0;
-});
-
-
-    listEl.innerHTML = "";
-
-    arr.forEach((p, i) => {
-      const card = createCard(p, i);
-      listEl.appendChild(card);
-    });
+    saveCache(data);
+    renderList(data);
   }
 
-  if (btnRefresh) btnRefresh.addEventListener("click", () => location.reload());
+  /* ============================================================
+     REFRESH BUTTON (Full Reload)
+  ============================================================ */
+  if (btnRefresh) btnRefresh.addEventListener("click", () => {
+    location.reload();
+  });
 
-  window.addEventListener("load", () => setTimeout(load, 80));
+  /* Faster load */
+  window.addEventListener("load", load);
 })();

@@ -144,6 +144,30 @@
     apiPost(payload)
       .then(() => {
         overlayText.textContent = "Saved ✔";
+
+        /* ============================================================
+           UPDATE CACHE INSTANTLY (move card to bottom immediately)
+        ============================================================ */
+        try {
+          const station = params.get("station");
+          const entryId = params.get("id");
+          const CACHE_KEY = "station_cache_" + station;
+
+          const raw = localStorage.getItem(CACHE_KEY);
+          if (raw) {
+            const cacheData = JSON.parse(raw);
+
+            cacheData.entries = cacheData.entries.map(e =>
+              e.entryId === entryId ? { ...e, status: "done" } : e
+            );
+
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+          }
+        } catch (err) {
+          console.log("Cache update error:", err);
+        }
+
+        /* Redirect back */
         setTimeout(() => location.href = returnURL, 120);
       })
       .catch(() => {
