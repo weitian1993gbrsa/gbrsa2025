@@ -116,7 +116,7 @@
   }
 
   /* ============================================================
-     APPLY SORT (NEW → DONE, sorted by heat)
+     APPLY SORT (NEW → DONE by heat)
   ============================================================ */
   function applySortedLayout(arr) {
     const pending = arr.filter(p => p.status !== "done");
@@ -132,25 +132,42 @@
       if (entry) listEl.appendChild(entry.card);
     });
 
-    // Cache the updated HTML
     localStorage.setItem(CACHE_HTML, listEl.innerHTML);
   }
 
   /* ============================================================
-     LOAD FROM CACHE INSTANTLY (0ms)
+     1️⃣ INSTANT LOAD FROM MEMORY FIRST
   ============================================================ */
-  function instantLoadFromCache() {
+  function tryLoadFromMemory() {
+    const mem = window.__stationCache?.[station];
+    if (!mem) return false;
+
+    console.log("Loaded from memory:", station, mem.length);
+
+    listEl.innerHTML = "";
+    mem.forEach((p, i) => {
+      if (!cardMap[p.entryId]) createCard(p, i);
+    });
+
+    applySortedLayout(mem);
+
+    // Update local cache too
+    localStorage.setItem(CACHE_DATA, JSON.stringify(mem));
+
+    return true;
+  }
+
+  /* ============================================================
+     2️⃣ INSTANT LOAD FROM LOCALSTORAGE
+  ============================================================ */
+  function tryLoadFromCache() {
     const html = localStorage.getItem(CACHE_HTML);
     const json = localStorage.getItem(CACHE_DATA);
-
     if (!html || !json) return false;
 
-    const arr = JSON.parse(json);
-
-    // Restore instantly
     listEl.innerHTML = html;
 
-    // Restore cardMap from DOM
+    const arr = JSON.parse(json);
     const cards = listEl.querySelectorAll(".station-card");
 
     arr.forEach((p, i) => {
@@ -163,25 +180,11 @@
       };
     });
 
-    // If user just completed a result → update card immediately
-    const justDone = sessionStorage.getItem("completedEntry");
-    if (justDone) {
-      const entry = cardMap[justDone];
-      if (entry) {
-        entry.card.classList.remove("pending");
-        entry.card.classList.add("done");
-        entry.statusEl.textContent = "COMPLETED";
-      }
-
-      applySortedLayout(arr);
-      sessionStorage.removeItem("completedEntry");
-    }
-
     return true;
   }
 
   /* ============================================================
-     BACKGROUND REFRESH (doesn't block UI)
+     3️⃣ BACKGROUND REFRESH (SILENT)
   ============================================================ */
   async function backgroundRefresh() {
     let data;
@@ -192,7 +195,7 @@
         _ts: Date.now()
       });
     } catch (err) {
-      console.error("Background refresh failed", err);
+      console.warn("Background refresh failed", err);
       return;
     }
 
@@ -200,14 +203,12 @@
 
     const arr = data.entries || [];
 
-    // Update card status
     arr.forEach(updateCard);
-
-    // Apply sorting
     applySortedLayout(arr);
 
-    // Update cache
+    // save latest
     localStorage.setItem(CACHE_DATA, JSON.stringify(arr));
+    window.__stationCache[station] = arr;
   }
 
   /* ============================================================
@@ -222,18 +223,24 @@
   }
 
   /* ============================================================
-     PAGE LOAD
+     PAGE LOAD FLOW
   ============================================================ */
   window.addEventListener("load", () => {
-    // 1️⃣ Instant load if cache exists
-    const loaded = instantLoadFromCache();
 
-    // 2️⃣ If no cache — fallback slow load
-    if (!loaded) {
-      listEl.innerHTML = `<div class="hint">Loading…</div>`;
+    // 1️⃣ Memory-first = FASTEST
+    const memLoaded = tryLoadFromMemory();
+
+    // 2️⃣ If not in memory → load from cache
+    if (!memLoaded) {
+      const cacheLoaded = tryLoadFromCache();
+
+      // 3️⃣ If still nothing → show loading text
+      if (!cacheLoaded) {
+        listEl.innerHTML = `<div class="hint">Loading…</div>`;
+      }
     }
 
-    // 3️⃣ Background update always runs
+    // Always run background update (non-blocking)
     backgroundRefresh();
   });
 })();
