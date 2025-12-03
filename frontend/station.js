@@ -86,9 +86,7 @@
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
-    card.addEventListener("click", () => {
-      location.href = judgeURL;
-    });
+    card.onclick = () => location.href = judgeURL;
 
     cardMap[p.entryId] = {
       card,
@@ -99,14 +97,19 @@
   }
 
   /* ============================================================
-     UPDATE CARD FAST
+     UPDATE CARD WITH SORTING
+     NEW CARDS = TOP
+     DONE CARDS = BOTTOM
   ============================================================ */
   function updateCard(p) {
     const cache = cardMap[p.entryId];
     if (!cache) return;
-    const { card, statusEl } = cache;
 
-    if (p.status === "done") {
+    const { card, statusEl } = cache;
+    const isDone = p.status === "done";
+
+    // update color + label first
+    if (isDone) {
       card.classList.remove("pending");
       card.classList.add("done");
       statusEl.textContent = "COMPLETED";
@@ -114,6 +117,20 @@
       card.classList.remove("done");
       card.classList.add("pending");
       statusEl.textContent = "NEW";
+    }
+
+    // 🔥 MOVE PENDING TO TOP / DONE TO BOTTOM
+    if (isDone) {
+      // move to bottom
+      listEl.appendChild(card);
+    } else {
+      // move before first done card
+      const firstDone = listEl.querySelector(".station-card.done");
+      if (firstDone) {
+        listEl.insertBefore(card, firstDone);
+      } else {
+        listEl.insertBefore(card, listEl.firstChild);
+      }
     }
   }
 
@@ -159,22 +176,25 @@
           + `&event=${encodeURIComponent(p.event || "")}`
           + `&division=${encodeURIComponent(p.division || "")}`;
 
-        card.onclick = () => { location.href = judgeURL; };
+        card.onclick = () => location.href = judgeURL;
 
-        /* 🔥 INSTANT COMPLETE FIX — update card immediately */
+        /* 🔥 INSTANT COMPLETE FIX */
         if (justDone && p.entryId === justDone) {
           card.classList.remove("pending");
           card.classList.add("done");
 
           const statusEl = card.querySelector(".status");
           if (statusEl) statusEl.textContent = "COMPLETED";
+
+          // 🔥 MOVE TO BOTTOM IMMEDIATELY
+          listEl.appendChild(card);
         }
       });
     } else {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
-    /* 2️⃣ BACKGROUND REFRESH FROM SERVER */
+    /* 2️⃣ BACKGROUND REFRESH */
     let data;
     try {
       data = await apiGet({
@@ -190,7 +210,7 @@
     if (!data || !data.ok) return;
     const arr = data.entries || [];
 
-    /* FIRST LOAD (NO CACHE YET) */
+    /* FIRST LOAD - BUILD CARDS */
     if (!savedHTML) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
@@ -201,14 +221,13 @@
       return;
     }
 
-    /* SUBSEQUENT LOAD: UPDATE STATUS ONLY */
+    /* SUBSEQUENT LOAD - UPDATE + SORT */
     arr.forEach(updateCard);
 
     /* UPDATE CACHE */
     localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
     localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
 
-    /* CLEAR instant complete flag */
     sessionStorage.removeItem("completedEntry");
   }
 
