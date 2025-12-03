@@ -438,3 +438,24 @@ body.station .station-card {
   font-size: 0.9rem;
   width: 100%;
 }
+/* =========================================
+   GLOBAL: remove press animations
+   (no scale, no extra shadow)
+   ========================================= */
+
+/* Stop transitions / transforms on interactive blocks */
+.btn,
+.station-card,
+.card {
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Ensure :active does nothing special */
+.btn:active,
+.station-card:active,
+.card:active {
+  transform: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
