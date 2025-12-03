@@ -2,179 +2,316 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <title>Freestyle Difficulty Judge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <title>Difficulty Judge</title>
 
   <link rel="stylesheet" href="./styles.css"/>
+  <script defer src="./config.js"></script>
+  <script defer src="./app.js"></script>
 
-  <!-- EXTRA PAGE-SPECIFIC CSS -->
   <style>
-    /* HEADER (same as speed judge) */
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 999;
-      background: #ffffffee;
-      backdrop-filter: blur(6px);
+    body {
+      background: #f5f7fb;
+      padding: 0;
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    /* SIMPLE TOP HEADER (NO STICKY) */
+    .dj-header {
       display: flex;
       align-items: center;
-      padding: 0.75rem 1rem;
+      justify-content: space-between;
+      padding: 1rem;
+      background: #fff;
       border-bottom: 1px solid #e5e7eb;
     }
 
-    .container-centered {
-      max-width: 960px;
+    .btn-back {
+      padding: .6rem 1rem;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .btn-submit {
+      padding: .6rem 1rem;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .title {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 900px;
       margin: 0 auto;
-      padding: 1.5rem 1rem;
+      padding: 1rem;
     }
 
-    /* TITLE */
-    .judge-header {
+    /* ==== GRID LAYOUT (IJRU EXACT) ==== */
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      width: 100%;
+      margin-top: 25px;
+    }
+
+    /* ==== BUTTON SIZE (IJRU EXACT) ==== */
+    .skill-btn {
+      background: #22c55e;
+      color: #fff;
+      border: none;
+      border-radius: 18px;
+      font-weight: 700;
+      font-size: 1.35rem;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      margin-bottom: 1.5rem;
+      flex-direction: column;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      height: 120px;
+      min-height: 120px;
     }
 
-    /* Undo / Reset Row */
+    .skill-btn.blue { background:#2563eb; }
+    .skill-btn.purple { background:#7e22ce; }
+
+    .skill-btn small {
+      font-size: 1.05rem;
+      margin-top: 6px;
+    }
+
+    /* TABLET */
+    @media (min-width: 600px) {
+      .skill-btn {
+        height: 140px;
+        min-height: 140px;
+        font-size: 1.55rem;
+      }
+      .skill-btn small {
+        font-size: 1.25rem;
+      }
+    }
+
+    /* DESKTOP */
+    @media (min-width: 900px) {
+      .skill-btn {
+        height: 160px;
+        min-height: 160px;
+        font-size: 1.7rem;
+      }
+      .skill-btn small {
+        font-size: 1.35rem;
+      }
+    }
+
+    /* UNDO / RESET ROW */
     .top-controls {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1.25rem;
+      margin-top: 20px;
     }
 
-    /* Skill Level Grid — IJRU EXACT STYLE */
-    .level-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-top: 1.25rem;
-    }
-
-    .level-btn {
-      background: #22c55e;
-      color: white;
-      border: none;
-      border-radius: 16px;
-      height: 130px; /* IJRU SIZE */
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-size: 1.4rem;
-      font-weight: 700;
-      box-shadow: 0 6px 20px #0002;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .level-btn.blue { background:#2563eb; }
-    .level-btn.purple { background:#7e22ce; }
-
-    .level-count {
-      margin-top: 6px;
-      font-size: 1.1rem;
-      opacity: 0.95;
-    }
-
-    /* Submit button top-right */
-    #btnSubmit {
-      padding: 0.65rem 1.4rem;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 12px;
+    .btn-undo {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: .6rem 1rem;
+      border-radius: 10px;
       font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 12px #2563eb33;
+    }
+
+    .btn-reset {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      padding: .6rem 1rem;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .total-score {
+      font-size: 1.4rem;
+      font-weight: 800;
     }
 
   </style>
-
-  <!-- SCRIPT FILES -->
-  <script defer src="./config.js"></script>
-  <script defer src="./app.js"></script>
-  <script defer src="./freestyle-difficulty.js"></script>
 </head>
 
+<body>
 
-<body class="page">
-
-<!-- HEADER -->
-<header class="topbar">
-  <button onclick="history.back()" class="btn" style="margin-right:1rem;">⬅ Back</button>
-  <h1 class="title">Difficulty Judge</h1>
-
-  <button id="btnSubmit">Submit</button>
+<header class="dj-header">
+  <button class="btn-back" onclick="goBack()">← Back</button>
+  <div class="title">Difficulty Judge</div>
+  <button class="btn-submit" onclick="submitDifficulty()">Submit</button>
 </header>
 
+<main>
 
-<!-- MAIN PAGE -->
-<div class="container-centered">
-
-  <!-- Undo + Reset -->
   <div class="top-controls">
-    <button id="btnUndo" class="btn">Undo</button>
-    <h2 id="totalScoreDisplay">Total Score: 0.00</h2>
-    <button id="btnReset" class="btn" style="background:#dc2626;color:#fff">Reset</button>
+    <button class="btn-undo" id="btnUndo">Undo</button>
+    <div class="total-score">Total Score: <span id="totalScore">0.00</span></div>
+    <button class="btn-reset" id="btnReset">Reset</button>
   </div>
 
-  <!-- SKILL GRID -->
-  <div class="level-grid">
+  <!-- SKILL BUTTON GRID (IJRU ORDER) -->
+  <div class="skill-grid">
 
-    <button class="level-btn" data-level="0">
-      Level 0
-      <div class="level-count" id="count-0">0</div>
-    </button>
+    <!-- ROW 1 -->
+    <button class="skill-btn" data-level="1">Level 1<br><small id="c1">0</small></button>
 
-    <button class="level-btn blue" data-level="0.5">
-      Level 0.5
-      <div class="level-count" id="count-0.5">0</div>
-    </button>
+    <button class="skill-btn blue" data-level="0.5">Level 0.5<br><small id="c0_5">0</small></button>
 
-    <button class="level-btn" data-level="1">
-      Level 1
-      <div class="level-count" id="count-1">0</div>
-    </button>
+    <button class="skill-btn" data-level="4">Level 4<br><small id="c4">0</small></button>
 
-    <button class="level-btn" data-level="2">
-      Level 2
-      <div class="level-count" id="count-2">0</div>
-    </button>
+    <!-- ROW 2 -->
+    <button class="skill-btn" data-level="2">Level 2<br><small id="c2">0</small></button>
 
-    <button class="level-btn" data-level="3">
-      Level 3
-      <div class="level-count" id="count-3">0</div>
-    </button>
+    <button class="skill-btn purple" data-level="7">Level 7<br><small id="c7">0</small></button>
 
-    <button class="level-btn" data-level="4">
-      Level 4
-      <div class="level-count" id="count-4">0</div>
-    </button>
+    <button class="skill-btn" data-level="5">Level 5<br><small id="c5">0</small></button>
 
-    <button class="level-btn" data-level="5">
-      Level 5
-      <div class="level-count" id="count-5">0</div>
-    </button>
+    <!-- ROW 3 -->
+    <button class="skill-btn" data-level="3">Level 3<br><small id="c3">0</small></button>
 
-    <button class="level-btn" data-level="6">
-      Level 6
-      <div class="level-count" id="count-6">0</div>
-    </button>
+    <button class="skill-btn purple" data-level="8">Level 8<br><small id="c8">0</small></button>
 
-    <button class="level-btn purple" data-level="7">
-      Level 7
-      <div class="level-count" id="count-7">0</div>
-    </button>
-
-    <button class="level-btn purple" data-level="8" style="grid-column: span 3;">
-      Level 8
-      <div class="level-count" id="count-8">0</div>
-    </button>
+    <button class="skill-btn" data-level="6">Level 6<br><small id="c6">0</small></button>
 
   </div>
-</div>
+
+  <!-- HIDDEN FIELDS for backend -->
+  <form id="difficultyForm">
+    <input type="hidden" name="ID" id="fID">
+    <input type="hidden" name="NAME1" id="fNAME1">
+    <input type="hidden" name="NAME2" id="fNAME2">
+    <input type="hidden" name="NAME3" id="fNAME3">
+    <input type="hidden" name="NAME4" id="fNAME4">
+    <input type="hidden" name="TEAM" id="fTEAM">
+    <input type="hidden" name="STATE" id="fSTATE">
+    <input type="hidden" name="HEAT" id="fHEAT">
+    <input type="hidden" name="STATION" id="fSTATION">
+    <input type="hidden" name="EVENT" id="fEVENT">
+    <input type="hidden" name="DIVISION" id="fDIVISION">
+
+    <input type="hidden" name="TOTAL" id="fTOTAL">
+    <input type="hidden" name="_form" value="freestyle_difficulty">
+  </form>
+
+</main>
+
+<script>
+/* ===================================================================
+   URL PARSING → FILL HIDDEN FIELDS
+=================================================================== */
+const qs = new URLSearchParams(location.search);
+const set = (id,val) => { const el = document.querySelector(id); if(el) el.value = val || ""; };
+
+set("#fID", qs.get("id"));
+set("#fNAME1", qs.get("name1"));
+set("#fNAME2", qs.get("name2"));
+set("#fNAME3", qs.get("name3"));
+set("#fNAME4", qs.get("name4"));
+set("#fTEAM", qs.get("team"));
+set("#fSTATE", qs.get("state"));
+set("#fHEAT", qs.get("heat"));
+set("#fSTATION", qs.get("station"));
+set("#fEVENT", qs.get("event"));
+set("#fDIVISION", qs.get("division"));
+
+/* ===================================================================
+   DIFFICULTY VALUES (IJRU)
+=================================================================== */
+const diffValues = {
+  0.5: 0.12, 1:0.15, 2:0.23, 3:0.34, 4:0.51, 5:0.76, 6:1.14, 7:1.71, 8:2.56
+};
+
+let counts = { "0.5":0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0 };
+let lastTap = null;
+
+/* ===================================================================
+   BUTTON CLICK LOGIC
+=================================================================== */
+document.querySelectorAll(".skill-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const level = btn.dataset.level;
+
+    counts[level]++;
+    lastTap = level;
+
+    document.querySelector("#c" + level.replace(".","_")).textContent = counts[level];
+
+    updateTotal();
+  });
+});
+
+/* ===================================================================
+   UNDO
+=================================================================== */
+document.querySelector("#btnUndo").addEventListener("click", () => {
+  if (!lastTap) return;
+
+  counts[lastTap] = Math.max(0, counts[lastTap] - 1);
+
+  document.querySelector("#c" + lastTap.replace(".","_")).textContent = counts[lastTap];
+
+  lastTap = null;
+  updateTotal();
+});
+
+/* ===================================================================
+   RESET
+=================================================================== */
+document.querySelector("#btnReset").addEventListener("click", () => {
+  for (let k in counts) counts[k] = 0;
+  document.querySelectorAll(".skill-btn small").forEach(s => s.textContent = "0");
+  lastTap = null;
+  updateTotal();
+});
+
+/* ===================================================================
+   UPDATE SCORE
+=================================================================== */
+function updateTotal() {
+  let sum = 0;
+  for (let k in counts) {
+    sum += counts[k] * diffValues[k];
+  }
+  document.querySelector("#totalScore").textContent = sum.toFixed(2);
+  document.querySelector("#fTOTAL").value = sum.toFixed(2);
+}
+
+/* ===================================================================
+   SUBMIT FORM
+=================================================================== */
+function submitDifficulty() {
+  const fd = new FormData(document.querySelector("#difficultyForm"));
+  const payload = Object.fromEntries(fd.entries());
+
+  apiPost(payload).then(() => {
+    alert("Saved!");
+    goBack();
+  }).catch(err => {
+    alert("Submit failed");
+    console.error(err);
+  });
+}
+
+/* ===================================================================
+   BACK BUTTON NAVIGATION
+=================================================================== */
+function goBack() {
+  history.back();
+}
+</script>
 
 </body>
 </html>
