@@ -45,7 +45,6 @@
       border-radius: 14px;
       margin-bottom: 18px;
       font-family: monospace;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.45);
       letter-spacing: 2px;
     }
 
@@ -64,7 +63,7 @@
       background: #fff;
       border: 1px solid #ddd;
       font-weight: 600;
-      box-shadow: none; /* 2D flat */
+      box-shadow: none; /* Remove shadow for 2D look */
     }
 
     .np-clear {
@@ -73,16 +72,20 @@
       color: #b91c1c;
     }
 
-    /* BLUE ENTER BUTTON (same style as Submit Result) */
     .np-enter {
-      background: linear-gradient(180deg,#3b82f6,#2563eb);
+      background: #2563eb;
       color: white;
-      border: none;
+      border-color: #1d4ed8;
       font-weight: 700;
     }
 
-    .np-enter:active {
-      background: #1d4ed8;
+    /* Main submit button */
+    .btn.primary {
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
     }
   </style>
 </head>
@@ -98,15 +101,13 @@
 </header>
 
 <main class="container">
-
   <section class="block">
-
     <form id="scoreForm" class="form">
 
-      <!-- NEW SCORE DISPLAY -->
+      <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
-      <!-- NUMBER PAD -->
+      <!-- NUMPAD -->
       <div class="numpad-grid">
         <button type="button" data-key="1">1</button>
         <button type="button" data-key="2">2</button>
@@ -122,7 +123,9 @@
 
         <button type="button" data-key="clear" class="np-clear">Clear</button>
         <button type="button" data-key="0">0</button>
-        <button type="button" data-key="enter" class="np-enter">Enter</button>
+
+        <!-- ✅ Real Submit Button styled like numpad -->
+        <button type="submit" class="np-enter">Enter</button>
       </div>
 
       <!-- HIDDEN REAL SCORE -->
@@ -138,7 +141,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Backend Hidden Fields -->
+      <!-- Hidden Participant Fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -151,13 +154,13 @@
       <input type="hidden" name="EVENT" id="fEVENT">
       <input type="hidden" name="DIVISION" id="fDIVISION">
 
-      <button type="submit" class="btn primary" 
+      <!-- ✅ Bottom Submit Button (also blue) -->
+      <button type="submit" class="btn primary"
         style="width:100%;font-size:1.1rem;padding:1rem;margin-top:1rem;">
         Submit Result →
       </button>
 
     </form>
-
   </section>
 </main>
 
@@ -171,9 +174,7 @@
   </div>
 </div>
 
-<!-- ============================================================
-     BACK NAV + CACHE FIX
-============================================================ -->
+<!-- BACK-NAV + CACHE FIX -->
 <script>
 function goBack() {
   const params = new URLSearchParams(location.search);
@@ -182,6 +183,7 @@ function goBack() {
   location.href = `station.html?station=${station}&key=${key}`;
 }
 
+// Force swipe-back to redirect
 history.pushState(null, null, location.href);
 window.onpopstate = function () { goBack(); };
 
