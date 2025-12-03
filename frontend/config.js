@@ -17,7 +17,7 @@ function forceRepaint() {
 /* ============================================================
    JUDGE ACCESS KEYS (ONE SOURCE OF TRUTH)
    ✔ Update judge keys here ONLY
-   ✔ index.html + station speed.js will automatically sync
+   ✔ index.html + station.js will automatically sync
    ✔ No more double editing in different files
 ============================================================ */
 
