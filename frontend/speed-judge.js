@@ -9,7 +9,7 @@
   const returnURL =
     `station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
-  fetch(returnURL).catch(()=>{}); // preload future page
+  fetch(returnURL).catch(()=>{}); // Preload station page
 
 
   /* ============================================================
@@ -66,8 +66,9 @@
         return;
       }
 
-      /* ---------------- DIGITS 0–9 ---------------- */
+      /* ---------------- DIGIT BUTTONS ---------------- */
       if (/^[0-9]$/.test(key)) {
+
         let current = scoreScreen.textContent.trim();
 
         if (current.length >= 3) return; // max 3 digits
@@ -86,22 +87,23 @@
 
 
   /* ============================================================
-     FALSE START TOGGLE BUTTON
+     FALSE START TOGGLE
   ============================================================ */
   const fsBtn = $("#falseStartBtn");
   const fsVal = $("#falseStartVal");
 
   fsBtn.addEventListener("click", () => {
-    const yes = fsBtn.classList.contains("fs-yes");
 
-    if (yes) {
-      // Switch to NO
+    const isYes = fsBtn.classList.contains("fs-yes");
+
+    if (isYes) {
+      // Switch to NO (Green)
       fsBtn.classList.remove("fs-yes");
       fsBtn.classList.add("fs-no");
       fsBtn.textContent = "NO";
       fsVal.value = "";
     } else {
-      // Switch to YES
+      // Switch to YES (Red)
       fsBtn.classList.remove("fs-no");
       fsBtn.classList.add("fs-yes");
       fsBtn.textContent = "YES";
