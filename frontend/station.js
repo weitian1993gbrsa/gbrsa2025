@@ -49,7 +49,7 @@
   const cardMap = {};
 
   /* ============================================================
-     CREATE CARD
+     CREATE CARD (Now with move-on-tap)
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -86,8 +86,28 @@
       + `&event=${encodeURIComponent(p.event || "")}`
       + `&division=${encodeURIComponent(p.division || "")}`;
 
-    card.onclick = () => location.href = judgeURL;
+    /* 🔥 MOVE ON TAP: Instant visual update */
+    card.onclick = () => {
+      // 1. Move card to bottom immediately
+      listEl.appendChild(card);
 
+      // 2. Turn it into "completed" instantly
+      card.classList.remove("pending");
+      card.classList.add("done");
+      const statusEl = card.querySelector(".status");
+      if (statusEl) statusEl.textContent = "COMPLETED";
+
+      // 3. Save updated HTML order to cache
+      localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
+
+      // 4. Mark which entry was completed (for return sync)
+      sessionStorage.setItem("completedEntry", p.entryId);
+
+      // 5. Navigate to judge page
+      location.href = judgeURL;
+    };
+
+    // Save reference for updateCard()
     cardMap[p.entryId] = {
       card,
       statusEl: card.querySelector(".status")
@@ -97,9 +117,7 @@
   }
 
   /* ============================================================
-     UPDATE CARD WITH SORTING
-     NEW CARDS = TOP
-     DONE CARDS = BOTTOM
+     UPDATE CARD (Keeps bottom sort consistent)
   ============================================================ */
   function updateCard(p) {
     const cache = cardMap[p.entryId];
@@ -108,23 +126,19 @@
     const { card, statusEl } = cache;
     const isDone = p.status === "done";
 
-    // update color + label first
     if (isDone) {
       card.classList.remove("pending");
       card.classList.add("done");
       statusEl.textContent = "COMPLETED";
+
+      // Always move done cards down
+      listEl.appendChild(card);
     } else {
       card.classList.remove("done");
       card.classList.add("pending");
       statusEl.textContent = "NEW";
-    }
 
-    // 🔥 MOVE PENDING TO TOP / DONE TO BOTTOM
-    if (isDone) {
-      // move to bottom
-      listEl.appendChild(card);
-    } else {
-      // move before first done card
+      // Always move pending cards above done ones
       const firstDone = listEl.querySelector(".station-card.done");
       if (firstDone) {
         listEl.insertBefore(card, firstDone);
@@ -135,7 +149,7 @@
   }
 
   /* ============================================================
-     LOAD LIST (FAST WITH CACHE + INSTANT-COMPLETE)
+     LOAD LIST (with cached HTML, instant-complete, reorder)
   ============================================================ */
   async function loadStationList() {
     const savedHTML = localStorage.getItem(CACHE_KEY_HTML);
@@ -160,7 +174,7 @@
           statusEl: card.querySelector(".status")
         };
 
-        // rebuild click event
+        // rebuild click event (move-on-tap)
         const judgeURL =
           `speed-judge.html`
           + `?id=${encodeURIComponent(p.entryId)}`
@@ -176,17 +190,24 @@
           + `&event=${encodeURIComponent(p.event || "")}`
           + `&division=${encodeURIComponent(p.division || "")}`;
 
-        card.onclick = () => location.href = judgeURL;
+        card.onclick = () => {
+          // move on tap
+          listEl.appendChild(card);
+          card.classList.remove("pending");
+          card.classList.add("done");
+          const statusEl = card.querySelector(".status");
+          if (statusEl) statusEl.textContent = "COMPLETED";
+          localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
+          sessionStorage.setItem("completedEntry", p.entryId);
+          location.href = judgeURL;
+        };
 
-        /* 🔥 INSTANT COMPLETE FIX */
+        // 🔥 apply instant-complete when returning
         if (justDone && p.entryId === justDone) {
           card.classList.remove("pending");
           card.classList.add("done");
-
           const statusEl = card.querySelector(".status");
           if (statusEl) statusEl.textContent = "COMPLETED";
-
-          // 🔥 MOVE TO BOTTOM IMMEDIATELY
           listEl.appendChild(card);
         }
       });
@@ -194,7 +215,7 @@
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
 
-    /* 2️⃣ BACKGROUND REFRESH */
+    /* 2️⃣ BACKGROUND REFRESH FROM SERVER */
     let data;
     try {
       data = await apiGet({
@@ -210,18 +231,17 @@
     if (!data || !data.ok) return;
     const arr = data.entries || [];
 
-    /* FIRST LOAD - BUILD CARDS */
+    /* FIRST LOAD (NO CACHE) */
     if (!savedHTML) {
       listEl.innerHTML = "";
       arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
-
       localStorage.setItem(CACHE_KEY_HTML, listEl.innerHTML);
       localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(arr));
       sessionStorage.removeItem("completedEntry");
       return;
     }
 
-    /* SUBSEQUENT LOAD - UPDATE + SORT */
+    /* SUBSEQUENT LOAD — UPDATE ONLY */
     arr.forEach(updateCard);
 
     /* UPDATE CACHE */
