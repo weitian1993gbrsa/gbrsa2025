@@ -36,6 +36,27 @@
       font-weight: 700;
     }
 
+    /* FALSE START BUTTON */
+    .fs-btn {
+      width: 100%;
+      padding: 16px 0;
+      margin-bottom: 18px;
+      font-size: 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-align: center;
+      border: none;
+      color: #fff;
+    }
+
+    .fs-no {
+      background: #22c55e;
+    }
+
+    .fs-yes {
+      background: #dc2626;
+    }
+
     /* SCORE SCREEN */
     .score-screen {
       width: 100%;
@@ -50,7 +71,7 @@
       letter-spacing: 2px;
     }
 
-    /* NUMPAD GRID (3 equal columns) */
+    /* NUMPAD GRID */
     .numpad-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -79,36 +100,6 @@
       border: 1px solid #1d4ed8 !important;
       font-weight: 700;
     }
-
-    /* FALSE START BUTTON - identical width to numpad buttons */
-    .fs-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .fs-btn {
-      width: 100%;
-      padding: 20px 0;
-      font-size: 1.6rem;
-      border-radius: 12px;
-      font-weight: 700;
-      border: 1px solid transparent;
-      text-align: center;
-    }
-
-    .fs-no {
-      background: #22c55e;
-      border-color: #16a34a;
-      color: white;
-    }
-
-    .fs-yes {
-      background: #dc2626;
-      border-color: #b91c1c;
-      color: white;
-    }
   </style>
 </head>
 
@@ -124,6 +115,13 @@
 <main class="container">
   <section class="block">
     <form id="scoreForm" class="form">
+
+      <!-- ❗ FALSE START BUTTON (FULL WIDTH) -->
+      <button type="button" id="falseStartBtn" class="fs-btn fs-no">
+        No False Start
+      </button>
+
+      <input type="hidden" id="falseStartVal" name="FALSESTART" value="NO">
 
       <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
@@ -149,15 +147,6 @@
       </div>
 
       <input type="hidden" name="SCORE" id="hiddenScore"/>
-
-      <!-- FALSE START BUTTON (center column, matching grid size) -->
-      <div class="fs-row">
-        <div></div>
-        <button type="button" id="falseStartBtn" class="fs-btn fs-no">No false start</button>
-        <div></div>
-      </div>
-
-      <input type="hidden" name="FALSE START" id="falseStartVal" value="">
 
       <!-- REMARK -->
       <label class="field">

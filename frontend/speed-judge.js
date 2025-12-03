@@ -9,7 +9,7 @@
   const returnURL =
     `station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
-  fetch(returnURL).catch(()=>{}); // Preload station page
+  fetch(returnURL).catch(()=>{});
 
 
   /* ============================================================
@@ -19,7 +19,7 @@
 
 
   /* ============================================================
-     FILL HIDDEN FIELDS FROM URL
+     FILL HIDDEN FIELDS
   ============================================================ */
   const set = (id, val) => {
     const el = $(id);
@@ -39,8 +39,38 @@
   set("#fDIVISION", params.get("division"));
 
 
+
   /* ============================================================
-     NUMBERPAD + SCORE SCREEN (MAX 3 DIGITS)
+     FALSE START TOGGLE
+  ============================================================ */
+  const fsBtn = $("#falseStartBtn");
+  const fsVal = $("#falseStartVal");
+
+  if (fsBtn && fsVal) {
+    fsVal.value = "NO"; // default
+
+    fsBtn.addEventListener("click", () => {
+
+      const isYes = fsBtn.classList.contains("fs-yes");
+
+      if (isYes) {
+        fsBtn.classList.remove("fs-yes");
+        fsBtn.classList.add("fs-no");
+        fsBtn.textContent = "No False Start";
+        fsVal.value = "NO";
+      } else {
+        fsBtn.classList.remove("fs-no");
+        fsBtn.classList.add("fs-yes");
+        fsBtn.textContent = "False Start";
+        fsVal.value = "YES";
+      }
+    });
+  }
+
+
+
+  /* ============================================================
+     NUMBER PAD
   ============================================================ */
   const scoreScreen = $("#scoreScreen");
   const hiddenScore = $("#hiddenScore");
@@ -52,26 +82,22 @@
 
       const key = btn.dataset.key;
 
-      /* ---------------- CLEAR BUTTON ---------------- */
       if (key === "clear") {
         scoreScreen.textContent = "0";
         hiddenScore.value = "";
         return;
       }
 
-      /* ---------------- SUBMIT BUTTON ---------------- */
       if (key === "enter") {
-        const form = $("#scoreForm");
-        form.dispatchEvent(new Event("submit"));
+        $("#scoreForm").dispatchEvent(new Event("submit"));
         return;
       }
 
-      /* ---------------- DIGIT BUTTONS ---------------- */
       if (/^[0-9]$/.test(key)) {
 
         let current = scoreScreen.textContent.trim();
 
-        if (current.length >= 3) return; // max 3 digits
+        if (current.length >= 3) return;
 
         if (current === "0") {
           scoreScreen.textContent = key;
@@ -86,34 +112,9 @@
   });
 
 
-  /* ============================================================
-     FALSE START TOGGLE
-  ============================================================ */
-  const fsBtn = $("#falseStartBtn");
-  const fsVal = $("#falseStartVal");
-
-  fsBtn.addEventListener("click", () => {
-
-    const isYes = fsBtn.classList.contains("fs-yes");
-
-    if (isYes) {
-      // Switch to No (Green)
-      fsBtn.classList.remove("fs-yes");
-      fsBtn.classList.add("fs-no");
-      fsBtn.textContent = "No False Start";
-      fsVal.value = "NO";
-    } else {
-      // Switch to YES (Red)
-      fsBtn.classList.remove("fs-no");
-      fsBtn.classList.add("fs-yes");
-      fsBtn.textContent = "False Start";
-      fsVal.value = "YES";
-    }
-  });
-
 
   /* ============================================================
-     FORM SUBMISSION
+     FORM SUBMIT
   ============================================================ */
   const scoreForm = $("#scoreForm");
   const overlay = $("#submitOverlay");
@@ -125,7 +126,7 @@
     const scoreVal = scoreScreen.textContent.trim();
 
     if (scoreVal === "") {
-      alert("Please enter a score before submitting.");
+      alert("Please enter a score.");
       return;
     }
 
@@ -143,13 +144,9 @@
     apiPost(payload)
       .then(() => {
         overlayText.textContent = "Saved ✔";
-
-        setTimeout(() => {
-          location.href = returnURL;
-        }, 120);
+        setTimeout(() => location.href = returnURL, 120);
       })
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         overlayText.textContent = "Submit failed";
         setTimeout(() => overlay.classList.add("hide"), 800);
       });
