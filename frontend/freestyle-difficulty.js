@@ -31,7 +31,6 @@
   };
 
   let lastAction = null;
-
   const totalScoreEl = document.querySelector("#totalScore");
 
   /* ============================================================
@@ -52,7 +51,7 @@
   }
 
   /* ============================================================
-     SKILL BUTTON — SUPER SENSITIVE + EXTREME VIBRATION + FIRST TAP FIX
+     SKILL BUTTON — EXTREME VIBRATION + FIRST TAP FIX
      ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
@@ -61,11 +60,11 @@
       btn.addEventListener("pointerdown", (e) => {
         e.preventDefault();
 
-        // 🔓 FIX: unlock iOS vibration on first tap
+        // 🔓 Fix first-tap vibration on iOS
         if (navigator.vibrate) navigator.vibrate(1);
 
-        // 🔥 EXTREME VIBRATION
-        if (navigator.vibrate) navigator.vibrate([120, 80, 40]);
+        // 🔥 EXTREME vibration
+        if (navigator.vibrate) navigator.vibrate([120, 80]);
 
         const level = btn.dataset.level;
 
@@ -84,14 +83,19 @@
   }
 
   /* ============================================================
-     UNDO — unchanged
+     UNDO — NOW WITH VIBRATION + WHITE TEXT
      ============================================================ */
-  document.querySelector("#undoBtn").addEventListener("pointerdown", (e) => {
+  const undoBtn = document.querySelector("#undoBtn");
+  undoBtn.style.color = "white";  // 🔥 CHANGE TEXT COLOR
+
+  undoBtn.addEventListener("pointerdown", (e) => {
     e.preventDefault();
 
-    const btn = e.currentTarget;
-    btn.classList.add("pressed");
-    setTimeout(() => btn.classList.remove("pressed"), 120);
+    // 🔥 VIBRATION
+    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+
+    undoBtn.classList.add("pressed");
+    setTimeout(() => undoBtn.classList.remove("pressed"), 120);
 
     if (!lastAction) return;
 
@@ -103,14 +107,18 @@
   });
 
   /* ============================================================
-     RESET — unchanged
+     RESET — NOW WITH VIBRATION
      ============================================================ */
-  document.querySelector("#resetBtn").addEventListener("pointerdown", (e) => {
+  const resetBtn = document.querySelector("#resetBtn");
+
+  resetBtn.addEventListener("pointerdown", (e) => {
     e.preventDefault();
 
-    const btn = e.currentTarget;
-    btn.classList.add("pressed");
-    setTimeout(() => btn.classList.remove("pressed"), 120);
+    // 🔥 VIBRATION
+    if (navigator.vibrate) navigator.vibrate([80, 50, 80]);
+
+    resetBtn.classList.add("pressed");
+    setTimeout(() => resetBtn.classList.remove("pressed"), 120);
 
     for (const lvl in counts) counts[lvl] = 0;
     lastAction = null;
@@ -118,7 +126,7 @@
   });
 
   /* ============================================================
-     SUBMIT RESULT — unchanged
+     SUBMIT (No vibration unless you want)
      ============================================================ */
   document.querySelector("#btnSubmit").addEventListener("pointerdown", (e) => {
     e.preventDefault();
