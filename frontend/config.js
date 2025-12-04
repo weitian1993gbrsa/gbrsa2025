@@ -8,6 +8,7 @@ window.CONFIG = {
   SHEET_ID: "1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg",
   DATA_SHEET_NAME: "DATA",
   RESULT_SHEET_NAME: "RESULT"
+  RESULT_F_SHEET_NAME: "RESULT_F"
 };
 
 // Login backend URL

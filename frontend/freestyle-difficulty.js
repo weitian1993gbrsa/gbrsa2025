@@ -118,65 +118,64 @@
   });
 
   /* ============================================================
-     SUBMIT — DIFFICULTY JUDGE ONLY (FIXED)
-     ============================================================ */
-  document.querySelector("#btnSubmit").addEventListener("pointerdown", async (e) => {
-    e.preventDefault();
+   SUBMIT — Difficulty Judge ONLY (DIFF only)
+   ============================================================ */
+document.querySelector("#btnSubmit").addEventListener("pointerdown", async (e) => {
+  e.preventDefault();
 
-    // Vibration
-    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+  if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
 
-    const params = new URLSearchParams(location.search);
+  const params = new URLSearchParams(location.search);
 
-    // ⭐ FIXED PAYLOAD FOR NEW BACKEND
-    const payload = {
-      _form: "freestyle",
+  // ⭐ DIFF judge sends ONLY DIFF
+  const payload = {
+    _form: "freestyle",
 
-      ID: params.get("id"),
-      NAME1: params.get("name1"),
-      TEAM: params.get("team"),
-      STATE: params.get("state"),
-      HEAT: params.get("heat"),
-      STATION: params.get("station"),
-      EVENT: params.get("event"),
-      DIVISION: params.get("division"),
+    ID: params.get("id"),
+    NAME1: params.get("name1"),
+    TEAM: params.get("team"),
+    STATE: params.get("state"),
+    HEAT: params.get("heat"),
+    STATION: params.get("station"),
+    EVENT: params.get("event"),
+    DIVISION: params.get("division"),
 
-      // ⭐ NEW: required for your backend
-      JUDGE_TYPE: "DIFF",
+    DIFF: Number(totalScoreEl.textContent),
 
-      // ⭐ DIFF SCORE ONLY
-      DIFF: Number(totalScoreEl.textContent),
+    // ⭐ All other freestyle fields EMPTY
+    MISSES: "",
+    BREAKS: "",
+    PRESENTATION: "",
+    "Missed RE": "",
+    REMARK: ""
+  };
 
-      // ⭐ EMPTY FIELDS (must match backend)
-      MISSES: "",
-      BREAKS: "",
-      PRESENTATION: "",
-      MISSED_RE: "",
-      REMARK: ""
-    };
+  const btn = document.querySelector("#btnSubmit");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
 
-    const btn = document.querySelector("#btnSubmit");
-    btn.disabled = true;
-    btn.textContent = "Saving...";
+  try {
+    const res = await fetch(window.CONFIG.APPS_SCRIPT_URL + "?t=" + Date.now(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
 
-    try {
-      const res = await fetch(window.CONFIG.APPS_SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
+    const json = await res.json();
 
-      const json = await res.json();
-      if (!json.ok) throw new Error("Error");
+    if (!json.ok) throw new Error("Backend rejected");
 
-      btn.textContent = "Saved ✔";
-      setTimeout(() => history.back(), 300);
+    btn.textContent = "Saved ✔";
+    setTimeout(() => history.back(), 300);
 
-    } catch (err) {
-      alert("Submit failed, try again.");
-      btn.disabled = false;
-      btn.textContent = "Submit";
-    }
-  });
+  } catch (err) {
+    alert("Submit failed, try again.");
+    btn.disabled = false;
+    btn.textContent = "Submit";
+  }
+});
 
   /* ============================================================
      INIT
