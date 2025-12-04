@@ -62,44 +62,53 @@
     });
   }
 
-  /* ============================================================
-     NUMBER PAD
-  ============================================================ */
-  const scoreScreen = $("#scoreScreen");
-  const hiddenScore = $("#hiddenScore");
+/* ============================================================
+   NUMBER PAD (SUPER RESPONSIVE)
+============================================================ */
+const scoreScreen = $("#scoreScreen");
+const hiddenScore = $("#hiddenScore");
 
-  const numButtons = document.querySelectorAll(".numpad-grid button");
+const numButtons = document.querySelectorAll(".numpad-grid button");
 
-  numButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
+numButtons.forEach(btn => {
+  btn.style.touchAction = "manipulation"; // improved touch sensitivity
 
-      const key = btn.dataset.key;
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault(); // removes click delay
 
-      if (key === "clear") {
-        scoreScreen.textContent = "0";
-        hiddenScore.value = "";
-        return;
-      }
+    const key = btn.dataset.key;
 
-      if (key === "enter") {
-        $("#scoreForm").dispatchEvent(new Event("submit"));
-        return;
-      }
+    // Tap visual feedback (optional)
+    btn.classList.add("pressed");
+    setTimeout(() => btn.classList.remove("pressed"), 120);
 
-      if (/^[0-9]$/.test(key)) {
+    if (key === "clear") {
+      scoreScreen.textContent = "0";
+      hiddenScore.value = "";
+      return;
+    }
 
-        let current = scoreScreen.textContent.trim();
+    if (key === "enter") {
+      $("#scoreForm").dispatchEvent(new Event("submit"));
+      return;
+    }
 
-        if (current.length >= 3) return;
+    if (/^[0-9]$/.test(key)) {
 
-        scoreScreen.textContent =
-          current === "0" ? key : current + key;
+      let current = scoreScreen.textContent.trim();
 
-        hiddenScore.value = scoreScreen.textContent;
-      }
+      // limit to 3 digits
+      if (current.length >= 3) return;
 
-    });
-  });
+      scoreScreen.textContent =
+        current === "0" ? key : current + key;
+
+      hiddenScore.value = scoreScreen.textContent;
+    }
+
+  }, { passive: true });  // faster on mobile
+});
+
 
   /* ============================================================
      FORM SUBMIT
