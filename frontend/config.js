@@ -7,7 +7,8 @@ window.CONFIG = {
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbw1UORMl0LqZPdxelb8DdWSKZUUcX3WL03GDUSM-GeLX9v-KYHeeeFwQ8epyS3va3RQTA/exec",
   SHEET_ID: "1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg",
   DATA_SHEET_NAME: "DATA",
-  RESULT_SHEET_NAME: "RESULT"
+  RESULT_SHEET_NAME: "RESULT",
+  RESULT_F_SHEET_NAME: "RESULT_F"
 };
 
 // Login backend URL
@@ -18,6 +19,7 @@ const LOGIN_API_URL =
 /* ============================================================
    EVENT GROUPS  (🔥 REQUIRED for filtering)
 ============================================================ */
+
 window.SPEED_EVENTS = [
   "SRJJ",
   "SRSS",
