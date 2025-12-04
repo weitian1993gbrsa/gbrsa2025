@@ -1,85 +1,58 @@
-(() => {
+(function () {
 
   /* ============================================================
-     POINT TABLE (IJRU OFFICIAL)
+     POINT TABLE (IJRU)
   ============================================================ */
   const POINTS = {
-    "0.5": 0.12,
-    "1":   0.15,
-    "2":   0.23,
-    "3":   0.34,
-    "4":   0.51,
-    "5":   0.76,
-    "6":   1.14,
-    "7":   1.71,
-    "8":   2.56
+    "0.5": 0.12, "1": 0.15, "2": 0.23, "3": 0.34,
+    "4": 0.51, "5": 0.76, "6": 1.14, "7": 1.71, "8": 2.56
   };
 
-  /* ============================================================
-     STATE
-  ============================================================ */
-  let counts = {
-    "0.5": 0,
-    "1":   0,
-    "2":   0,
-    "3":   0,
-    "4":   0,
-    "5":   0,
-    "6":   0,
-    "7":   0,
-    "8":   0
-  };
-
+  let counts = { "0.5":0, "1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0 };
   let lastAction = null;
 
-  const totalScoreEl = document.querySelector("#totalScore");
+  const $ = (q) => document.querySelector(q);
+
+  const totalScoreEl = $("#totalScore");
+  const btnSubmit    = $("#btnSubmit");
+  const undoBtn      = $("#undoBtn");
+  const resetBtn     = $("#resetBtn");
 
   /* ============================================================
-     UPDATE DISPLAY
+     UPDATE UI
   ============================================================ */
   function updateUI() {
     for (const lvl in counts) {
-      const el = document.querySelector(`#count${lvl.replace(".", "")}`);
+      let el = document.querySelector("#count" + lvl.replace(".", ""));
       if (el) el.textContent = counts[lvl];
     }
-
     let total = 0;
-    for (const lvl in counts) {
-      total += counts[lvl] * POINTS[lvl];
-    }
+    for (const lvl in counts) total += counts[lvl] * POINTS[lvl];
     totalScoreEl.textContent = total.toFixed(2);
   }
 
   /* ============================================================
-     SKILL BUTTON EVENT
+     SKILL BUTTONS (same behavior)
   ============================================================ */
-  function addClickEvents() {
-    document.querySelectorAll(".skill-btn").forEach(btn => {
-      btn.style.touchAction = "manipulation";
-
-      btn.addEventListener("pointerdown", (e) => {
-        if (navigator.vibrate) navigator.vibrate([100]);
-
-        const level = btn.dataset.level;
-
-        btn.classList.add("pressed");
-        setTimeout(() => btn.classList.remove("pressed"), 120);
-
-        lastAction = { level, prev: counts[level] };
-        counts[level]++;
-
-        updateUI();
-      });
+  document.querySelectorAll(".skill-btn").forEach(btn => {
+    btn.style.touchAction = "manipulation";
+    btn.addEventListener("pointerdown", () => {
+      const lvl = btn.dataset.level;
+      lastAction = { level: lvl, prev: counts[lvl] };
+      counts[lvl]++;
+      updateUI();
+      if (navigator.vibrate) navigator.vibrate([80]);
+      btn.classList.add("pressed");
+      setTimeout(()=>btn.classList.remove("pressed"),150);
     });
-  }
+  });
 
   /* ============================================================
      UNDO
   ============================================================ */
-  document.querySelector("#undoBtn").addEventListener("click", () => {
+  undoBtn.addEventListener("click", ()=>{
     if (!lastAction) return;
-    const { level, prev } = lastAction;
-    counts[level] = prev;
+    counts[lastAction.level] = lastAction.prev;
     lastAction = null;
     updateUI();
   });
@@ -87,69 +60,65 @@
   /* ============================================================
      RESET
   ============================================================ */
-  document.querySelector("#resetBtn").addEventListener("click", () => {
-    for (const lvl in counts) counts[lvl] = 0;
+  resetBtn.addEventListener("click", ()=>{
+    for (let lvl in counts) counts[lvl] = 0;
     lastAction = null;
     updateUI();
   });
 
   /* ============================================================
-     SUBMIT — FIXED (must use CLICK, not pointerdown)
+     SUBMIT — EXACT ADMIN BEHAVIOR
   ============================================================ */
-  document.querySelector("#btnSubmit").addEventListener("click", async () => {
+  btnSubmit.addEventListener("click", async () => {
+
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = "Saving...";
 
     const params = new URLSearchParams(location.search);
 
+    // Build payload EXACTLY like admin freestyle
     const payload = {
       _form: "freestyle",
 
-      ID: params.get("id"),
-      NAME1: params.get("name1"),
-      TEAM: params.get("team"),
-      STATE: params.get("state"),
-      HEAT: params.get("heat"),
-      STATION: params.get("station"),
-      EVENT: params.get("event"),
-      DIVISION: params.get("division"),
+      ID:        params.get("id")        || "",
+      NAME1:     params.get("name1")     || "",
+      NAME2:     params.get("name2")     || "",
+      NAME3:     params.get("name3")     || "",
+      NAME4:     params.get("name4")     || "",
+      TEAM:      params.get("team")      || "",
+      STATE:     params.get("state")     || "",
+      HEAT:      params.get("heat")      || "",
+      STATION:   params.get("station")   || "",
+      EVENT:     params.get("event")     || "",
+      DIVISION:  params.get("division")  || "",
 
+      // DIFFICULTY RESULT
       DIFF: Number(totalScoreEl.textContent),
 
-      MISSES: "",
-      BREAKS: "",
-      MissRE: "",
+      // REQUIRED freestyle fields but empty
+      MISSES: "0",
+      BREAKS: "0",
+      MissRE: "0",
       PRESENTATION: "",
       REMARK: ""
     };
 
-    const btn = document.querySelector("#btnSubmit");
-    btn.disabled = true;
-    btn.textContent = "Saving...";
-
     try {
-      const res = await fetch(window.CONFIG.APPS_SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      const out = await apiPost(payload);   // SAME API as admin
+      if (!out || !out.ok) throw new Error(out?.error || "Server rejected");
 
-      const json = await res.json();
-
-      if (!json.ok) throw new Error(json.error || "Submit error");
-
-      btn.textContent = "Saved ✔";
-
-      setTimeout(() => history.back(), 350);
+      btnSubmit.textContent = "Saved ✔";
+      setTimeout(() => history.back(), 450);
 
     } catch (err) {
-      alert("Submit failed, try again.");
-      btn.disabled = false;
-      btn.textContent = "Submit";
+      console.error(err);
+      alert("Submit failed — " + err.message);
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = "Submit";
     }
+
   });
 
-  /* ============================================================
-     INIT
-  ============================================================ */
-  addClickEvents();
   updateUI();
 
 })();
