@@ -31,7 +31,6 @@
   };
 
   let lastAction = null;
-
   const totalScoreEl = document.querySelector("#totalScore");
 
   /* ============================================================
@@ -52,7 +51,7 @@
   }
 
   /* ============================================================
-     SKILL BUTTON — SUPER SENSITIVE (pointerdown) + EXTREME VIBRATION
+     SKILL BUTTON — SENSITIVE + STRONG VIBRATION
      ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
@@ -61,10 +60,10 @@
       btn.addEventListener("pointerdown", (e) => {
         e.preventDefault();
 
-        // iOS vibration unlock
+        // unlock vibration on iOS
         if (navigator.vibrate) navigator.vibrate(1);
 
-        // Extreme vibration
+        // actual vibration
         if (navigator.vibrate) navigator.vibrate([120, 80]);
 
         const level = btn.dataset.level;
@@ -72,12 +71,9 @@
         btn.classList.add("pressed");
         setTimeout(() => btn.classList.remove("pressed"), 120);
 
-        lastAction = {
-          level,
-          prev: counts[level]
-        };
-
+        lastAction = { level, prev: counts[level] };
         counts[level]++;
+
         updateUI();
       }, { passive: true });
     });
@@ -118,64 +114,62 @@
   });
 
   /* ============================================================
-   SUBMIT — Difficulty Judge ONLY (DIFF only)
-   ============================================================ */
-document.querySelector("#btnSubmit").addEventListener("pointerdown", async (e) => {
-  e.preventDefault();
+     SUBMIT — Difficulty Judge ONLY (DIFF only)
+     ============================================================ */
+  document.querySelector("#btnSubmit").addEventListener("pointerdown", async (e) => {
+    e.preventDefault();
 
-  if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
 
-  const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(location.search);
 
-  // ⭐ DIFF judge sends ONLY DIFF
-  const payload = {
-    _form: "freestyle",
+    // ⭐ FIXED payload — MISSED_RE used instead of “Missed RE”
+    const payload = {
+      _form: "freestyle",
 
-    ID: params.get("id"),
-    NAME1: params.get("name1"),
-    TEAM: params.get("team"),
-    STATE: params.get("state"),
-    HEAT: params.get("heat"),
-    STATION: params.get("station"),
-    EVENT: params.get("event"),
-    DIVISION: params.get("division"),
+      ID: params.get("id"),
+      NAME1: params.get("name1"),
+      TEAM: params.get("team"),
+      STATE: params.get("state"),
+      HEAT: params.get("heat"),
+      STATION: params.get("station"),
+      EVENT: params.get("event"),
+      DIVISION: params.get("division"),
 
-    DIFF: Number(totalScoreEl.textContent),
+      // DIFF judge sends only DIFF
+      DIFF: Number(totalScoreEl.textContent),
 
-    // ⭐ All other freestyle fields EMPTY
-    MISSES: "",
-    BREAKS: "",
-    PRESENTATION: "",
-    "Missed RE": "",
-    REMARK: ""
-  };
+      // other freestyle fields empty
+      MISSES: "",
+      BREAKS: "",
+      PRESENTATION: "",
+      MISSED_RE: "",   // <<< FIXED
+      REMARK: ""
+    };
 
-  const btn = document.querySelector("#btnSubmit");
-  btn.disabled = true;
-  btn.textContent = "Saving...";
+    const btn = document.querySelector("#btnSubmit");
+    btn.disabled = true;
+    btn.textContent = "Saving...";
 
-  try {
-    const res = await fetch(window.CONFIG.APPS_SCRIPT_URL + "?t=" + Date.now(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const res = await fetch(window.CONFIG.APPS_SCRIPT_URL + "?t=" + Date.now(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-    const json = await res.json();
+      const json = await res.json();
+      if (!json.ok) throw new Error("Backend rejected");
 
-    if (!json.ok) throw new Error("Backend rejected");
+      btn.textContent = "Saved ✔";
+      setTimeout(() => history.back(), 300);
 
-    btn.textContent = "Saved ✔";
-    setTimeout(() => history.back(), 300);
-
-  } catch (err) {
-    alert("Submit failed, try again.");
-    btn.disabled = false;
-    btn.textContent = "Submit";
-  }
-});
+    } catch (err) {
+      alert("Submit failed, try again.");
+      btn.disabled = false;
+      btn.textContent = "Submit";
+    }
+  });
 
   /* ============================================================
      INIT
