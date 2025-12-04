@@ -2,23 +2,212 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>Freestyle • Technical Judge</title>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+
+<title>Freestyle Technical Judge</title>
+
+<link rel="stylesheet" href="./styles.css"/>
+<script defer src="./app.js"></script>
+<script defer src="./config.js"></script>
+<script defer src="./freestyle-technical.js"></script>
+<script defer src="./nozoom.js"></script>
+
+<style>
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
+    padding: 0;
+    margin: 0;
+  }
+
+  header.judge-header {
+    padding: 1rem;
+    text-align: center;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  header.judge-header h1 {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+  header.judge-header h2 {
+    margin: 0.25rem 0 0 0;
+    font-size: 1rem;
+    opacity: 0.7;
+    font-weight: 500;
+  }
+
+  .info-panel {
+    margin: 1rem auto;
+    width: 92%;
+    padding: 1rem;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+  .info-row {
+    padding: 0.25rem 0;
+    font-size: 1.05rem;
+  }
+  .label {
+    opacity: 0.6;
+    margin-right: 6px;
+  }
+
+  .judge-area {
+    width: 92%;
+    margin: 1.5rem auto;
+  }
+
+  .score-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+  }
+  .score-label {
+    font-size: 1.1rem;
+  }
+  .score-value {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+
+  .btn-row {
+    margin: 1rem 0;
+    display: flex;
+    gap: 1rem;
+  }
+  .tech-btn {
+    flex: 1;
+    padding: 1rem 0;
+    font-size: 1.25rem;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+  }
+  .tech-btn.pressed {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+
+  .control-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.2rem;
+  }
+  .small-btn {
+    flex: 1;
+    margin: 0 0.5rem;
+    padding: 0.7rem 0;
+    border-radius: 10px;
+    background: var(--border);
+    color: var(--text);
+    border: none;
+    font-size: 1rem;
+  }
+
+  #btnSubmit {
+    width: 92%;
+    margin: 2rem auto;
+    display: block;
+    padding: 1rem 0;
+    font-size: 1.3rem;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: white;
+  }
+</style>
+
 </head>
-<body style="font-family:Arial;padding:2rem;">
-  <h2>Freestyle Technical Judge</h2>
+<body>
 
-  <p><b>Station:</b> <span id="st"></span></p>
-  <p><b>Key:</b> <span id="ky"></span></p>
-  <p><b>Judge Type:</b> Technical</p>
+<header class="judge-header">
+  <h1>Technical Judge</h1>
+  <h2 id="headerInfo">Freestyle</h2>
+</header>
 
-  <p style="margin-top:2rem;color:#777;">
-    Placeholder page. Scoring UI will be built later.
-  </p>
+<div class="info-panel">
+  <div class="info-row">
+    <span class="label">ID:</span>
+    <span id="pID"></span>
+  </div>
+  <div class="info-row">
+    <span class="label">Name:</span>
+    <span id="pName"></span>
+  </div>
+  <div class="info-row">
+    <span class="label">Team:</span>
+    <span id="pTeam"></span>
+  </div>
+  <div class="info-row">
+    <span class="label">Heat:</span>
+    <span id="pHeat"></span>
+  </div>
+</div>
+
+<div class="judge-area">
+
+  <!-- MISSES -->
+  <div class="score-box">
+    <div class="score-label">Misses</div>
+    <div id="countMiss" class="score-value">0</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="tech-btn" data-type="MISS">+ Miss</button>
+  </div>
+
+  <!-- BREAKS -->
+  <div class="score-box">
+    <div class="score-label">Breaks</div>
+    <div id="countBreak" class="score-value">0</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="tech-btn" data-type="BREAK">+ Break</button>
+  </div>
+
+  <div class="control-row">
+    <button id="undoBtn" class="small-btn">Undo</button>
+    <button id="resetBtn" class="small-btn">Reset</button>
+  </div>
+
+</div>
+
+<button id="btnSubmit">Submit</button>
 
 <script>
-const qs = new URLSearchParams(location.search);
-document.getElementById("st").textContent = qs.get("station");
-document.getElementById("ky").textContent = qs.get("key");
+  /* ================================================
+     Populate the header info using query parameters
+  ================================================ */
+  const qs = new URLSearchParams(location.search);
+
+  const pID   = document.getElementById("pID");
+  const pName = document.getElementById("pName");
+  const pTeam = document.getElementById("pTeam");
+  const pHeat = document.getElementById("pHeat");
+
+  const nameCombined = [
+    qs.get("name1") || "",
+    qs.get("name2") || "",
+    qs.get("name3") || "",
+    qs.get("name4") || "",
+  ].filter(Boolean).join(", ");
+
+  pID.textContent   = qs.get("id") || "";
+  pName.textContent = nameCombined;
+  pTeam.textContent = qs.get("team") || "";
+  pHeat.textContent = qs.get("heat") || "";
 </script>
+
 </body>
 </html>

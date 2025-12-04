@@ -76,53 +76,58 @@
   ============================================================ */
   btnSubmit.addEventListener("click", async () => {
 
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = "Saving...";
+  btnSubmit.disabled = true;
+  btnSubmit.textContent = "Saving...";
 
-    const params = new URLSearchParams(location.search);
+  const params = new URLSearchParams(location.search);
 
-    const payload = {
-      _form: "freestyle",
+  const payload = {
+    _form: "freestyle",
 
-      ID: params.get("id") || "",
-      NAME1: params.get("name1") || "",
-      NAME2: params.get("name2") || "",
-      NAME3: params.get("name3") || "",
-      NAME4: params.get("name4") || "",
-      TEAM: params.get("team") || "",
-      STATE: params.get("state") || "",
-      HEAT: params.get("heat") || "",
-      STATION: params.get("station") || "",
-      EVENT: params.get("event") || "",
-      DIVISION: params.get("division") || "",
+    ID: params.get("id") || "",
+    NAME1: params.get("name1") || "",
+    NAME2: params.get("name2") || "",
+    NAME3: params.get("name3") || "",
+    NAME4: params.get("name4") || "",
+    TEAM: params.get("team") || "",
+    STATE: params.get("state") || "",
+    HEAT: params.get("heat") || "",
+    STATION: params.get("station") || "",
+    EVENT: params.get("event") || "",
+    DIVISION: params.get("division") || "",
 
-      // TECHNICAL results
-      MISSES: counts.MISS,
-      BREAKS: counts.BREAK,
+    MISSES: counts.MISS,
+    BREAKS: counts.BREAK,
 
-      // Required fields for merge
-      DIFF: "",
-      MissRE: "",
-      PRESENTATION: "",
-      REMARK: ""
-    };
+    DIFF: "",
+    MissRE: "",
+    PRESENTATION: "",
+    REMARK: ""
+  };
 
-    try {
-      const result = await apiPost(payload);
-      if (!result || !result.ok) throw new Error(result?.error || "Server rejected");
+  try {
+    const result = await apiPost(payload);
+    if (!result || !result.ok) throw new Error(result?.error || "Server rejected");
 
-      btnSubmit.textContent = "Saved ✔";
+    btnSubmit.textContent = "Saved ✔";
 
-      // Go back same as difficulty judge
-      setTimeout(() => history.back(), 400);
+    // ⭐ GO BACK TO TECHNICAL STATION PAGE
+    const station = params.get("station");
+    const key = params.get("key");
 
-    } catch (err) {
-      console.error(err);
-      alert("Submit failed — " + err.message);
-      btnSubmit.disabled = false;
-      btnSubmit.textContent = "Submit";
-    }
-  });
+    setTimeout(() => {
+      location.href =
+        `freestyle-station.html?station=${station}&key=${key}&judgeType=technical`;
+    }, 350);
+
+  } catch (err) {
+    console.error(err);
+    alert("Submit failed — " + err.message);
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = "Submit";
+  }
+});
+
 
   updateUI();
 
