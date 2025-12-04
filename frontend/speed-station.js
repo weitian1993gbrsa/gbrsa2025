@@ -78,7 +78,7 @@
   }
 
   /* ============================================================
-     CARD CREATION (with restored running index)
+     CARD CREATION (index = sorted order)
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -88,7 +88,7 @@
 
     card.style.touchAction = "manipulation"; // prevent ghost taps
 
-    /* HEADER: Heat + Running Index */
+    /* TOP ROW */
     const top = document.createElement("div");
     top.className = "top-row";
 
@@ -117,7 +117,7 @@
 
     const statusEl = document.createElement("div");
     statusEl.className = "status";
-    statusEl.textContent = p.status === "done" ? "COMPLETED" : "NEW";
+    statusEl.textContent = (p.status === "done") ? "COMPLETED" : "NEW";
 
     const eventName = document.createElement("div");
     eventName.className = "event";
@@ -131,7 +131,7 @@
     card.appendChild(team);
     card.appendChild(eventRow);
 
-    /* SAFEST CLICK HANDLER */
+    /* SAFE CLICK HANDLER */
     card.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -167,18 +167,10 @@
   }
 
   /* ============================================================
-     SORT: NEW first, COMPLETED later
-     Inside each group, sort by heat (ascending)
+     SORT BY HEAT ONLY (ASCENDING)
   ============================================================ */
   function sortEntries(arr) {
-    return arr.sort((a, b) => {
-      const A = a.status === "done" ? 1 : 0;
-      const B = b.status === "done" ? 1 : 0;
-
-      if (A !== B) return A - B; // NEW first
-
-      return Number(a.heat) - Number(b.heat); // lowest heat first
-    });
+    return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
   }
 
   /* ============================================================
@@ -189,6 +181,7 @@
       SPEED_EVENTS.includes(String(p.event).trim())
     );
 
+    // ⭐ SORT STRICTLY BY HEAT NUMBER ONLY
     arr = sortEntries(arr);
 
     listEl.innerHTML = "";
@@ -200,8 +193,11 @@
   ============================================================ */
   async function load() {
     const cached = loadCache();
-    if (cached) renderList(cached);
-    else listEl.innerHTML = `<div class="hint">Loading…</div>`;
+    if (cached) {
+      renderList(cached);
+    } else {
+      listEl.innerHTML = `<div class="hint">Loading…</div>`;
+    }
 
     const data = await apiGet({
       cmd: "stationlist",
