@@ -177,67 +177,89 @@ function buildHeaderMap(header) {
   };
 }
 
-/* ------------------------------------------------------------
- * 5️⃣ SUPER FAST STATION LIST (0.2–0.4 sec)
- * ------------------------------------------------------------ */
 function getStationList(e) {
-  const { SHEET_ID, DATA_SHEET } = getConfig();
-
-  const station = (e.parameter.station || "").trim();
+  const { SHEET_ID, DATA_SHEET, RESULT_SHEET_SPEED, TZ } = getConfig();
+  const station = normalize(e.parameter.station);
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
-  const sh = ss.getSheetByName(DATA_SHEET);
 
-  const last = sh.getLastRow();
-  if (last < 2) return json({ ok: true, station, entries: [] });
-
-  // Read ONLY the first 15 columns (MUCH FASTER than reading 20)
-  const values = sh.getRange(1, 1, last, 15).getValues();
-  const header = lowerHeaders(values[0]);
-
-  // Build map once
-  const map = {};
-  header.forEach((h, i) => map[h] = i);
+  // ===============================
+  //  READ DATA SHEET
+  // ===============================
+  const dataSh = ss.getSheetByName(DATA_SHEET);
+  const dVals = dataSh.getRange(1, 1, dataSh.getLastRow(), 20).getValues();
+  const header = dVals[0];
+  const map = buildHeaderMap(header);
 
   const entries = [];
 
-  for (let r = 1; r < last; r++) {
-    const row = values[r];
+  for (let r = 1; r < dVals.length; r++) {
+    if (normalize(dVals[r][map.station]) !== station) continue;
 
-    // Quick station match
-    if (String(row[map["station"]] || "").trim() !== station) continue;
-
-    const id = String(row[map["id"]] || "").trim();
+    const id = normalize(dVals[r][map.id]);
     if (!id) continue;
 
-    // Fast displayName (no filter/join)
-    let displayName = "";
-    const n1 = row[map["name1"]] || "";
-    const n2 = row[map["name2"]] || "";
-    const n3 = row[map["name3"]] || "";
-    const n4 = row[map["name4"]] || "";
-
-    if (n1) displayName += n1 + " ";
-    if (n2) displayName += n2 + " ";
-    if (n3) displayName += n3 + " ";
-    if (n4) displayName += n4;
+    const row = dVals[r];
 
     entries.push({
       entryId: id,
-      NAME1: n1,
-      NAME2: n2,
-      NAME3: n3,
-      NAME4: n4,
-      team: row[map["team"]] || "",
-      state: row[map["state"]] || "",
-      heat: row[map["heat"]] || "",
-      station: station,
-      event: row[map["event"]] || "",
-      division: row[map["division"]] || "",
-      displayName: displayName.trim(),
+      NAME1: safe(row[map.name1]),
+      NAME2: safe(row[map.name2]),
+      NAME3: safe(row[map.name3]),
+      NAME4: safe(row[map.name4]),
+      team: safe(row[map.team]),
+      state: safe(row[map.state]),
+      heat: safe(row[map.heat]),
+      station: safe(row[map.station]),
+      event: safe(row[map.event]),
+      division: safe(row[map.division]),
+      displayName: [row[map.name1], row[map.name2], row[map.name3], row[map.name4]].filter(Boolean).join(" "),
       status: "pending"
     });
   }
+
+  // ===============================
+  //  READ RESULT SHEET — SAME LOGIC AS OLD BACKEND
+  // ===============================
+  const resultSh = ss.getSheetByName(RESULT_SHEET_SPEED);
+  const judgedToday = new Set();
+
+  if (resultSh) {
+    const rv = resultSh.getRange(1, 1, resultSh.getLastRow(), 20).getValues();
+    const rh = lowerHeaders(rv[0]);
+
+    const tsC = rh.indexOf("timestamp");   // IMPORTANT: FIXED INDEX
+    const idC = rh.indexOf("id");
+    const stC = rh.indexOf("station");
+
+    if (tsC === -1 || idC === -1 || stC === -1) {
+      // fallback to support older sheets
+      return json({ ok: true, station, entries });
+    }
+
+    const now = new Date(); // Faster than toDate
+
+    for (let r = 1; r < rv.length; r++) {
+      const ts = rv[r][tsC];
+      if (!(ts instanceof Date)) continue; // skip blank or invalid
+
+      const sameDay =
+        ts.getFullYear() === now.getFullYear() &&
+        ts.getMonth() === now.getMonth() &&
+        ts.getDate() === now.getDate();
+
+      if (sameDay && normalize(rv[r][stC]) === station) {
+        judgedToday.add(normalize(rv[r][idC]));
+      }
+    }
+  }
+
+  // APPLY DONE STATE
+  entries.forEach(e => {
+    if (judgedToday.has(e.entryId)) {
+      e.status = "done";
+    }
+  });
 
   return json({ ok: true, station, entries });
 }
