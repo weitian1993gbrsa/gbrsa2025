@@ -30,7 +30,7 @@
     "8":   0
   };
 
-  let lastAction = null; // { level: "4", prev: 2 }
+  let lastAction = null;
 
   const totalScoreEl = document.querySelector("#totalScore");
 
@@ -38,13 +38,11 @@
      UPDATE DISPLAY
      ============================================================ */
   function updateUI() {
-    // Update each counter block
     for (const lvl in counts) {
       const el = document.querySelector(`#count${lvl.replace(".", "")}`);
       if (el) el.textContent = counts[lvl];
     }
 
-    // Calculate total score
     let total = 0;
     for (const lvl in counts) {
       total += counts[lvl] * POINTS[lvl];
@@ -58,24 +56,22 @@
      ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
-      btn.style.touchAction = "manipulation";   // improve touch response
+      btn.style.touchAction = "manipulation";
 
       btn.addEventListener("pointerdown", (e) => {
-        e.preventDefault(); // removes delay
+        e.preventDefault();
 
-        // 🔓 FIX first-tap vibration (iOS unlock)
+        // iOS vibration unlock
         if (navigator.vibrate) navigator.vibrate(1);
 
-        // 🔥 EXTREME vibration
+        // Extreme vibration
         if (navigator.vibrate) navigator.vibrate([120, 80]);
 
         const level = btn.dataset.level;
 
-        // Tap feedback
         btn.classList.add("pressed");
         setTimeout(() => btn.classList.remove("pressed"), 120);
 
-        // Store last action (for undo)
         lastAction = {
           level,
           prev: counts[level]
@@ -88,7 +84,7 @@
   }
 
   /* ============================================================
-     UNDO (ONE STEP ONLY)
+     UNDO
      ============================================================ */
   document.querySelector("#undoBtn").addEventListener("pointerdown", (e) => {
     e.preventDefault();
@@ -122,17 +118,17 @@
   });
 
   /* ============================================================
-     SUBMIT — Difficulty Judge ONLY
+     SUBMIT — DIFFICULTY JUDGE ONLY (FIXED)
      ============================================================ */
   document.querySelector("#btnSubmit").addEventListener("pointerdown", async (e) => {
     e.preventDefault();
 
-    // Optional small vibration
+    // Vibration
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
 
     const params = new URLSearchParams(location.search);
 
-    // ⭐ Payload: DIFF only (Difficulty Judge)
+    // ⭐ FIXED PAYLOAD FOR NEW BACKEND
     const payload = {
       _form: "freestyle",
 
@@ -145,14 +141,17 @@
       EVENT: params.get("event"),
       DIVISION: params.get("division"),
 
-      // Only DIFF is filled
+      // ⭐ NEW: required for your backend
+      JUDGE_TYPE: "DIFF",
+
+      // ⭐ DIFF SCORE ONLY
       DIFF: Number(totalScoreEl.textContent),
 
-      // Other freestyle judge fields left empty
+      // ⭐ EMPTY FIELDS (must match backend)
       MISSES: "",
       BREAKS: "",
-      "Missed RE": "",
       PRESENTATION: "",
+      MISSED_RE: "",
       REMARK: ""
     };
 
