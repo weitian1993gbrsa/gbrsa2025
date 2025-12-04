@@ -30,18 +30,21 @@
     "8":   0
   };
 
-  let lastAction = null;
+  let lastAction = null; // { level: "4", prev: 2 }
+
   const totalScoreEl = document.querySelector("#totalScore");
 
   /* ============================================================
      UPDATE DISPLAY
      ============================================================ */
   function updateUI() {
+    // Update each counter block
     for (const lvl in counts) {
       const el = document.querySelector(`#count${lvl.replace(".", "")}`);
       if (el) el.textContent = counts[lvl];
     }
 
+    // Calculate total score
     let total = 0;
     for (const lvl in counts) {
       total += counts[lvl] * POINTS[lvl];
@@ -51,16 +54,16 @@
   }
 
   /* ============================================================
-     SKILL BUTTON — EXTREME VIBRATION + FIRST TAP FIX
+     SKILL BUTTON — SUPER SENSITIVE (pointerdown) + EXTREME VIBRATION
      ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
-      btn.style.touchAction = "manipulation";
+      btn.style.touchAction = "manipulation";   // improve touch response
 
       btn.addEventListener("pointerdown", (e) => {
-        e.preventDefault();
+        e.preventDefault(); // removes delay
 
-        // 🔓 Fix first-tap vibration on iOS
+        // 🔓 FIX first-tap vibration (iOS unlock)
         if (navigator.vibrate) navigator.vibrate(1);
 
         // 🔥 EXTREME vibration
@@ -68,9 +71,11 @@
 
         const level = btn.dataset.level;
 
+        // Tap feedback
         btn.classList.add("pressed");
-        setTimeout(() => btn.classList.remove("pressed"), 100);
+        setTimeout(() => btn.classList.remove("pressed"), 120);
 
+        // Store last action (for undo)
         lastAction = {
           level,
           prev: counts[level]
@@ -83,19 +88,14 @@
   }
 
   /* ============================================================
-     UNDO — NOW WITH VIBRATION + WHITE TEXT
+     UNDO (ONE STEP ONLY)
      ============================================================ */
-  const undoBtn = document.querySelector("#undoBtn");
-  undoBtn.style.color = "white";  // 🔥 CHANGE TEXT COLOR
-
-  undoBtn.addEventListener("pointerdown", (e) => {
+  document.querySelector("#undoBtn").addEventListener("pointerdown", (e) => {
     e.preventDefault();
 
-    // 🔥 VIBRATION
-    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
-
-    undoBtn.classList.add("pressed");
-    setTimeout(() => undoBtn.classList.remove("pressed"), 100);
+    const btn = e.currentTarget;
+    btn.classList.add("pressed");
+    setTimeout(() => btn.classList.remove("pressed"), 120);
 
     if (!lastAction) return;
 
@@ -107,18 +107,14 @@
   });
 
   /* ============================================================
-     RESET — NOW WITH VIBRATION
+     RESET
      ============================================================ */
-  const resetBtn = document.querySelector("#resetBtn");
-
-  resetBtn.addEventListener("pointerdown", (e) => {
+  document.querySelector("#resetBtn").addEventListener("pointerdown", (e) => {
     e.preventDefault();
 
-    // 🔥 VIBRATION
-    if (navigator.vibrate) navigator.vibrate([80, 50, 80]);
-
-    resetBtn.classList.add("pressed");
-    setTimeout(() => resetBtn.classList.remove("pressed"), 120);
+    const btn = e.currentTarget;
+    btn.classList.add("pressed");
+    setTimeout(() => btn.classList.remove("pressed"), 120);
 
     for (const lvl in counts) counts[lvl] = 0;
     lastAction = null;
@@ -126,19 +122,61 @@
   });
 
   /* ============================================================
-     SUBMIT (No vibration unless you want)
+     SUBMIT — Difficulty Judge ONLY
      ============================================================ */
-  document.querySelector("#btnSubmit").addEventListener("pointerdown", (e) => {
+  document.querySelector("#btnSubmit").addEventListener("pointerdown", async (e) => {
     e.preventDefault();
 
+    // Optional small vibration
+    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+
+    const params = new URLSearchParams(location.search);
+
+    // ⭐ Payload: DIFF only (Difficulty Judge)
     const payload = {
-      type: "difficulty",
-      score: Number(totalScoreEl.textContent),
-      counts: { ...counts }
+      _form: "freestyle",
+
+      ID: params.get("id"),
+      NAME1: params.get("name1"),
+      TEAM: params.get("team"),
+      STATE: params.get("state"),
+      HEAT: params.get("heat"),
+      STATION: params.get("station"),
+      EVENT: params.get("event"),
+      DIVISION: params.get("division"),
+
+      // Only DIFF is filled
+      DIFF: Number(totalScoreEl.textContent),
+
+      // Other freestyle judge fields left empty
+      MISSES: "",
+      BREAKS: "",
+      "Missed RE": "",
+      PRESENTATION: "",
+      REMARK: ""
     };
 
-    console.log("🚀 SUBMIT DATA:", payload);
-    alert("Difficulty score submitted!\n(Backend WIP)");
+    const btn = document.querySelector("#btnSubmit");
+    btn.disabled = true;
+    btn.textContent = "Saving...";
+
+    try {
+      const res = await fetch(window.CONFIG.APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      const json = await res.json();
+      if (!json.ok) throw new Error("Error");
+
+      btn.textContent = "Saved ✔";
+      setTimeout(() => history.back(), 300);
+
+    } catch (err) {
+      alert("Submit failed, try again.");
+      btn.disabled = false;
+      btn.textContent = "Submit";
+    }
   });
 
   /* ============================================================
