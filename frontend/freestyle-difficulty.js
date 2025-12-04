@@ -30,7 +30,7 @@
     "8":   0
   };
 
-  let lastAction = null; // { level: "4", prev: 2 }
+  let lastAction = null;
 
   const totalScoreEl = document.querySelector("#totalScore");
 
@@ -38,13 +38,11 @@
      UPDATE DISPLAY
      ============================================================ */
   function updateUI() {
-    // Update each counter block
     for (const lvl in counts) {
       const el = document.querySelector(`#count${lvl.replace(".", "")}`);
       if (el) el.textContent = counts[lvl];
     }
 
-    // Calculate total score
     let total = 0;
     for (const lvl in counts) {
       total += counts[lvl] * POINTS[lvl];
@@ -54,25 +52,26 @@
   }
 
   /* ============================================================
-     SKILL BUTTON — SUPER SENSITIVE (pointerdown) + EXTREME VIBRATION
+     SKILL BUTTON — SUPER SENSITIVE + EXTREME VIBRATION + FIRST TAP FIX
      ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
-      btn.style.touchAction = "manipulation";   // improve touch response
+      btn.style.touchAction = "manipulation";
 
       btn.addEventListener("pointerdown", (e) => {
-        e.preventDefault(); // removes delay
+        e.preventDefault();
+
+        // 🔓 FIX: unlock iOS vibration on first tap
+        if (navigator.vibrate) navigator.vibrate(1);
 
         // 🔥 EXTREME VIBRATION
-        if (navigator.vibrate) navigator.vibrate([120, 80]);
+        if (navigator.vibrate) navigator.vibrate([120, 80, 40]);
 
         const level = btn.dataset.level;
 
-        // Tap feedback
         btn.classList.add("pressed");
         setTimeout(() => btn.classList.remove("pressed"), 120);
 
-        // Store last action (for undo)
         lastAction = {
           level,
           prev: counts[level]
@@ -85,7 +84,7 @@
   }
 
   /* ============================================================
-     UNDO (ONE STEP ONLY) — NO VIBRATION
+     UNDO — unchanged
      ============================================================ */
   document.querySelector("#undoBtn").addEventListener("pointerdown", (e) => {
     e.preventDefault();
@@ -104,7 +103,7 @@
   });
 
   /* ============================================================
-     RESET — NO VIBRATION
+     RESET — unchanged
      ============================================================ */
   document.querySelector("#resetBtn").addEventListener("pointerdown", (e) => {
     e.preventDefault();
@@ -119,7 +118,7 @@
   });
 
   /* ============================================================
-     SUBMIT RESULT — NO VIBRATION
+     SUBMIT RESULT — unchanged
      ============================================================ */
   document.querySelector("#btnSubmit").addEventListener("pointerdown", (e) => {
     e.preventDefault();
