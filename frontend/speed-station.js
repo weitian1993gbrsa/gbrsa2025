@@ -1,4 +1,16 @@
 (function () {
+
+  // ============================================================
+  // CLEAR CACHE ON HARD REFRESH (F5 / Reload)
+  // ============================================================
+  if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith("station_cache_")) {
+        localStorage.removeItem(k);
+      }
+    });
+  }
+
   const $ = (q, el = document) => el.querySelector(q);
 
   const listEl = $("#entryList");
@@ -17,17 +29,12 @@
   ============================================================ */
   const keyInfo = window.JUDGE_KEYS[key];
   if (!keyInfo || String(keyInfo.station) !== String(station)) {
-    deny("Unauthorized access");
-    return;
-  }
-
-  function deny(msg) {
     document.body.innerHTML =
       `<div style="padding:2rem;text-align:center;">
-         <h2 style="color:#b00020;">Access Denied</h2>
-         <p>${msg}</p>
-       </div>`;
-    throw new Error(msg);
+        <h2 style="color:#b00020;">Access Denied</h2>
+        <p>Unauthorized access</p>
+      </div>`;
+    throw new Error("Unauthorized");
   }
 
   /* ============================================================
@@ -40,35 +47,28 @@
     return;
   }
 
-  /* SPEED EVENTS */
   const SPEED_EVENTS = window.SPEED_EVENTS || [];
 
   /* ============================================================
-     SAFE CACHE SYSTEM (Instant Load)
+     CACHE SYSTEM
   ============================================================ */
   const CACHE_KEY = "station_cache_" + station;
 
   function saveCache(data) {
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    } catch (e) {}
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) {}
   }
 
   function loadCache() {
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       return raw ? JSON.parse(raw) : null;
-    } catch (e) {
-      return null;
-    }
+    } catch (_) { return null; }
   }
 
-  function esc(s) {
-    return String(s || "").replace(/[&<>"']/g, c => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;",
-      "\"": "&quot;", "'": "&#39;"
-    }[c]));
-  }
+  const esc = s => String(s || "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;",
+    "\"": "&quot;", "'": "&#39;"
+  }[c]));
 
   function formatNames(p) {
     return [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
@@ -78,7 +78,7 @@
   }
 
   /* ============================================================
-     CARD CREATION (with SAFE click handler)
+     CARD CREATION (with restored running index)
   ============================================================ */
   function createCard(p, index) {
     const card = document.createElement("button");
@@ -86,10 +86,9 @@
     card.className =
       p.status === "done" ? "station-card done" : "station-card pending";
 
-    /* Prevent ghost-taps */
-    card.style.touchAction = "manipulation";
+    card.style.touchAction = "manipulation"; // prevent ghost taps
 
-    /* TOP ROW */
+    /* HEADER: Heat + Running Index */
     const top = document.createElement("div");
     top.className = "top-row";
 
@@ -132,26 +131,22 @@
     card.appendChild(team);
     card.appendChild(eventRow);
 
-    /* ============================================================
-       SAFEST CLICK HANDLER (no ghost taps, no double clicks)
-    ============================================================ */
+    /* SAFEST CLICK HANDLER */
     card.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
+
+      if (card.dataset.clicked === "1") return;
+      card.dataset.clicked = "1";
+      setTimeout(() => card.dataset.clicked = "0", 400);
+
+      card.style.pointerEvents = "none";
+      setTimeout(() => (card.style.pointerEvents = ""), 800);
 
       if (!navigator.onLine) {
         alert("No internet connection — cannot judge.");
         return;
       }
-
-      // prevent double-tap
-      if (card.dataset.clicked === "1") return;
-      card.dataset.clicked = "1";
-      setTimeout(() => (card.dataset.clicked = "0"), 500);
-
-      // block touch through
-      card.style.pointerEvents = "none";
-      setTimeout(() => (card.style.pointerEvents = ""), 800);
 
       location.href =
         `speed-judge.html?id=${p.entryId}`
@@ -172,6 +167,21 @@
   }
 
   /* ============================================================
+     SORT: NEW first, COMPLETED later
+     Inside each group, sort by heat (ascending)
+  ============================================================ */
+  function sortEntries(arr) {
+    return arr.sort((a, b) => {
+      const A = a.status === "done" ? 1 : 0;
+      const B = b.status === "done" ? 1 : 0;
+
+      if (A !== B) return A - B; // NEW first
+
+      return Number(a.heat) - Number(b.heat); // lowest heat first
+    });
+  }
+
+  /* ============================================================
      RENDER LIST
   ============================================================ */
   function renderList(data) {
@@ -179,32 +189,19 @@
       SPEED_EVENTS.includes(String(p.event).trim())
     );
 
-    /* Sort NEW (green) → COMPLETED (blue) */
-    arr.sort((a, b) => {
-      const A = a.status === "done" ? "COMPLETED" : "NEW";
-      const B = b.status === "done" ? "COMPLETED" : "NEW";
-
-      if (A === "NEW" && B !== "NEW") return -1;
-      if (B === "NEW" && A !== "NEW") return 1;
-      if (A === "COMPLETED" && B !== "COMPLETED") return 1;
-      if (B === "COMPLETED" && A !== "COMPLETED") return -1;
-      return 0;
-    });
+    arr = sortEntries(arr);
 
     listEl.innerHTML = "";
     arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
   }
 
   /* ============================================================
-     LOAD (Instant Cache → Fresh Data)
+     LOAD (Cache → Backend)
   ============================================================ */
   async function load() {
     const cached = loadCache();
-    if (cached) {
-      renderList(cached);
-    } else {
-      listEl.innerHTML = `<div class="hint">Loading…</div>`;
-    }
+    if (cached) renderList(cached);
+    else listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
     const data = await apiGet({
       cmd: "stationlist",
@@ -219,12 +216,12 @@
   }
 
   /* ============================================================
-     REFRESH BUTTON (Full Reload)
+     REFRESH BUTTON
   ============================================================ */
   if (btnRefresh) btnRefresh.addEventListener("click", () => {
     location.reload();
   });
 
-  /* Faster load */
   window.addEventListener("load", load);
+
 })();

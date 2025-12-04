@@ -113,7 +113,19 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
   <small>© 2025 GB Rope Skipping Academy</small>
 </footer>
 
+<!-- ============================================================
+     LOGIN SCRIPT + REAL LOGOUT CACHE CLEAR
+============================================================ -->
 <script>
+// ============================================================
+// CLEAR ALL STATION CACHE WHEN OPENING LOGIN PAGE (REAL LOGOUT)
+// ============================================================
+Object.keys(localStorage).forEach(k => {
+  if (k.startsWith("station_cache_")) {
+    localStorage.removeItem(k);
+  }
+});
+
 const JUDGE_MAP = window.JUDGE_KEYS;
 
 // UI elements
@@ -121,8 +133,8 @@ const keyInput  = document.getElementById("judgeKey");
 const keyError  = document.getElementById("keyError");
 const btnLogin  = document.getElementById("btnJudgeLogin");
 
+// MAIN LOGIN LOGIC
 btnLogin.addEventListener("click", () => {
-
   const key = keyInput.value.trim();
   keyError.style.display = "none";
 
@@ -142,32 +154,32 @@ btnLogin.addEventListener("click", () => {
   }
 
   const station = info.station;
-  const event = info.event;
+  const event   = info.event;
   const judgeType = info.judgeType || "";
 
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  // ⭐ SPEED → go to new speed-station.html
-if (event === "speed") {
-  location.href = `speed-station.html?station=${station}&key=${key}`;
-  return;
-}
+  // ⭐ SPEED EVENT
+  if (event === "speed") {
+    location.href = `speed-station.html?station=${station}&key=${key}`;
+    return;
+  }
 
-// ⭐ FREESTYLE → go to freestyle-station.html
-if (event === "freestyle") {
-  location.href =
-    `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
-  return;
-}
+  // ⭐ FREESTYLE EVENT
+  if (event === "freestyle") {
+    location.href =
+      `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
+    return;
+  }
 });
 
 // Enter key support
-keyInput.addEventListener("keyup", e => {
+keyInput.addEventListener("keyup", (e) => {
   if (e.key === "Enter") btnLogin.click();
 });
 
-// Reset after back
+// Reset UI when coming back to page
 function resetJudgeLogin() {
   btnLogin.disabled = false;
   btnLogin.textContent = "Enter";
@@ -176,9 +188,11 @@ function resetJudgeLogin() {
 }
 
 window.addEventListener("pageshow", resetJudgeLogin);
+
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") resetJudgeLogin();
 });
+
 window.addEventListener("pagehide", () => {
   keyInput.value = "";
 });
