@@ -2,7 +2,7 @@
 
   /* ============================================================
      POINT TABLE (IJRU OFFICIAL)
-     ============================================================ */
+  ============================================================ */
   const POINTS = {
     "0.5": 0.12,
     "1":   0.15,
@@ -17,7 +17,7 @@
 
   /* ============================================================
      STATE
-     ============================================================ */
+  ============================================================ */
   let counts = {
     "0.5": 0,
     "1":   0,
@@ -30,109 +30,76 @@
     "8":   0
   };
 
-  let lastAction = null; // { level: "4", prev: 2 }
+  let lastAction = null;
 
   const totalScoreEl = document.querySelector("#totalScore");
 
   /* ============================================================
      UPDATE DISPLAY
-     ============================================================ */
+  ============================================================ */
   function updateUI() {
-    // Update each counter block
     for (const lvl in counts) {
       const el = document.querySelector(`#count${lvl.replace(".", "")}`);
       if (el) el.textContent = counts[lvl];
     }
 
-    // Calculate total score
     let total = 0;
     for (const lvl in counts) {
       total += counts[lvl] * POINTS[lvl];
     }
-
     totalScoreEl.textContent = total.toFixed(2);
   }
 
   /* ============================================================
-     SKILL BUTTON — SUPER SENSITIVE (pointerdown) + EXTREME VIBRATION
-     ============================================================ */
+     SKILL BUTTON EVENT
+  ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
-      btn.style.touchAction = "manipulation";   // improve touch response
+      btn.style.touchAction = "manipulation";
 
       btn.addEventListener("pointerdown", (e) => {
-        e.preventDefault(); // removes delay
-
-        // 🔓 FIX first-tap vibration (iOS unlock)
-        if (navigator.vibrate) navigator.vibrate(1);
-
-        // 🔥 EXTREME vibration
-        if (navigator.vibrate) navigator.vibrate([120, 80]);
+        if (navigator.vibrate) navigator.vibrate([100]);
 
         const level = btn.dataset.level;
 
-        // Tap feedback
         btn.classList.add("pressed");
         setTimeout(() => btn.classList.remove("pressed"), 120);
 
-        // Store last action (for undo)
-        lastAction = {
-          level,
-          prev: counts[level]
-        };
-
+        lastAction = { level, prev: counts[level] };
         counts[level]++;
+
         updateUI();
-      }, { passive: true });
+      });
     });
   }
 
   /* ============================================================
-     UNDO (ONE STEP ONLY)
-     ============================================================ */
-  document.querySelector("#undoBtn").addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-
-    const btn = e.currentTarget;
-    btn.classList.add("pressed");
-    setTimeout(() => btn.classList.remove("pressed"), 120);
-
+     UNDO
+  ============================================================ */
+  document.querySelector("#undoBtn").addEventListener("click", () => {
     if (!lastAction) return;
-
     const { level, prev } = lastAction;
     counts[level] = prev;
-
     lastAction = null;
     updateUI();
   });
 
   /* ============================================================
      RESET
-     ============================================================ */
-  document.querySelector("#resetBtn").addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-
-    const btn = e.currentTarget;
-    btn.classList.add("pressed");
-    setTimeout(() => btn.classList.remove("pressed"), 120);
-
+  ============================================================ */
+  document.querySelector("#resetBtn").addEventListener("click", () => {
     for (const lvl in counts) counts[lvl] = 0;
     lastAction = null;
     updateUI();
   });
 
   /* ============================================================
-     SUBMIT — Difficulty Judge ONLY
-     ============================================================ */
-  document.querySelector("#btnSubmit").addEventListener("pointerdown", async (e) => {
-    e.preventDefault();
-
-    // Optional small vibration
-    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+     SUBMIT — FIXED (must use CLICK, not pointerdown)
+  ============================================================ */
+  document.querySelector("#btnSubmit").addEventListener("click", async () => {
 
     const params = new URLSearchParams(location.search);
 
-    // ⭐ Payload: DIFF only (Difficulty Judge)
     const payload = {
       _form: "freestyle",
 
@@ -145,10 +112,8 @@
       EVENT: params.get("event"),
       DIVISION: params.get("division"),
 
-      // Only DIFF is filled
       DIFF: Number(totalScoreEl.textContent),
 
-      // Other freestyle judge fields left empty
       MISSES: "",
       BREAKS: "",
       MissRE: "",
@@ -163,14 +128,16 @@
     try {
       const res = await fetch(window.CONFIG.APPS_SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const json = await res.json();
-      if (!json.ok) throw new Error("Error");
+
+      if (!json.ok) throw new Error(json.error || "Submit error");
 
       btn.textContent = "Saved ✔";
-      setTimeout(() => history.back(), 300);
+
+      setTimeout(() => history.back(), 350);
 
     } catch (err) {
       alert("Submit failed, try again.");
@@ -181,7 +148,7 @@
 
   /* ============================================================
      INIT
-     ============================================================ */
+  ============================================================ */
   addClickEvents();
   updateUI();
 
