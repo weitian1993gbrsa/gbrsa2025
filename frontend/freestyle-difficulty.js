@@ -54,14 +54,22 @@
   }
 
   /* ============================================================
-     SKILL BUTTON CLICK
+     SKILL BUTTON — SUPER SENSITIVE (pointerdown)
      ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.style.touchAction = "manipulation";   // improve touch response
+
+      btn.addEventListener("pointerdown", (e) => {
+        e.preventDefault(); // removes delay
+
         const level = btn.dataset.level;
 
-        // Store last action (single undo)
+        // Tap feedback
+        btn.classList.add("pressed");
+        setTimeout(() => btn.classList.remove("pressed"), 120);
+
+        // Store last action (for undo)
         lastAction = {
           level,
           prev: counts[level]
@@ -69,14 +77,20 @@
 
         counts[level]++;
         updateUI();
-      });
+      }, { passive: true });
     });
   }
 
   /* ============================================================
      UNDO (ONE STEP ONLY)
      ============================================================ */
-  document.querySelector("#undoBtn").addEventListener("click", () => {
+  document.querySelector("#undoBtn").addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+
+    const btn = e.currentTarget;
+    btn.classList.add("pressed");
+    setTimeout(() => btn.classList.remove("pressed"), 120);
+
     if (!lastAction) return;
 
     const { level, prev } = lastAction;
@@ -89,17 +103,24 @@
   /* ============================================================
      RESET
      ============================================================ */
-  document.querySelector("#resetBtn").addEventListener("click", () => {
+  document.querySelector("#resetBtn").addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+
+    const btn = e.currentTarget;
+    btn.classList.add("pressed");
+    setTimeout(() => btn.classList.remove("pressed"), 120);
+
     for (const lvl in counts) counts[lvl] = 0;
     lastAction = null;
     updateUI();
   });
 
   /* ============================================================
-     SUBMIT RESULT
-     (Hook later to Apps Script)
+     SUBMIT RESULT (placeholder)
      ============================================================ */
-  document.querySelector("#btnSubmit").addEventListener("click", () => {
+  document.querySelector("#btnSubmit").addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+
     const payload = {
       type: "difficulty",
       score: Number(totalScoreEl.textContent),
@@ -107,7 +128,6 @@
     };
 
     console.log("🚀 SUBMIT DATA:", payload);
-
     alert("Difficulty score submitted!\n(Backend WIP)");
   });
 
