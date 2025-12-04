@@ -64,7 +64,7 @@
         e.preventDefault(); // removes delay
 
         // 🔥 EXTREME VIBRATION
-        if (navigator.vibrate) navigator.vibrate([80, 40, 80, 40, 80]);
+        if (navigator.vibrate) navigator.vibrate([80, 40]);
 
         const level = btn.dataset.level;
 
