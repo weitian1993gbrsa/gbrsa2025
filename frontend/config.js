@@ -10,10 +10,7 @@ window.CONFIG = {
 
   DATA_SHEET_NAME: "DATA",
 
-  // ✔ FIXED missing comma
   RESULT_SHEET_NAME: "RESULT",
-
-  // ✔ Correct freestyle result sheet name
   RESULT_F_SHEET_NAME: "RESULT_F"
 };
 
@@ -58,9 +55,7 @@ window.FREESTYLE_EVENTS = [
 
 window.JUDGE_KEYS = {
 
-  /* -------------------
-     SPEED (12 Stations)
-  ------------------- */
+  // SPEED
   "abc123": { event: "speed", station: 1 },
   "def456": { event: "speed", station: 2 },
   "ghi789": { event: "speed", station: 3 },
@@ -74,26 +69,17 @@ window.JUDGE_KEYS = {
   "qqq101": { event: "speed", station: 11 },
   "key999": { event: "speed", station: 12 },
 
-
-  /* -------------------------
-     FREESTYLE — Station 1
-  ------------------------- */
+  // FREESTYLE station 1
   "fd1": { event: "freestyle", station: 1, judgeType: "difficulty" },
   "ft1": { event: "freestyle", station: 1, judgeType: "technical" },
   "fp1": { event: "freestyle", station: 1, judgeType: "presentation" },
 
-
-  /* -------------------------
-     FREESTYLE — Station 2
-  ------------------------- */
+  // FREESTYLE station 2
   "fd2": { event: "freestyle", station: 2, judgeType: "difficulty" },
   "ft2": { event: "freestyle", station: 2, judgeType: "technical" },
   "fp2": { event: "freestyle", station: 2, judgeType: "presentation" },
 
-
-  /* -------------------------
-     FREESTYLE — Station 3
-  ------------------------- */
+  // FREESTYLE station 3
   "fd3": { event: "freestyle", station: 3, judgeType: "difficulty" },
   "ft3": { event: "freestyle", station: 3, judgeType: "technical" },
   "fp3": { event: "freestyle", station: 3, judgeType: "presentation" }
