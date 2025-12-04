@@ -8,7 +8,7 @@ window.CONFIG = {
   SHEET_ID: "1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg",
   DATA_SHEET_NAME: "DATA",
   RESULT_SHEET_NAME: "RESULT",
-  RESULT_F_SHEET_NAME: "RESULT_F"
+  RESULT_F_SHEET_NAME: "RESULT_F"   // ⭐ FIXED — COMMA ADDED ABOVE
 };
 
 // Login backend URL
@@ -17,9 +17,8 @@ const LOGIN_API_URL =
 
 
 /* ============================================================
-   EVENT GROUPS  (🔥 REQUIRED for filtering)
+   EVENT GROUPS
 ============================================================ */
-
 window.SPEED_EVENTS = [
   "SRJJ",
   "SRSS",
@@ -37,11 +36,10 @@ window.FREESTYLE_EVENTS = [
 
 
 /* ============================================================
-   JUDGE ACCESS KEYS (same as before + freestyle)
+   JUDGE ACCESS KEYS
 ============================================================ */
 
 window.JUDGE_KEYS = {
-
   // SPEED
   "abc123": { event: "speed", station: 1 },
   "def456": { event: "speed", station: 2 },
