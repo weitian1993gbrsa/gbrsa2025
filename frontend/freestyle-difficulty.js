@@ -32,16 +32,18 @@
   }
 
   /* ============================================================
-     SKILL BUTTONS (same behavior)
+     SKILL BUTTON BEHAVIOR
   ============================================================ */
   document.querySelectorAll(".skill-btn").forEach(btn => {
-    btn.style.touchAction = "manipulation";
     btn.addEventListener("pointerdown", () => {
       const lvl = btn.dataset.level;
+
       lastAction = { level: lvl, prev: counts[lvl] };
       counts[lvl]++;
+
       updateUI();
       if (navigator.vibrate) navigator.vibrate([80]);
+
       btn.classList.add("pressed");
       setTimeout(()=>btn.classList.remove("pressed"),150);
     });
@@ -67,7 +69,7 @@
   });
 
   /* ============================================================
-     SUBMIT — EXACT ADMIN BEHAVIOR
+     SUBMIT — ADMIN STYLE
   ============================================================ */
   btnSubmit.addEventListener("click", async () => {
 
@@ -76,26 +78,25 @@
 
     const params = new URLSearchParams(location.search);
 
-    // Build payload EXACTLY like admin freestyle
     const payload = {
       _form: "freestyle",
 
-      ID:        params.get("id")        || "",
-      NAME1:     params.get("name1")     || "",
-      NAME2:     params.get("name2")     || "",
-      NAME3:     params.get("name3")     || "",
-      NAME4:     params.get("name4")     || "",
-      TEAM:      params.get("team")      || "",
-      STATE:     params.get("state")     || "",
-      HEAT:      params.get("heat")      || "",
-      STATION:   params.get("station")   || "",
-      EVENT:     params.get("event")     || "",
-      DIVISION:  params.get("division")  || "",
+      ID: params.get("id") || "",
+      NAME1: params.get("name1") || "",
+      NAME2: params.get("name2") || "",
+      NAME3: params.get("name3") || "",
+      NAME4: params.get("name4") || "",
+      TEAM: params.get("team") || "",
+      STATE: params.get("state") || "",
+      HEAT: params.get("heat") || "",
+      STATION: params.get("station") || "",
+      EVENT: params.get("event") || "",
+      DIVISION: params.get("division") || "",
 
-      // DIFFICULTY RESULT
+      // Difficulty result
       DIFF: Number(totalScoreEl.textContent),
 
-      // REQUIRED freestyle fields but empty
+      // Required fields
       MISSES: "0",
       BREAKS: "0",
       MissRE: "0",
@@ -104,11 +105,11 @@
     };
 
     try {
-      const out = await apiPost(payload);   // SAME API as admin
-      if (!out || !out.ok) throw new Error(out?.error || "Server rejected");
+      const result = await apiPost(payload);
+      if (!result || !result.ok) throw new Error(result?.error || "Server rejected");
 
       btnSubmit.textContent = "Saved ✔";
-      setTimeout(() => history.back(), 450);
+      setTimeout(() => history.back(), 400);
 
     } catch (err) {
       console.error(err);
@@ -116,7 +117,6 @@
       btnSubmit.disabled = false;
       btnSubmit.textContent = "Submit";
     }
-
   });
 
   updateUI();
