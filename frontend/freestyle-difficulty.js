@@ -69,7 +69,7 @@
         const level = btn.dataset.level;
 
         btn.classList.add("pressed");
-        setTimeout(() => btn.classList.remove("pressed"), 120);
+        setTimeout(() => btn.classList.remove("pressed"), 100);
 
         lastAction = {
           level,
@@ -95,7 +95,7 @@
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
 
     undoBtn.classList.add("pressed");
-    setTimeout(() => undoBtn.classList.remove("pressed"), 120);
+    setTimeout(() => undoBtn.classList.remove("pressed"), 100);
 
     if (!lastAction) return;
 
