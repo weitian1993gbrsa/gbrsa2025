@@ -1,8 +1,18 @@
 /** ============================================================
- *  GBRSA BACKEND 2025 – FINAL OPTIMIZED VERSION (MALAYSIA TIME)
+ *  GBRSA BACKEND 2025 — FINAL SINGLE FILE VERSION
+ *  Includes:
+ *   ✔ CONFIG + UTILITIES
+ *   ✔ ROUTER
+ *   ✔ PARTICIPANT LOOKUP
+ *   ✔ STATION LIST
+ *   ✔ SPEED WRITER
+ *   ✔ FREESTYLE WRITER
+ *  (❌ logout system removed as requested)
  * ============================================================ **/
 
-/** CONFIG **/
+/* ------------------------------------------------------------
+ *  1️⃣ CONFIG
+ * ------------------------------------------------------------ */
 function getConfig() {
   const SP = PropertiesService.getScriptProperties();
   return {
@@ -14,31 +24,35 @@ function getConfig() {
   };
 }
 
-/** UTIL **/
-function json(o){ return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
-function normalize(s){ return String(s || "").trim(); }
-function safe(v){ return v == null ? "" : v; }
-function lowerHeaders(row){ return row.map(v=>String(v||"").toLowerCase().trim()); }
-
-function toDate(val, tz){
-  if (val instanceof Date) return val;
-  try {
-    const d = new Date(Utilities.formatDate(new Date(val), tz, "yyyy-MM-dd'T'HH:mm:ss"));
-    if (!isNaN(d)) return d;
-  } catch(e){}
-  return null;
+/* ------------------------------------------------------------
+ *  2️⃣ UTILITIES
+ * ------------------------------------------------------------ */
+function json(o) {
+  return ContentService
+    .createTextOutput(JSON.stringify(o))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
-/** HEADER MAP **/
-function buildHeaderMap(header){
-  const H = lowerHeaders(header);
+function normalize(s) { return String(s || "").trim(); }
+function safe(v) { return v == null ? "" : v; }
 
-  const find = (names) => {
-    for (let i = 0; i < H.length; i++){
-      if (names.includes(H[i])) return i;
-    }
-    return -1;
-  };
+function lowerHeaders(row) {
+  return row.map(v => String(v || "").toLowerCase().trim());
+}
+
+function toDate(val, tz) {
+  if (val instanceof Date) return val;
+  try {
+    const d = new Date(
+      Utilities.formatDate(new Date(val), tz, "yyyy-MM-dd'T'HH:mm:ss")
+    );
+    return isNaN(d) ? null : d;
+  } catch(e) { return null; }
+}
+
+function buildHeaderMap(header) {
+  const H = lowerHeaders(header);
+  const find = names => H.findIndex(h => names.includes(h));
 
   return {
     id: find(["id"]),
@@ -51,94 +65,137 @@ function buildHeaderMap(header){
     heat: find(["heat"]),
     station: find(["station"]),
     event: find(["event"]),
-    division: find(["division"]),
+    division: find(["division"])
   };
 }
 
-/** ROUTER **/
-function doGet(e){
-  const cmd = (e.parameter.cmd || "").toLowerCase();
-  if (cmd === "participant") return getParticipant(e);
-  if (cmd === "stationlist") return getStationList(e);
-  if (cmd === "ping") return json({ok:true, ts:Date.now()});
-  return json({ok:true, msg:"GBRSA backend online"});
+function ensureHeader(sh, header) {
+  const row = sh.getRange(1, 1, 1, header.length).getValues()[0];
+  if (!row[0]) sh.getRange(1, 1, 1, header.length).setValues([header]);
 }
 
-function doPost(e){
-  try{
-    let p = {};
-    if (e.postData && e.postData.contents){
-      try { p = JSON.parse(e.postData.contents); }
-      catch { p = e.parameter; }
-    } else p = e.parameter;
+function writeRowByHeader(sheet, dataObj) {
+  const lastCol = sheet.getLastColumn();
+  const header = sheet.getRange(1,1,1,lastCol).getValues()[0];
 
-    const form = (p._form || "").toLowerCase();
-    if (form === "freestyle") return json(writeFreestyle(p));
-    return json(writeSpeed(p));
+  const map = {};
+  header.forEach((h, i) => {
+    const key = String(h || "").trim().toLowerCase();
+    if (key) map[key] = i + 1;
+  });
 
-  }catch(err){
-    return json({ok:false, error:String(err)});
+  let row = new Array(lastCol).fill("");
+
+  Object.keys(dataObj).forEach(key => {
+    const lc = key.toLowerCase();
+    if (map[lc]) {
+      row[map[lc] - 1] = dataObj[key];
+    }
+  });
+
+  sheet.appendRow(row);
+}
+
+/* ------------------------------------------------------------
+ *  3️⃣ ROUTER
+ * ------------------------------------------------------------ */
+function doGet(e) {
+  const cmd = (e.parameter.cmd || "").toLowerCase();
+
+  switch (cmd) {
+    case "participant":
+      return getParticipant(e);
+
+    case "stationlist":
+      return getStationList(e);
+
+    case "ping":
+      return json({ ok: true, ts: Date.now() });
+
+    default:
+      return json({ ok: true, msg: "GBRSA backend online" });
   }
 }
 
-/** PARTICIPANT LOOKUP **/
-function getParticipant(e){
-  const {SHEET_ID, DATA_SHEET} = getConfig();
+function doPost(e) {
+  try {
+    let p = {};
+
+    if (e.postData?.contents) {
+      try { p = JSON.parse(e.postData.contents); }
+      catch { p = e.parameter; }
+    } else {
+      p = e.parameter;
+    }
+
+    const form = (p._form || "").toLowerCase();
+
+    if (form === "freestyle") return json(writeFreestyle(p));
+    return json(writeSpeed(p));
+
+  } catch(err) {
+    return json({ ok: false, error: String(err) });
+  }
+}
+
+/* ------------------------------------------------------------
+ *  4️⃣ PARTICIPANT LOOKUP
+ * ------------------------------------------------------------ */
+function getParticipant(e) {
+  const { SHEET_ID, DATA_SHEET } = getConfig();
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const sh = ss.getSheetByName(DATA_SHEET);
 
-  const last = sh.getLastRow();
-  const values = sh.getRange(1,1,last,20).getValues();
-
-  const header = values[0];
+  const vals = sh.getRange(1,1,sh.getLastRow(),20).getValues();
+  const header = vals[0];
   const map = buildHeaderMap(header);
 
   const id = normalize(e.parameter.entryId);
 
-  for (let r = 1; r < values.length; r++){
-    if (normalize(values[r][map.id]) === id){
-      const row = values[r];
+  for (let r = 1; r < vals.length; r++) {
+    if (normalize(vals[r][map.id]) === id) {
+      const row = vals[r];
+
       return json({
-        ok:true,
-        participant:{
-          ID:id,
-          NAME1:row[map.name1],
-          NAME2:row[map.name2],
-          NAME3:row[map.name3],
-          NAME4:row[map.name4],
-          TEAM:row[map.team],
-          STATE:row[map.state],
-          HEAT:row[map.heat],
-          STATION:row[map.station],
-          EVENT:row[map.event],
-          DIVISION:row[map.division]
+        ok: true,
+        participant: {
+          ID: id,
+          NAME1: row[map.name1],
+          NAME2: row[map.name2],
+          NAME3: row[map.name3],
+          NAME4: row[map.name4],
+          TEAM: row[map.team],
+          STATE: row[map.state],
+          HEAT: row[map.heat],
+          STATION: row[map.station],
+          EVENT: row[map.event],
+          DIVISION: row[map.division]
         }
       });
     }
   }
 
-  return json({ok:false, error:"ID not found"});
+  return json({ ok: false, error: "ID not found" });
 }
 
-/** =====================================================
- *  FIXED VERSION — STATION LIST RETURNS ALL FIELDS
- * ===================================================== **/
-function getStationList(e){
-  const {SHEET_ID, DATA_SHEET, RESULT_SHEET_SPEED, TZ} = getConfig();
+/* ------------------------------------------------------------
+ *  5️⃣ STATION LIST
+ * ------------------------------------------------------------ */
+function getStationList(e) {
+  const { SHEET_ID, DATA_SHEET, RESULT_SHEET_SPEED, TZ } = getConfig();
   const station = normalize(e.parameter.station);
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
 
-  /** --- DATA SHEET --- **/
+  // DATA SHEET
   const dataSh = ss.getSheetByName(DATA_SHEET);
-  const dLast = dataSh.getLastRow();
-  const dVals = dataSh.getRange(1,1,dLast,20).getValues();
+  const dVals = dataSh.getRange(1,1,dataSh.getLastRow(),20).getValues();
   const header = dVals[0];
   const map = buildHeaderMap(header);
 
   let entries = [];
 
-  for (let r=1; r<dVals.length; r++){
+  for (let r=1; r < dVals.length; r++) {
     if (normalize(dVals[r][map.station]) !== station) continue;
 
     const id = normalize(dVals[r][map.id]);
@@ -152,24 +209,23 @@ function getStationList(e){
       NAME2: safe(row[map.name2]),
       NAME3: safe(row[map.name3]),
       NAME4: safe(row[map.name4]),
-      team:  safe(row[map.team]),
+      team: safe(row[map.team]),
       state: safe(row[map.state]),
-      heat:  safe(row[map.heat]),
+      heat: safe(row[map.heat]),
       station: safe(row[map.station]),
       event: safe(row[map.event]),
       division: safe(row[map.division]),
       displayName: [row[map.name1], row[map.name2], row[map.name3], row[map.name4]].filter(Boolean).join(" "),
-      status:"pending"
+      status: "pending"
     });
   }
 
-  /** --- RESULT SHEET (today only) --- **/
+  // RESULT SHEET — mark DONE (today only)
   const resultSh = ss.getSheetByName(RESULT_SHEET_SPEED);
   const judgedToday = new Set();
 
-  if (resultSh){
-    const rLast = resultSh.getLastRow();
-    const rv = resultSh.getRange(1,1,rLast,15).getValues();
+  if (resultSh) {
+    const rv = resultSh.getRange(1,1,resultSh.getLastRow(),20).getValues();
     const rh = lowerHeaders(rv[0]);
 
     const idC = rh.indexOf("id");
@@ -178,33 +234,35 @@ function getStationList(e){
 
     const now = toDate(new Date(), TZ);
 
-    for (let r=1; r<rv.length; r++){
-      let tsVal = toDate(rv[r][tsC], TZ);
-      if (!tsVal) continue;
+    for (let r=1; r < rv.length; r++) {
+      const ts = toDate(rv[r][tsC], TZ);
+      if (!ts) continue;
 
-      const sameDay =
-        tsVal.getFullYear() === now.getFullYear() &&
-        tsVal.getMonth() === now.getMonth() &&
-        tsVal.getDate() === now.getDate();
+      const isSameDay =
+        ts.getFullYear() === now.getFullYear() &&
+        ts.getMonth()     === now.getMonth() &&
+        ts.getDate()      === now.getDate();
 
-      if (!sameDay) continue;
-      if (normalize(rv[r][stC]) !== station) continue;
-
-      judgedToday.add(normalize(rv[r][idC]));
+      if (isSameDay && normalize(rv[r][stC]) === station) {
+        judgedToday.add(normalize(rv[r][idC]));
+      }
     }
   }
 
-  // Mark DONE
-  entries.forEach(e=>{
-    if (judgedToday.has(e.entryId)) e.status = "done";
+  entries.forEach(e => {
+    if (judgedToday.has(e.entryId)) {
+      e.status = "done";
+    }
   });
 
-  return json({ok:true, station, entries});
+  return json({ ok:true, station, entries });
 }
 
-/** WRITE SPEED **/
-function writeSpeed(p){
-  const {SHEET_ID, RESULT_SHEET_SPEED} = getConfig();
+/* ------------------------------------------------------------
+ *  6️⃣ SPEED WRITER
+ * ------------------------------------------------------------ */
+function writeSpeed(p) {
+  const { SHEET_ID, RESULT_SHEET_SPEED } = getConfig();
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const sh = ss.getSheetByName(RESULT_SHEET_SPEED) || ss.insertSheet(RESULT_SHEET_SPEED);
 
@@ -215,19 +273,34 @@ function writeSpeed(p){
   ];
   ensureHeader(sh, header);
 
-  sh.appendRow([
-    new Date(),
-    p.ID, p.SCORE, p["FALSE START"], p.REMARK,
-    p.NAME1, p.NAME2, p.NAME3, p.NAME4,
-    p.TEAM, p.STATE, p.HEAT, p.STATION, p.EVENT, p.DIVISION
-  ]);
+  const data = {
+    "TIMESTAMP": new Date(),
+    "ID": p.ID,
+    "SCORE": p.SCORE,
+    "FALSE START": p["FALSE START"],
+    "REMARK": p.REMARK,
+    "NAME1": p.NAME1,
+    "NAME2": p.NAME2,
+    "NAME3": p.NAME3,
+    "NAME4": p.NAME4,
+    "TEAM": p.TEAM,
+    "STATE": p.STATE,
+    "HEAT": p.HEAT,
+    "STATION": p.STATION,
+    "EVENT": p.EVENT,
+    "DIVISION": p.DIVISION
+  };
 
-  return {ok:true};
+  writeRowByHeader(sh, data);
+
+  return { ok:true };
 }
 
-/** WRITE FREESTYLE **/
-function writeFreestyle(p){
-  const {SHEET_ID, RESULT_SHEET_FREESTYLE} = getConfig();
+/* ------------------------------------------------------------
+ *  7️⃣ FREESTYLE WRITER
+ * ------------------------------------------------------------ */
+function writeFreestyle(p) {
+  const { SHEET_ID, RESULT_SHEET_FREESTYLE } = getConfig();
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const sh = ss.getSheetByName(RESULT_SHEET_FREESTYLE) || ss.insertSheet(RESULT_SHEET_FREESTYLE);
 
@@ -238,63 +311,26 @@ function writeFreestyle(p){
   ];
   ensureHeader(sh, header);
 
-  sh.appendRow([
-    new Date(),
-    p.ID, p.MISSES, p.BREAKS, p.DIFF, p["Missed RE"],
-    p["DIFF J1"], p["DIFF J2"],
-    p.REMARK, p.NAME1, p.TEAM, p.STATE, p.HEAT, p.STATION, p.EVENT, p.DIVISION
-  ]);
+  const data = {
+    "TIMESTAMP": new Date(),
+    "ID": p.ID,
+    "MISSES": p.MISSES,
+    "BREAKS": p.BREAKS,
+    "DIFF": p.DIFF,
+    "Missed RE": p["Missed RE"],
+    "DIFF J1": p["DIFF J1"],
+    "DIFF J2": p["DIFF J2"],
+    "REMARK": p.REMARK,
+    "NAME1": p.NAME1,
+    "TEAM": p.TEAM,
+    "STATE": p.STATE,
+    "HEAT": p.HEAT,
+    "STATION": p.STATION,
+    "EVENT": p.EVENT,
+    "DIVISION": p.DIVISION
+  };
 
-  return {ok:true};
+  writeRowByHeader(sh, data);
+
+  return { ok:true };
 }
-
-/** ENSURE HEADER **/
-function ensureHeader(sh, header){
-  const row = sh.getRange(1,1,1,header.length).getValues()[0];
-  if (!row[0]) sh.getRange(1,1,1,header.length).setValues([header]);
-}
-
-/** ============================================================
- *  GLOBAL LOGOUT SYSTEM — Allow admin to force logout all judges
- * ============================================================ **/
-
-// Store logoutVersion in Script Properties
-function getLogoutVersion() {
-  const SP = PropertiesService.getScriptProperties();
-  const v = SP.getProperty("logoutVersion");
-  return v ? Number(v) : 1;
-}
-
-function setLogoutVersion(v) {
-  const SP = PropertiesService.getScriptProperties();
-  SP.setProperty("logoutVersion", String(v));
-  return v;
-}
-
-// Admin calls: ?cmd=forceLogout
-function forceLogoutAPI() {
-  const newV = getLogoutVersion() + 1;
-  setLogoutVersion(newV);
-  return json({ok:true, logoutVersion:newV});
-}
-
-// Frontend calls: ?cmd=getLogoutVersion
-function getLogoutVersionAPI() {
-  return json({ok:true, logoutVersion:getLogoutVersion()});
-}
-
-// Extend router
-function doGet(e){
-  const cmd = (e.parameter.cmd || "").toLowerCase();
-
-  if (cmd === "participant") return getParticipant(e);
-  if (cmd === "stationlist") return getStationList(e);
-  if (cmd === "ping") return json({ok:true, ts:Date.now()});
-
-  // NEW:
-  if (cmd === "getlogoutversion") return getLogoutVersionAPI();
-  if (cmd === "forcelogout") return forceLogoutAPI();
-
-  return json({ok:true, msg:"GBRSA backend online"});
-}
-

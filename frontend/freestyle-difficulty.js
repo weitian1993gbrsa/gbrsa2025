@@ -151,7 +151,7 @@
       // Other freestyle judge fields left empty
       MISSES: "",
       BREAKS: "",
-      "Missed RE": "",
+      MissRE: "",
       PRESENTATION: "",
       REMARK: ""
     };
