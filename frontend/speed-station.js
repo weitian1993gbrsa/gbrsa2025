@@ -37,9 +37,7 @@
     throw new Error("Unauthorized");
   }
 
-  /* ============================================================
-     FREESTYLE REDIRECT
-  ============================================================ */
+  /* FREESTYLE → redirect */
   if (keyInfo.event === "freestyle") {
     const judgeType = keyInfo.judgeType;
     location.href =
@@ -78,15 +76,15 @@
   }
 
   /* ============================================================
-     CARD CREATION (index = sorted order)
+     CARD CREATION (NO INDEX, NO MOVE-BOTTOM)
   ============================================================ */
-  function createCard(p, index) {
+  function createCard(p) {
     const card = document.createElement("button");
     card.type = "button";
     card.className =
       p.status === "done" ? "station-card done" : "station-card pending";
 
-    card.style.touchAction = "manipulation"; // prevent ghost taps
+    card.style.touchAction = "manipulation";
 
     /* TOP ROW */
     const top = document.createElement("div");
@@ -95,8 +93,9 @@
     const heat = document.createElement("span");
     heat.textContent = "Heat " + p.heat;
 
+    // Show Entry ID only
     const num = document.createElement("span");
-    num.textContent = `#${index + 1} • ${p.entryId}`;
+    num.textContent = `ID#: ${p.entryId}`;
 
     top.appendChild(heat);
     top.appendChild(num);
@@ -167,7 +166,8 @@
   }
 
   /* ============================================================
-     SORT BY HEAT ONLY (ASCENDING)
+     SORT STRICTLY BY HEAT ONLY
+     (NO NEW/DONE EFFECT ON ORDER)
   ============================================================ */
   function sortEntries(arr) {
     return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
@@ -181,11 +181,10 @@
       SPEED_EVENTS.includes(String(p.event).trim())
     );
 
-    // ⭐ SORT STRICTLY BY HEAT NUMBER ONLY
-    arr = sortEntries(arr);
+    arr = sortEntries(arr); // ⭐ Strict heat order only
 
     listEl.innerHTML = "";
-    arr.forEach((p, i) => listEl.appendChild(createCard(p, i)));
+    arr.forEach((p) => listEl.appendChild(createCard(p)));
   }
 
   /* ============================================================
