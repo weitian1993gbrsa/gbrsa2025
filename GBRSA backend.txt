@@ -14,7 +14,7 @@ function getConfig() {
   };
 }
 
-/** UTILITIES **/
+/** UTIL **/
 function json(o){ return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 function normalize(s){ return String(s || "").trim(); }
 function safe(v){ return v == null ? "" : v; }
@@ -34,7 +34,7 @@ function buildHeaderMap(header){
   const H = lowerHeaders(header);
 
   const find = (names) => {
-    for (let i=0; i<H.length; i++){
+    for (let i = 0; i < H.length; i++){
       if (names.includes(H[i])) return i;
     }
     return -1;
@@ -95,7 +95,7 @@ function getParticipant(e){
 
   const id = normalize(e.parameter.entryId);
 
-  for (let r=1; r<values.length; r++){
+  for (let r = 1; r < values.length; r++){
     if (normalize(values[r][map.id]) === id){
       const row = values[r];
       return json({
@@ -120,20 +120,21 @@ function getParticipant(e){
   return json({ok:false, error:"ID not found"});
 }
 
-/** =========================
- * STATION LIST (TODAY ONLY)
- * ========================= **/
+/** =====================================================
+ *  FIXED VERSION — STATION LIST RETURNS ALL FIELDS
+ * ===================================================== **/
 function getStationList(e){
   const {SHEET_ID, DATA_SHEET, RESULT_SHEET_SPEED, TZ} = getConfig();
   const station = normalize(e.parameter.station);
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
 
-  /** DATA SHEET **/
+  /** --- DATA SHEET --- **/
   const dataSh = ss.getSheetByName(DATA_SHEET);
   const dLast = dataSh.getLastRow();
   const dVals = dataSh.getRange(1,1,dLast,20).getValues();
-  const map = buildHeaderMap(dVals[0]);
+  const header = dVals[0];
+  const map = buildHeaderMap(header);
 
   let entries = [];
 
@@ -143,19 +144,26 @@ function getStationList(e){
     const id = normalize(dVals[r][map.id]);
     if (!id) continue;
 
-    const fullName = [dVals[r][map.name1], dVals[r][map.name2], dVals[r][map.name3], dVals[r][map.name4]]
-                      .filter(Boolean).join(" ");
+    const row = dVals[r];
 
     entries.push({
-      entryId:id,
-      heat:dVals[r][map.heat],
-      displayName:fullName,
-      team:dVals[r][map.team],
+      entryId: id,
+      NAME1: safe(row[map.name1]),
+      NAME2: safe(row[map.name2]),
+      NAME3: safe(row[map.name3]),
+      NAME4: safe(row[map.name4]),
+      team:  safe(row[map.team]),
+      state: safe(row[map.state]),
+      heat:  safe(row[map.heat]),
+      station: safe(row[map.station]),
+      event: safe(row[map.event]),
+      division: safe(row[map.division]),
+      displayName: [row[map.name1], row[map.name2], row[map.name3], row[map.name4]].filter(Boolean).join(" "),
       status:"pending"
     });
   }
 
-  /** RESULT SHEET **/
+  /** --- RESULT SHEET (today only) --- **/
   const resultSh = ss.getSheetByName(RESULT_SHEET_SPEED);
   const judgedToday = new Set();
 
@@ -171,7 +179,7 @@ function getStationList(e){
     const now = toDate(new Date(), TZ);
 
     for (let r=1; r<rv.length; r++){
-      const tsVal = toDate(rv[r][tsC], TZ);
+      let tsVal = toDate(rv[r][tsC], TZ);
       if (!tsVal) continue;
 
       const sameDay =
@@ -186,7 +194,7 @@ function getStationList(e){
     }
   }
 
-  /** APPLY STATUS **/
+  // Mark DONE
   entries.forEach(e=>{
     if (judgedToday.has(e.entryId)) e.status = "done";
   });
@@ -245,3 +253,48 @@ function ensureHeader(sh, header){
   const row = sh.getRange(1,1,1,header.length).getValues()[0];
   if (!row[0]) sh.getRange(1,1,1,header.length).setValues([header]);
 }
+
+/** ============================================================
+ *  GLOBAL LOGOUT SYSTEM — Allow admin to force logout all judges
+ * ============================================================ **/
+
+// Store logoutVersion in Script Properties
+function getLogoutVersion() {
+  const SP = PropertiesService.getScriptProperties();
+  const v = SP.getProperty("logoutVersion");
+  return v ? Number(v) : 1;
+}
+
+function setLogoutVersion(v) {
+  const SP = PropertiesService.getScriptProperties();
+  SP.setProperty("logoutVersion", String(v));
+  return v;
+}
+
+// Admin calls: ?cmd=forceLogout
+function forceLogoutAPI() {
+  const newV = getLogoutVersion() + 1;
+  setLogoutVersion(newV);
+  return json({ok:true, logoutVersion:newV});
+}
+
+// Frontend calls: ?cmd=getLogoutVersion
+function getLogoutVersionAPI() {
+  return json({ok:true, logoutVersion:getLogoutVersion()});
+}
+
+// Extend router
+function doGet(e){
+  const cmd = (e.parameter.cmd || "").toLowerCase();
+
+  if (cmd === "participant") return getParticipant(e);
+  if (cmd === "stationlist") return getStationList(e);
+  if (cmd === "ping") return json({ok:true, ts:Date.now()});
+
+  // NEW:
+  if (cmd === "getlogoutversion") return getLogoutVersionAPI();
+  if (cmd === "forcelogout") return forceLogoutAPI();
+
+  return json({ok:true, msg:"GBRSA backend online"});
+}
+
