@@ -13,7 +13,7 @@
 <link rel="prefetch" href="speed-judge.html">
 <link rel="prefetch" href="speed-judge.js">
 <link rel="prefetch" href="styles.css">
-<link rel="prefetch" href="station.html">
+<link rel="prefetch" href="speed-station.html">
 
 <!-- Load config first -->
 <script src="./config.js"></script>
@@ -113,15 +113,16 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
   <small>© 2025 GB Rope Skipping Academy</small>
 </footer>
 
-<!-- ============================================================
-     LOGIN SCRIPT + REAL LOGOUT CACHE CLEAR
-============================================================ -->
 <script>
-// ============================================================
-// CLEAR ALL STATION CACHE WHEN OPENING LOGIN PAGE (REAL LOGOUT)
-// ============================================================
+/* ============================================================
+   CLEAR ALL CACHE ON LOGOUT / PAGE OPEN
+   (Speed + Freestyle)
+============================================================ */
 Object.keys(localStorage).forEach(k => {
   if (k.startsWith("station_cache_")) {
+    localStorage.removeItem(k);
+  }
+  if (k.startsWith("freestyle_cache_")) {
     localStorage.removeItem(k);
   }
 });
@@ -133,8 +134,8 @@ const keyInput  = document.getElementById("judgeKey");
 const keyError  = document.getElementById("keyError");
 const btnLogin  = document.getElementById("btnJudgeLogin");
 
-// MAIN LOGIN LOGIC
 btnLogin.addEventListener("click", () => {
+
   const key = keyInput.value.trim();
   keyError.style.display = "none";
 
@@ -154,19 +155,19 @@ btnLogin.addEventListener("click", () => {
   }
 
   const station = info.station;
-  const event   = info.event;
+  const event = info.event;
   const judgeType = info.judgeType || "";
 
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  // ⭐ SPEED EVENT
+  // ⭐ SPEED → go to speed-station
   if (event === "speed") {
     location.href = `speed-station.html?station=${station}&key=${key}`;
     return;
   }
 
-  // ⭐ FREESTYLE EVENT
+  // ⭐ FREESTYLE → go to freestyle-station
   if (event === "freestyle") {
     location.href =
       `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
@@ -175,11 +176,11 @@ btnLogin.addEventListener("click", () => {
 });
 
 // Enter key support
-keyInput.addEventListener("keyup", (e) => {
+keyInput.addEventListener("keyup", e => {
   if (e.key === "Enter") btnLogin.click();
 });
 
-// Reset UI when coming back to page
+// Reset after back
 function resetJudgeLogin() {
   btnLogin.disabled = false;
   btnLogin.textContent = "Enter";
@@ -188,11 +189,9 @@ function resetJudgeLogin() {
 }
 
 window.addEventListener("pageshow", resetJudgeLogin);
-
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") resetJudgeLogin();
 });
-
 window.addEventListener("pagehide", () => {
   keyInput.value = "";
 });
