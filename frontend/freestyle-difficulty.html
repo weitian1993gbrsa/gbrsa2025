@@ -28,7 +28,6 @@
       border-bottom:1px solid #ddd;
     }
 
-    /* BACK BUTTON */
     .back-btn {
       background:white;
       border:1px solid #ccc;
@@ -37,7 +36,6 @@
       border-radius:12px;
     }
 
-    /* SUBMIT BUTTON */
     .submit-btn {
       background:#1e88ff;
       color:white;
@@ -48,7 +46,6 @@
       font-weight:bold;
     }
 
-    /* CONTROL BAR */
     .control-row {
       display:flex;
       justify-content:space-between;
@@ -80,7 +77,6 @@
       font-weight:700;
     }
 
-    /* BUTTON GRID */
     .grid {
       display:grid;
       grid-template-columns:repeat(3, 1fr);
@@ -101,7 +97,7 @@
       justify-content:center;
       font-size:22px;
       font-weight:600;
-      border-radius:0px !important; /* square buttons */
+      border-radius:0px !important;
       border:none;
       user-select:none;
     }
@@ -126,11 +122,9 @@
   <button class="submit-btn" id="btnSubmit">Submit</button>
 </header>
 
-<!-- CONTROL BAR -->
 <div class="control-row">
   <button id="undoBtn" class="btn-undo">Undo</button>
 
-  <!-- ⭐ FIXED FORMAT -->
   <div class="total-score">
     Score (<span id="totalScore">0.00</span>)
   </div>
@@ -138,51 +132,21 @@
   <button id="resetBtn" class="btn-reset">Reset</button>
 </div>
 
-<!-- GRID (IJRU ORDER) -->
 <div class="grid">
+  <button class="skill-btn" data-level="1"><div>Level 1</div><div class="count-num" id="count1">0</div></button>
+  <button class="skill-btn" data-level="0.5"><div>Level 0.5</div><div class="count-num" id="count05">0</div></button>
+  <button class="skill-btn" data-level="4"><div>Level 4</div><div class="count-num" id="count4">0</div></button>
 
-  <!-- Row 1 -->
-  <button class="skill-btn" data-level="1" id="lvl1">
-    Level 1 <div class="count-num" id="count1">0</div>
-  </button>
+  <button class="skill-btn" data-level="2"><div>Level 2</div><div class="count-num" id="count2">0</div></button>
+  <button class="skill-btn level7" data-level="7"><div>Level 7</div><div class="count-num" id="count7">0</div></button>
+  <button class="skill-btn" data-level="5"><div>Level 5</div><div class="count-num" id="count5">0</div></button>
 
-  <button class="skill-btn level05" data-level="0.5" id="lvl05">
-    Level 0.5 <div class="count-num" id="count05">0</div>
-  </button>
-
-  <button class="skill-btn" data-level="4" id="lvl4">
-    Level 4 <div class="count-num" id="count4">0</div>
-  </button>
-
-  <!-- Row 2 -->
-  <button class="skill-btn" data-level="2" id="lvl2">
-    Level 2 <div class="count-num" id="count2">0</div>
-  </button>
-
-  <button class="skill-btn level7" data-level="7" id="lvl7">
-    Level 7 <div class="count-num" id="count7">0</div>
-  </button>
-
-  <button class="skill-btn" data-level="5" id="lvl5">
-    Level 5 <div class="count-num" id="count5">0</div>
-  </button>
-
-  <!-- Row 3 -->
-  <button class="skill-btn" data-level="3" id="lvl3">
-    Level 3 <div class="count-num" id="count3">0</div>
-  </button>
-
-  <button class="skill-btn level8" data-level="8" id="lvl8">
-    Level 8 <div class="count-num" id="count8">0</div>
-  </button>
-
-  <button class="skill-btn" data-level="6" id="lvl6">
-    Level 6 <div class="count-num" id="count6">0</div>
-  </button>
-
+  <button class="skill-btn" data-level="3"><div>Level 3</div><div class="count-num" id="count3">0</div></button>
+  <button class="skill-btn level8" data-level="8"><div>Level 8</div><div class="count-num" id="count8">0</div></button>
+  <button class="skill-btn" data-level="6"><div>Level 6</div><div class="count-num" id="count6">0</div></button>
 </div>
 
-<script src="./freestyle-difficulty.js"></script>
+<script src="/freestyle-difficulty.js"></script>
 
 </body>
 </html>
