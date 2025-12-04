@@ -54,7 +54,7 @@
   }
 
   /* ============================================================
-     SKILL BUTTON — SUPER SENSITIVE (pointerdown)
+     SKILL BUTTON — SUPER SENSITIVE (pointerdown) + VIBRATION
      ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
@@ -62,6 +62,9 @@
 
       btn.addEventListener("pointerdown", (e) => {
         e.preventDefault(); // removes delay
+
+        // 🔥 VIBRATION ONLY HERE
+        if (navigator.vibrate) navigator.vibrate(15);
 
         const level = btn.dataset.level;
 
@@ -82,7 +85,7 @@
   }
 
   /* ============================================================
-     UNDO (ONE STEP ONLY)
+     UNDO (ONE STEP ONLY) — NO VIBRATION
      ============================================================ */
   document.querySelector("#undoBtn").addEventListener("pointerdown", (e) => {
     e.preventDefault();
@@ -101,7 +104,7 @@
   });
 
   /* ============================================================
-     RESET
+     RESET — NO VIBRATION
      ============================================================ */
   document.querySelector("#resetBtn").addEventListener("pointerdown", (e) => {
     e.preventDefault();
@@ -116,7 +119,7 @@
   });
 
   /* ============================================================
-     SUBMIT RESULT (placeholder)
+     SUBMIT RESULT — NO VIBRATION
      ============================================================ */
   document.querySelector("#btnSubmit").addEventListener("pointerdown", (e) => {
     e.preventDefault();
