@@ -54,7 +54,7 @@
   }
 
   /* ============================================================
-     SKILL BUTTON — SUPER SENSITIVE (pointerdown) + VIBRATION
+     SKILL BUTTON — SUPER SENSITIVE (pointerdown) + EXTREME VIBRATION
      ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
@@ -63,8 +63,8 @@
       btn.addEventListener("pointerdown", (e) => {
         e.preventDefault(); // removes delay
 
-        // 🔥 VIBRATION ONLY HERE
-        if (navigator.vibrate) navigator.vibrate(15);
+        // 🔥 EXTREME VIBRATION
+        if (navigator.vibrate) navigator.vibrate([80, 40, 80, 40, 80]);
 
         const level = btn.dataset.level;
 
