@@ -30,7 +30,7 @@
     "8":   0
   };
 
-  let lastAction = null;
+  let lastAction = null; // { level: "4", prev: 2 }
 
   const totalScoreEl = document.querySelector("#totalScore");
 
@@ -38,11 +38,13 @@
      UPDATE DISPLAY
      ============================================================ */
   function updateUI() {
+    // Update each counter block
     for (const lvl in counts) {
       const el = document.querySelector(`#count${lvl.replace(".", "")}`);
       if (el) el.textContent = counts[lvl];
     }
 
+    // Calculate total score
     let total = 0;
     for (const lvl in counts) {
       total += counts[lvl] * POINTS[lvl];
@@ -56,22 +58,24 @@
      ============================================================ */
   function addClickEvents() {
     document.querySelectorAll(".skill-btn").forEach(btn => {
-      btn.style.touchAction = "manipulation";
+      btn.style.touchAction = "manipulation";   // improve touch response
 
       btn.addEventListener("pointerdown", (e) => {
-        e.preventDefault();
+        e.preventDefault(); // removes delay
 
-        // iOS vibration unlock
+        // 🔓 FIX first-tap vibration (iOS unlock)
         if (navigator.vibrate) navigator.vibrate(1);
 
-        // Extreme vibration
+        // 🔥 EXTREME vibration
         if (navigator.vibrate) navigator.vibrate([120, 80]);
 
         const level = btn.dataset.level;
 
+        // Tap feedback
         btn.classList.add("pressed");
         setTimeout(() => btn.classList.remove("pressed"), 120);
 
+        // Store last action (for undo)
         lastAction = {
           level,
           prev: counts[level]
@@ -84,7 +88,7 @@
   }
 
   /* ============================================================
-     UNDO
+     UNDO (ONE STEP ONLY)
      ============================================================ */
   document.querySelector("#undoBtn").addEventListener("pointerdown", (e) => {
     e.preventDefault();
@@ -118,64 +122,62 @@
   });
 
   /* ============================================================
-   SUBMIT — Difficulty Judge ONLY (DIFF only)
-   ============================================================ */
-document.querySelector("#btnSubmit").addEventListener("pointerdown", async (e) => {
-  e.preventDefault();
+     SUBMIT — Difficulty Judge ONLY
+     ============================================================ */
+  document.querySelector("#btnSubmit").addEventListener("pointerdown", async (e) => {
+    e.preventDefault();
 
-  if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    // Optional small vibration
+    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
 
-  const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(location.search);
 
-  // ⭐ DIFF judge sends ONLY DIFF
-  const payload = {
-    _form: "freestyle",
+    // ⭐ Payload: DIFF only (Difficulty Judge)
+    const payload = {
+      _form: "freestyle",
 
-    ID: params.get("id"),
-    NAME1: params.get("name1"),
-    TEAM: params.get("team"),
-    STATE: params.get("state"),
-    HEAT: params.get("heat"),
-    STATION: params.get("station"),
-    EVENT: params.get("event"),
-    DIVISION: params.get("division"),
+      ID: params.get("id"),
+      NAME1: params.get("name1"),
+      TEAM: params.get("team"),
+      STATE: params.get("state"),
+      HEAT: params.get("heat"),
+      STATION: params.get("station"),
+      EVENT: params.get("event"),
+      DIVISION: params.get("division"),
 
-    DIFF: Number(totalScoreEl.textContent),
+      // Only DIFF is filled
+      DIFF: Number(totalScoreEl.textContent),
 
-    // ⭐ All other freestyle fields EMPTY
-    MISSES: "",
-    BREAKS: "",
-    PRESENTATION: "",
-    "Missed RE": "",
-    REMARK: ""
-  };
+      // Other freestyle judge fields left empty
+      MISSES: "",
+      BREAKS: "",
+      "Missed RE": "",
+      PRESENTATION: "",
+      REMARK: ""
+    };
 
-  const btn = document.querySelector("#btnSubmit");
-  btn.disabled = true;
-  btn.textContent = "Saving...";
+    const btn = document.querySelector("#btnSubmit");
+    btn.disabled = true;
+    btn.textContent = "Saving...";
 
-  try {
-    const res = await fetch(window.CONFIG.APPS_SCRIPT_URL + "?t=" + Date.now(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const res = await fetch(window.CONFIG.APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
 
-    const json = await res.json();
+      const json = await res.json();
+      if (!json.ok) throw new Error("Error");
 
-    if (!json.ok) throw new Error("Backend rejected");
+      btn.textContent = "Saved ✔";
+      setTimeout(() => history.back(), 300);
 
-    btn.textContent = "Saved ✔";
-    setTimeout(() => history.back(), 300);
-
-  } catch (err) {
-    alert("Submit failed, try again.");
-    btn.disabled = false;
-    btn.textContent = "Submit";
-  }
-});
+    } catch (err) {
+      alert("Submit failed, try again.");
+      btn.disabled = false;
+      btn.textContent = "Submit";
+    }
+  });
 
   /* ============================================================
      INIT

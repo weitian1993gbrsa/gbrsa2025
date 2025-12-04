@@ -7,8 +7,7 @@ window.CONFIG = {
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbw1UORMl0LqZPdxelb8DdWSKZUUcX3WL03GDUSM-GeLX9v-KYHeeeFwQ8epyS3va3RQTA/exec",
   SHEET_ID: "1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg",
   DATA_SHEET_NAME: "DATA",
-  RESULT_SHEET_NAME: "RESULT",
-  RESULT_F_SHEET_NAME: "RESULT_F"   // ⭐ FIXED — COMMA ADDED ABOVE
+  RESULT_SHEET_NAME: "RESULT"
 };
 
 // Login backend URL
@@ -17,7 +16,7 @@ const LOGIN_API_URL =
 
 
 /* ============================================================
-   EVENT GROUPS
+   EVENT GROUPS  (🔥 REQUIRED for filtering)
 ============================================================ */
 window.SPEED_EVENTS = [
   "SRJJ",
@@ -36,10 +35,11 @@ window.FREESTYLE_EVENTS = [
 
 
 /* ============================================================
-   JUDGE ACCESS KEYS
+   JUDGE ACCESS KEYS (same as before + freestyle)
 ============================================================ */
 
 window.JUDGE_KEYS = {
+
   // SPEED
   "abc123": { event: "speed", station: 1 },
   "def456": { event: "speed", station: 2 },
