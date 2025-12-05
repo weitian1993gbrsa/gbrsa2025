@@ -67,7 +67,7 @@
   });
 
   /* ============================================================
-     SUBMIT — SAME BEHAVIOR AS SPEED-JUDGE WITH OVERLAY
+     SUBMIT — WITH OVERLAY & FULL TIMESTAMP
   ============================================================ */
   btnSubmit.addEventListener("click", async (e) => {
 
@@ -80,6 +80,7 @@
     const params = new URLSearchParams(location.search);
 
     const payload = {
+      TIMESTAMP: new Date().toISOString(),  // full date + time
       judgeType: "difficulty",
       ID: params.get("id") || "",
       NAME1: params.get("name1") || "",
