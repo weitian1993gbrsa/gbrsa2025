@@ -1,82 +1,72 @@
 /* ============================================================
-   GLOBAL CONFIG 
-   (Speed only - Freestyle will be rebuilt using 4 sheets)
+   GLOBAL CONFIG – SPEED + FREESTYLE (4-judge system)
 ============================================================ */
 
 window.CONFIG = {
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbw1UORMl0LqZPdxelb8DdWSKZUUcX3WL03GDUSM-GeLX9v-KYHeeeFwQ8epyS3va3RQTA/exec",
+  APPS_SCRIPT_URL:
+    "https://script.google.com/macros/s/AKfycbw1UORMl0LqZPdxelb8DdWSKZUUcX3WL03GDUSM-GeLX9v-KYHeeeFwQ8epyS3va3RQTA/exec",
+
   SHEET_ID: "1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg",
 
-  // Sheets
   DATA_SHEET_NAME: "DATA",
-  RESULT_SHEET_SPEED: "RESULT_SPEED",
-  RESULT_SHEET_DIFF: "DIFF"
+
+  // result sheets
+  RESULT_SPEED: "RESULT_SPEED",
+  FS_DIFF: "DIFF",
+  FS_TECH: "TECHNICAL",
+  FS_RE: "RE",
+  FS_PRESENT: "PRESENTATION",
 };
 
-// Login backend URL
-const LOGIN_API_URL =
-  "https://script.google.com/macros/s/AKfycbzq3LYbSAoFRjt8wIbomxwehCOdAdGo4eCkpHlhj_ncTm27tpQJyMhzQHRQTfhKQ6WJ/exec";
-
-
 /* ============================================================
-   EVENT GROUP FILTERS
+   EVENT FILTERS
 ============================================================ */
 window.SPEED_EVENTS = [
-  "SRJJ",
-  "SRSS",
-  "SRDU",
-  "SRTU",
-  "SRJJR",
-  "SRSR",
+  "SRJJ","SRSS","SRDU","SRTU","SRJJR","SRSR",
 ];
 
-// Freestyle events OK to keep
 window.FREESTYLE_EVENTS = [
   "SRIF",
   "SRIF_LEVEL 1",
   "SRIF_LEVEL 2"
 ];
 
-
 /* ============================================================
-   JUDGE KEYS 
-   (Freestyle rewritten for new 4-sheet system)
+   LOGIN KEYS
 ============================================================ */
 
-// SPEED
+// Speed judges
 window.JUDGE_KEYS = {
-  "abc123": { event: "speed", station: 1 },
-  "def456": { event: "speed", station: 2 },
-  "ghi789": { event: "speed", station: 3 },
-  "jkl555": { event: "speed", station: 4 },
-  "mno888": { event: "speed", station: 5 },
-  "pqr222": { event: "speed", station: 6 },
-  "stu333": { event: "speed", station: 7 },
-  "vwx444": { event: "speed", station: 8 },
-  "yyy111": { event: "speed", station: 9 },
-  "zzt777": { event: "speed", station: 10 },
-  "qqq101": { event: "speed", station: 11 },
-  "key999": { event: "speed", station: 12 },
+  // Speed (unchanged)
+  "abc123": { event:"speed", station:1 },
+  "def456": { event:"speed", station:2 },
+  "ghi789": { event:"speed", station:3 },
+  "jkl555": { event:"speed", station:4 },
+  "mno888": { event:"speed", station:5 },
+  "pqr222": { event:"speed", station:6 },
 
-  // FREESTYLE (new 4-sheet system will be built next)
-  // Station 1
-  "fd1": { event: "freestyle", station: 1, judgeType: "difficulty" },
-  "fr1": { event: "freestyle", station: 1, judgeType: "re" },            // ⭐ Added
-  "ft1": { event: "freestyle", station: 1, judgeType: "technical" },
-  "fp1": { event: "freestyle", station: 1, judgeType: "presentation" },
+  // ========================================================
+  // FREESTYLE 3 stations × 4 judge types
+  // ========================================================
 
-  // Station 2
-  "fd2": { event: "freestyle", station: 2, judgeType: "difficulty" },
-  "fr2": { event: "freestyle", station: 2, judgeType: "re" },            // ⭐ Added
-  "ft2": { event: "freestyle", station: 2, judgeType: "technical" },
-  "fp2": { event: "freestyle", station: 2, judgeType: "presentation" },
+  // -------- Station 1 --------
+  "fd1": { event:"freestyle", station:1, judgeType:"difficulty" },
+  "fr1": { event:"freestyle", station:1, judgeType:"re" },
+  "ft1": { event:"freestyle", station:1, judgeType:"technical" },
+  "fp1": { event:"freestyle", station:1, judgeType:"presentation" },
 
-  // Station 3
-  "fd3": { event: "freestyle", station: 3, judgeType: "difficulty" },
-  "fr3": { event: "freestyle", station: 3, judgeType: "re" },            // ⭐ Added
-  "ft3": { event: "freestyle", station: 3, judgeType: "technical" },
-  "fp3": { event: "freestyle", station: 3, judgeType: "presentation" }
+  // -------- Station 2 --------
+  "fd2": { event:"freestyle", station:2, judgeType:"difficulty" },
+  "fr2": { event:"freestyle", station:2, judgeType:"re" },
+  "ft2": { event:"freestyle", station:2, judgeType:"technical" },
+  "fp2": { event:"freestyle", station:2, judgeType:"presentation" },
+
+  // -------- Station 3 --------
+  "fd3": { event:"freestyle", station:3, judgeType:"difficulty" },
+  "fr3": { event:"freestyle", station:3, judgeType:"re" },
+  "ft3": { event:"freestyle", station:3, judgeType:"technical" },
+  "fp3": { event:"freestyle", station:3, judgeType:"presentation" },
 };
 
-// ADMIN LOGIN
-const ADMIN_KEY = "admin2025";
+// ADMIN
+window.ADMIN_KEY = "admin2025";
