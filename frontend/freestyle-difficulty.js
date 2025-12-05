@@ -23,11 +23,13 @@
   ============================================================ */
   function updateUI() {
     for (const lvl in counts) {
-      let el = document.querySelector("#count" + lvl.replace(".", ""));
+      const el = document.querySelector("#count" + lvl.replace(".", ""));
       if (el) el.textContent = counts[lvl];
     }
+
     let total = 0;
     for (const lvl in counts) total += counts[lvl] * POINTS[lvl];
+
     totalScoreEl.textContent = total.toFixed(2);
   }
 
@@ -69,17 +71,25 @@
   });
 
   /* ============================================================
-     SUBMIT — SAME LOGIC AS YOUR BACKUP
+     SUBMIT (FULL PATCHED VERSION)
   ============================================================ */
   btnSubmit.addEventListener("click", async () => {
 
     if (btnSubmit.dataset.lock === "1") return;
     btnSubmit.dataset.lock = "1";
 
+    const params = new URLSearchParams(location.search);
+
+    // ⭐ MATCH SPEED OVERLAY BEHAVIOR
+    const overlay = document.getElementById("submitOverlay");
+    const overlayText = document.getElementById("overlayText");
+
+    overlay.classList.remove("hide");
+    overlay.style.opacity = "1";
+    overlayText.textContent = "Submitting…";
+
     btnSubmit.disabled = true;
     btnSubmit.textContent = "Saving…";
-
-    const params = new URLSearchParams(location.search);
 
     const payload = {
       judgeType: "difficulty",
@@ -101,16 +111,18 @@
       const result = await apiPost(payload);
       if (!result || !result.ok) throw new Error(result?.error || "Server error");
 
-      btnSubmit.textContent = "Saved ✔";
+      // ⭐ SAME FEEDBACK AS SPEED
+      overlayText.textContent = "Saved ✔";
 
       /* ============================================================
-         ⭐ INSTANT BLUE CARD (FIX)
-         Same cache key used by speed judge: "station_cache_<station>"
+         ⭐ FIX 1 — INSTANT BLUE CARD UPDATE
+         Correct cache key for freestyle:
+         freestyle_cache_<station>
       ============================================================ */
       try {
         const station = params.get("station");
         const entryId = params.get("id");
-        const CACHE_KEY = "freestyle_cache_" + station; // FIXED
+        const CACHE_KEY = "freestyle_cache_" + station;
 
         const raw = localStorage.getItem(CACHE_KEY);
         if (raw) {
@@ -123,16 +135,20 @@
           localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
         }
       } catch (err) {
-        console.warn("Cache update error:", err);
+        console.warn("Freestyle cache update error:", err);
       }
 
-      // return to station
+      // ⭐ Same delay as speed
       setTimeout(() => {
         history.back();
-      }, 350);
+      }, 300);
 
     } catch (err) {
-      alert("Submit failed — " + err.message);
+      overlayText.textContent = "Submit failed";
+
+      setTimeout(() => {
+        overlay.classList.add("hide");
+      }, 700);
 
       btnSubmit.disabled = false;
       btnSubmit.dataset.lock = "0";
