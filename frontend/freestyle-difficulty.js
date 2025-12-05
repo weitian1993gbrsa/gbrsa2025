@@ -83,9 +83,6 @@
 
       ID: params.get("id") || "",
       NAME1: params.get("name1") || "",
-      NAME2: params.get("name2") || "",
-      NAME3: params.get("name3") || "",
-      NAME4: params.get("name4") || "",
       TEAM: params.get("team") || "",
       STATE: params.get("state") || "",
       HEAT: params.get("heat") || "",
@@ -96,12 +93,6 @@
       // Difficulty result
       DIFF: Number(totalScoreEl.textContent),
 
-      // Required fields
-      MISSES: "0",
-      BREAKS: "0",
-      MissRE: "0",
-      PRESENTATION: "",
-      REMARK: ""
     };
 
     try {
