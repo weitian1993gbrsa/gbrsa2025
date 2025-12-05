@@ -171,7 +171,6 @@ function getStationList(e) {
     });
   }
 
-  // RESULT SHEET SELECTION
   const resultSheet =
     judgeType === "difficulty" ? FS_DIFF :
     judgeType === "technical" ? FS_TECH :
@@ -218,7 +217,7 @@ function getStationList(e) {
 }
 
 /* ------------------------------------------------------------
- * SPEED WRITER — AUTO HEADER VERSION
+ * SPEED WRITER (UNCHANGED)
  * ------------------------------------------------------------ */
 function writeSpeed(p) {
   const { SHEET_ID, RESULT_SHEET_SPEED } = getConfig();
@@ -232,7 +231,6 @@ function writeSpeed(p) {
     "TEAM","STATE","HEAT","STATION","EVENT","DIVISION"
   ];
 
-  // Create header if none
   if (sh.getLastRow() === 0) {
     sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
   }
@@ -265,7 +263,7 @@ function writeSpeed(p) {
 }
 
 /* ------------------------------------------------------------
- * FREESTYLE WRITER — AUTO HEADER VERSION
+ * FREESTYLE WRITER — UPDATED (Uses frontend timestamp)
  * ------------------------------------------------------------ */
 function writeFreestyle(p) {
   const {
@@ -288,7 +286,6 @@ function writeFreestyle(p) {
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const sh = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
 
-  // DIFFICULTY uses "DIFF", others still use SCORE1/SCORE2/SCORE3/SCORE4   
   const REQUIRED =
     jt === "difficulty"
       ? ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"]
@@ -306,7 +303,11 @@ function writeFreestyle(p) {
 
   const row = sh.getLastRow() + 1;
 
-  sh.getRange(row, COL["TIMESTAMP"]).setValue(new Date());
+  // ⭐ Use frontend timestamp (full ISO)
+  const fullTS = p.TIMESTAMP ? new Date(p.TIMESTAMP) : new Date();
+  sh.getRange(row, COL["TIMESTAMP"]).setValue(fullTS);
+
+  // Shared fields
   sh.getRange(row, COL["ID"]).setValue(p.ID);
   sh.getRange(row, COL["NAME1"]).setValue(p.NAME1);
   sh.getRange(row, COL["TEAM"]).setValue(p.TEAM);
@@ -316,6 +317,7 @@ function writeFreestyle(p) {
   sh.getRange(row, COL["EVENT"]).setValue(p.EVENT);
   sh.getRange(row, COL["DIVISION"]).setValue(p.DIVISION);
 
+  // Judge-specific fields
   if (jt === "difficulty") {
     sh.getRange(row, COL["DIFF"]).setValue(p.DIFF);
   } else {
