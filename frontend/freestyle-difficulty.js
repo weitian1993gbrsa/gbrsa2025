@@ -17,7 +17,6 @@
   const btnSubmit    = $("#btnSubmit");
   const undoBtn      = $("#undoBtn");
   const resetBtn     = $("#resetBtn");
-  const overlay      = $("#submitOverlay");
 
   /* ============================================================
      UPDATE UI
@@ -40,8 +39,10 @@
       const lvl = btn.dataset.level;
       lastAction = { level: lvl, prev: counts[lvl] };
       counts[lvl]++;
+
       updateUI();
       if (navigator.vibrate) navigator.vibrate([80]);
+
       btn.classList.add("pressed");
       setTimeout(() => btn.classList.remove("pressed"), 150);
     });
@@ -67,72 +68,17 @@
   });
 
   /* ============================================================
-     SUBMIT — WITH OVERLAY & FULL TIMESTAMP
+     UNIVERSAL SUBMIT (JudgeCore)
   ============================================================ */
-  btnSubmit.addEventListener("click", async (e) => {
+  btnSubmit.addEventListener("click", () => {
 
-    if (btnSubmit.dataset.lock === "1") return;
-    btnSubmit.dataset.lock = "1";
+    const diffScore = Number(totalScoreEl.textContent);
 
-    btnSubmit.disabled = true;
-    overlay.classList.remove("hide");
-
-    const params = new URLSearchParams(location.search);
-
-    const payload = {
-      TIMESTAMP: new Date().toISOString(),
-      judgeType: "difficulty",
-      ID: params.get("id") || "",
-      NAME1: params.get("name1") || "",
-      TEAM: params.get("team") || "",
-      STATE: params.get("state") || "",
-      HEAT: params.get("heat") || "",
-      STATION: params.get("station") || "",
-      EVENT: params.get("event") || "",
-      DIVISION: params.get("division") || "",
-      DIFF: Number(totalScoreEl.textContent),
+    JudgeCore.submit("difficulty", {
+      DIFF: diffScore,
       REMARK: ""
-    };
+    });
 
-    try {
-      const result = await apiPost(payload);
-      if (!result || !result.ok) throw new Error(result?.error || "Server error");
-
-      btnSubmit.textContent = "Saved ✔";
-
-      /* ============================================================
-         ⭐ INSTANT CACHE UPDATE (same as speed-judge.js)
-      ============================================================ */
-      try {
-        const station = params.get("station");
-        const entryId = params.get("id");
-        const CACHE_KEY = "freestyle_cache_" + station;
-
-        const raw = localStorage.getItem(CACHE_KEY);
-        if (raw) {
-          const cacheData = JSON.parse(raw);
-
-          cacheData.entries = cacheData.entries.map(e =>
-            e.entryId === entryId ? { ...e, status: "done" } : e
-          );
-
-          localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-        }
-      } catch (err) {}
-
-      setTimeout(() => {
-        history.back();
-      }, 350);
-
-    } catch (err) {
-      alert("Submit failed — " + err.message);
-      console.error(err);
-
-      btnSubmit.disabled = false;
-      btnSubmit.dataset.lock = "0";
-      btnSubmit.textContent = "Submit";
-      overlay.classList.add("hide");
-    }
   });
 
   updateUI();
