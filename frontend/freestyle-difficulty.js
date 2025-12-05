@@ -17,7 +17,6 @@
   const btnSubmit    = $("#btnSubmit");
   const undoBtn      = $("#undoBtn");
   const resetBtn     = $("#resetBtn");
-  const overlay      = $("#submitOverlay");
 
   /* ============================================================
      UPDATE UI
@@ -38,10 +37,13 @@
   document.querySelectorAll(".skill-btn").forEach(btn => {
     btn.addEventListener("pointerdown", () => {
       const lvl = btn.dataset.level;
+
       lastAction = { level: lvl, prev: counts[lvl] };
       counts[lvl]++;
+
       updateUI();
       if (navigator.vibrate) navigator.vibrate([80]);
+
       btn.classList.add("pressed");
       setTimeout(() => btn.classList.remove("pressed"), 150);
     });
@@ -67,21 +69,21 @@
   });
 
   /* ============================================================
-     SUBMIT — WITH OVERLAY & FULL TIMESTAMP
+     SUBMIT — SAME LOGIC AS YOUR BACKUP
   ============================================================ */
-  btnSubmit.addEventListener("click", async (e) => {
+  btnSubmit.addEventListener("click", async () => {
 
     if (btnSubmit.dataset.lock === "1") return;
     btnSubmit.dataset.lock = "1";
 
     btnSubmit.disabled = true;
-    overlay.classList.remove("hide");
+    btnSubmit.textContent = "Saving…";
 
     const params = new URLSearchParams(location.search);
 
     const payload = {
-      TIMESTAMP: new Date().toISOString(),
       judgeType: "difficulty",
+
       ID: params.get("id") || "",
       NAME1: params.get("name1") || "",
       TEAM: params.get("team") || "",
@@ -90,6 +92,7 @@
       STATION: params.get("station") || "",
       EVENT: params.get("event") || "",
       DIVISION: params.get("division") || "",
+
       DIFF: Number(totalScoreEl.textContent),
       REMARK: ""
     };
@@ -101,12 +104,13 @@
       btnSubmit.textContent = "Saved ✔";
 
       /* ============================================================
-         ⭐ INSTANT CACHE UPDATE (same as speed-judge.js)
+         ⭐ INSTANT BLUE CARD (FIX)
+         Same cache key used by speed judge: "station_cache_<station>"
       ============================================================ */
       try {
         const station = params.get("station");
         const entryId = params.get("id");
-        const CACHE_KEY = "freestyle_cache_" + station;
+        const CACHE_KEY = "station_cache_" + station; // FIXED
 
         const raw = localStorage.getItem(CACHE_KEY);
         if (raw) {
@@ -118,20 +122,21 @@
 
           localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
         }
-      } catch (err) {}
+      } catch (err) {
+        console.warn("Cache update error:", err);
+      }
 
+      // return to station
       setTimeout(() => {
         history.back();
       }, 350);
 
     } catch (err) {
       alert("Submit failed — " + err.message);
-      console.error(err);
 
       btnSubmit.disabled = false;
       btnSubmit.dataset.lock = "0";
       btnSubmit.textContent = "Submit";
-      overlay.classList.add("hide");
     }
   });
 
