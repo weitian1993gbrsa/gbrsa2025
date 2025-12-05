@@ -11,7 +11,7 @@
     });
   }
 
-  const $ = (q, el=document) => el.querySelector(q);
+  const $ = (q, el = document) => el.querySelector(q);
 
   const qs = new URLSearchParams(location.search);
   const station = qs.get("station");
@@ -45,7 +45,7 @@
   const CACHE_KEY = "freestyle_cache_" + station;
 
   function saveCache(data) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch(_){}
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) {}
   }
 
   function loadCache() {
@@ -56,10 +56,9 @@
   }
 
   const esc = s =>
-    String(s||"").replace(/[&<>"']/g, c => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",
-      "\"":"&quot;","'":"&#39;"
-    }[c]));
+    String(s || "").replace(/[&<>"']/g, c =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])
+    );
 
   const formatNames = p => esc(p.NAME1 || "");
 
@@ -69,6 +68,7 @@
   function createCard(p) {
     const card = document.createElement("button");
     card.type = "button";
+
     card.className =
       p.status === "done" ? "station-card done" : "station-card pending";
 
@@ -114,15 +114,15 @@
     card.addEventListener("click", () => {
       location.href =
         `freestyle-difficulty.html?id=${p.entryId}`
-      + `&name1=${encodeURIComponent(p.NAME1||"")}`
-      + `&team=${encodeURIComponent(p.team||"")}`
-      + `&state=${encodeURIComponent(p.state||"")}`
-      + `&heat=${encodeURIComponent(p.heat||"")}`
-      + `&station=${station}`
-      + `&key=${key}`
-      + `&event=${encodeURIComponent(p.event||"")}`
-      + `&division=${encodeURIComponent(p.division||"")}`
-      + `&judgeType=${judgeType}`;
+        + `&name1=${encodeURIComponent(p.NAME1 || "")}`
+        + `&team=${encodeURIComponent(p.team || "")}`
+        + `&state=${encodeURIComponent(p.state || "")}`
+        + `&heat=${encodeURIComponent(p.heat || "")}`
+        + `&station=${station}`
+        + `&key=${key}`
+        + `&event=${encodeURIComponent(p.event || "")}`
+        + `&division=${encodeURIComponent(p.division || "")}`
+        + `&judgeType=${judgeType}`;
     });
 
     return card;
@@ -132,7 +132,7 @@
      SORT
   ============================================================ */
   function sortEntries(arr) {
-    return arr.sort((a,b)=>Number(a.heat)-Number(b.heat));
+    return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
   }
 
   /* ============================================================
@@ -149,7 +149,7 @@
   }
 
   /* ============================================================
-     LOAD
+     LOAD DATA
   ============================================================ */
   async function load() {
     const cached = loadCache();
@@ -157,11 +157,11 @@
     else listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
     const data = await apiGet({
-      cmd:"stationlist",
+      cmd: "stationlist",
       station,
       judgeType,
-      _ts:Date.now()
-    }).catch(()=>null);
+      _ts: Date.now()
+    }).catch(() => null);
 
     if (!data || !data.ok) return;
 
@@ -170,10 +170,13 @@
   }
 
   /* ============================================================
-     REFRESH BUTTON
+     ⭐ REFRESH BUTTON FIX — CLEAR CACHE FIRST
   ============================================================ */
   if (btnRefresh)
-    btnRefresh.addEventListener("click", () => location.reload());
+    btnRefresh.addEventListener("click", () => {
+      localStorage.removeItem("freestyle_cache_" + station); // clear cache
+      location.reload();                                     // force reload
+    });
 
   window.addEventListener("load", load);
 

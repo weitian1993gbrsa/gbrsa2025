@@ -1,34 +1,22 @@
 (function () {
 
-  // ============================================================
-  // CLEAR CACHE ON HARD REFRESH (F5 / Reload)
-  // ============================================================
-  if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
-    Object.keys(localStorage).forEach(k => {
-      if (k.startsWith("station_cache_")) {
-        localStorage.removeItem(k);
-      }
-    });
-  }
-
   const $ = (q, el = document) => el.querySelector(q);
+
+  const qs = new URLSearchParams(location.search);
+  const station = qs.get("station");
+  const key = qs.get("key");
 
   const listEl = $("#entryList");
   const stationLabel = $("#stationLabel");
   const btnRefresh = $("#btnRefresh");
 
-  const qs = new URLSearchParams(location.search);
-
-  const station = qs.get("station") || "1";
-  const key = qs.get("key");
-
   stationLabel.textContent = station;
 
   /* ============================================================
-     SECURITY — Key must match station
+     SECURITY
   ============================================================ */
-  const keyInfo = window.JUDGE_KEYS[key];
-  if (!keyInfo || String(keyInfo.station) !== String(station)) {
+  const k = window.JUDGE_KEYS[key];
+  if (!k || k.event !== "speed" || String(k.station) !== station) {
     document.body.innerHTML =
       `<div style="padding:2rem;text-align:center;">
         <h2 style="color:#b00020;">Access Denied</h2>
@@ -36,17 +24,6 @@
       </div>`;
     throw new Error("Unauthorized");
   }
-
-  /* FREESTYLE → redirect */
-  if (keyInfo.event === "freestyle") {
-    const judgeType = keyInfo.judgeType;
-    location.href =
-      `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
-    return;
-  }
-
-  const SPEED_EVENTS = window.SPEED_EVENTS || [];
-  const SPEED_SET = new Set(SPEED_EVENTS);
 
   /* ============================================================
      CACHE SYSTEM
@@ -61,63 +38,68 @@
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       return raw ? JSON.parse(raw) : null;
-    } catch (_) { return null; }
+    } catch { return null; }
   }
 
-  const esc = s => String(s || "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;",
-    "\"": "&quot;", "'": "&#39;"
-  }[c]));
-
-  function formatNames(p) {
-    return [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
-      .filter(v => v && v.trim())
-      .map(esc)
-      .join(", ");
+  function esc(s) {
+    return String(s || "").replace(/[&<>"']/g, c =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])
+    );
   }
+
+  const formatNames = (p) => esc(p.NAME1 || "");
 
   /* ============================================================
-     CARD CREATION (EXTREMELY LIGHTWEIGHT)
+     CARD CREATION
   ============================================================ */
   function createCard(p) {
     const card = document.createElement("button");
-    card.className = (p.status === "done") ? "station-card done" : "station-card pending";
     card.type = "button";
-    card.style.touchAction = "manipulation";
+    card.className = p.status === "done" ? "station-card done" : "station-card pending";
 
-    card.innerHTML = `
-      <div class="top-row">
-        <span>Heat ${p.heat}</span>
-        <span>ID#: ${p.entryId}</span>
-      </div>
-      <div class="name">${formatNames(p)}</div>
-      <div class="team">${p.team || ""}</div>
-      <div class="event-row">
-        <div class="status">${(p.status === "done") ? "COMPLETED" : "NEW"}</div>
-        <div class="event">${p.event}</div>
-      </div>
-    `;
+    const top = document.createElement("div");
+    top.className = "top-row";
 
-    /* SAFE CLICK */
-    card.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const heat = document.createElement("span");
+    heat.textContent = "Heat " + p.heat;
 
-      if (card.dataset.clicked === "1") return;
-      card.dataset.clicked = "1";
-      setTimeout(() => (card.dataset.clicked = "0"), 400);
+    const id = document.createElement("span");
+    id.textContent = "ID#: " + p.entryId;
 
-      if (!navigator.onLine) {
-        alert("No internet connection — cannot judge.");
-        return;
-      }
+    top.appendChild(heat);
+    top.appendChild(id);
 
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = formatNames(p);
+
+    const team = document.createElement("div");
+    team.className = "team";
+    team.textContent = p.team || "";
+
+    const eventRow = document.createElement("div");
+    eventRow.className = "event-row";
+
+    const status = document.createElement("div");
+    status.className = "status";
+    status.textContent = p.status === "done" ? "COMPLETED" : "NEW";
+
+    const eventName = document.createElement("div");
+    eventName.className = "event";
+    eventName.textContent = p.event;
+
+    eventRow.appendChild(status);
+    eventRow.appendChild(eventName);
+
+    card.appendChild(top);
+    card.appendChild(name);
+    card.appendChild(team);
+    card.appendChild(eventRow);
+
+    card.addEventListener("click", () => {
       location.href =
         `speed-judge.html?id=${p.entryId}`
         + `&name1=${encodeURIComponent(p.NAME1 || "")}`
-        + `&name2=${encodeURIComponent(p.NAME2 || "")}`
-        + `&name3=${encodeURIComponent(p.NAME3 || "")}`
-        + `&name4=${encodeURIComponent(p.NAME4 || "")}`
         + `&team=${encodeURIComponent(p.team || "")}`
         + `&state=${encodeURIComponent(p.state || "")}`
         + `&heat=${encodeURIComponent(p.heat || "")}`
@@ -131,58 +113,27 @@
   }
 
   /* ============================================================
-     SORT STRICTLY BY HEAT
+     SORT & RENDER
   ============================================================ */
   function sortEntries(arr) {
     return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
   }
 
-  /* ============================================================
-     SUPER-FAST RENDERING (ADAPTIVE)
-  ============================================================ */
-  function renderList(data) {
-    let arr = (data.entries || []).filter(p =>
-      SPEED_SET.has(String(p.event).trim())
-    );
-
+  function render(data) {
+    let arr = data.entries || [];
     arr = sortEntries(arr);
+
     listEl.innerHTML = "";
-
-    // Adaptive chunk size → fast phones get bigger chunks
-    let CHUNK =
-      (navigator.hardwareConcurrency && navigator.hardwareConcurrency >= 6)
-        ? 25
-        : 10;
-
-    let i = 0;
-
-    function renderChunk() {
-      const end = Math.min(i + CHUNK, arr.length);
-
-      const frag = document.createDocumentFragment();
-      for (; i < end; i++) {
-        frag.appendChild(createCard(arr[i]));
-      }
-      listEl.appendChild(frag);
-
-      if (i < arr.length) {
-        requestIdleCallback(renderChunk, { timeout: 50 });
-      }
-    }
-
-    renderChunk();
+    arr.forEach(p => listEl.appendChild(createCard(p)));
   }
 
   /* ============================================================
-     LOAD (Cache → Backend)
+     LOAD
   ============================================================ */
   async function load() {
     const cached = loadCache();
-    if (cached) {
-      renderList(cached);   // Instantly show cached version
-    } else {
-      listEl.innerHTML = `<div class="hint">Loading…</div>`;
-    }
+    if (cached) render(cached);
+    else listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
     const data = await apiGet({
       cmd: "stationlist",
@@ -193,14 +144,15 @@
     if (!data || !data.ok) return;
 
     saveCache(data);
-    renderList(data);
+    render(data);
   }
 
   /* ============================================================
-     REFRESH BUTTON
+     ⭐ REFRESH BUTTON FIX — CLEAR CACHE FIRST
   ============================================================ */
-  if (btnRefresh) btnRefresh.addEventListener("click", () => {
-    location.reload();
+  btnRefresh.addEventListener("click", () => {
+    localStorage.removeItem("station_cache_" + station); // clear cache
+    location.reload(); // force reload
   });
 
   window.addEventListener("load", load);
