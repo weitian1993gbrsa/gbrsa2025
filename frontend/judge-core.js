@@ -34,10 +34,14 @@ window.JudgeCore = (() => {
   }
 
   /* ------------------------------------------------------------
-     UNIVERSAL POST FUNCTION
+     UNIVERSAL POST FUNCTION — FIXED with ?cmd=submit
   ------------------------------------------------------------ */
   async function sendToBackend(payload) {
-    const res = await fetch(window.CONFIG.APPS_SCRIPT_URL, {
+
+    // ⭐ REQUIRED FIX — Google Apps Script needs a query parameter
+    const url = window.CONFIG.APPS_SCRIPT_URL + "?cmd=submit";
+
+    const res = await fetch(url, {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "Content-Type": "application/json" }
@@ -75,8 +79,8 @@ window.JudgeCore = (() => {
 
   /* ------------------------------------------------------------
      UNIVERSAL SUBMIT HANDLER
-     judgeType = "speed" or "difficulty"
-     fields = { SCORE:..., FALSE_START:..., DIFF:..., REMARK:... }
+     judgeType: "speed" | "difficulty"
+     fields: event-specific scoring fields
   ------------------------------------------------------------ */
   async function submit(judgeType, fields) {
 
@@ -96,7 +100,7 @@ window.JudgeCore = (() => {
       EVENT: params.get("event") || "",
       DIVISION: params.get("division") || "",
 
-      // Event-specific fields (SPEED or DIFFICULTY)
+      // Event-specific fields
       ...fields
     };
 
@@ -110,10 +114,10 @@ window.JudgeCore = (() => {
       if (!result || !result.ok)
         throw new Error(result?.error || "Unknown server error");
 
-      // Mark card as DONE instantly
+      // Update card immediately
       markEntryDoneInCache(payload.STATION, payload.ID);
 
-      // Success → Redirect
+      // Redirect back to station
       setTimeout(goBackToStation, 350);
 
     } catch (err) {
@@ -123,8 +127,6 @@ window.JudgeCore = (() => {
     }
   }
 
-  return {
-    submit
-  };
+  return { submit };
 
 })();
