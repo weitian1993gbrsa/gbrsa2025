@@ -110,7 +110,7 @@
       try {
         const station = params.get("station");
         const entryId = params.get("id");
-        const CACHE_KEY = "station_cache_" + station; // FIXED
+        const CACHE_KEY = "freestyle_cache_" + station; // FIXED
 
         const raw = localStorage.getItem(CACHE_KEY);
         if (raw) {

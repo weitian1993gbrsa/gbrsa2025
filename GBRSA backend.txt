@@ -1,5 +1,5 @@
 /** ============================================================
- *  GBRSA BACKEND 2025 — SPEED + FREESTYLE (AUTO-HEADER VERSION)
+ *  GBRSA BACKEND 2025 — SPEED + FREESTYLE (AUTO-HEADER + TURBO CACHE)
  * ============================================================ **/
 
 /* ------------------------------------------------------------
@@ -80,9 +80,12 @@ function doPost(e) {
     const jt = (p.judgeType || "").toLowerCase();
 
     if (["difficulty","technical","re","presentation"].includes(jt)) {
+      // Clear cache so new "done" status appears within 10 sec
+      clearStationCache(p.STATION);
       return json(writeFreestyle(p));
     }
 
+    clearStationCache(p.STATION);
     return json(writeSpeed(p));
 
   } catch (err) {
@@ -132,31 +135,59 @@ function getParticipant(e) {
 }
 
 /* ------------------------------------------------------------
- * ⭐⭐⭐ SUPER-OPTIMIZED STATION LIST (FAST VERSION)
- * 7–15× faster loading
+ * ⭐⭐⭐ TURBO CACHE HELPERS (Option A: Cache per Station)
+ * ------------------------------------------------------------ */
+function getCacheObject() {
+  const c = CacheService.getScriptCache();
+  return c;
+}
+
+function getCachedStation(station) {
+  const cache = getCacheObject();
+  const raw = cache.get("station_" + station);
+  return raw ? JSON.parse(raw) : null;
+}
+
+function saveCachedStation(station, data) {
+  const cache = getCacheObject();
+  cache.put("station_" + station, JSON.stringify(data), 10); // 10 seconds
+}
+
+function clearStationCache(station) {
+  const cache = getCacheObject();
+  cache.remove("station_" + station);
+}
+
+/* ------------------------------------------------------------
+ * ⭐⭐⭐ SUPER-OPTIMIZED + TURBO CACHED STATION LIST
  * ------------------------------------------------------------ */
 function getStationList(e) {
-  const {
-    SHEET_ID, DATA_SHEET,
-    RESULT_SHEET_SPEED,
-    FS_DIFF, FS_TECH, FS_RE, FS_PRESENT
-  } = getConfig();
+  const { SHEET_ID, DATA_SHEET,
+          RESULT_SHEET_SPEED,
+          FS_DIFF, FS_TECH, FS_RE, FS_PRESENT } = getConfig();
 
   const station = normalize(e.parameter.station);
   const judgeType = normalize(e.parameter.judgeType);
+
+  // 1️⃣ Try cache first — INSTANT result (0ms load)
+  const cached = getCachedStation(station);
+  if (cached) return json(cached);
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const dataSh = ss.getSheetByName(DATA_SHEET);
 
   const lastRow = dataSh.getLastRow();
-  if (lastRow < 2) return json({ ok:true, station, entries: [] });
+  if (lastRow < 2) {
+    const emptyResp = { ok:true, station, entries: [] };
+    saveCachedStation(station, emptyResp);
+    return json(emptyResp);
+  }
 
-  // FAST: Load sheet once
+  // 2️⃣ Load sheet once (fast)
   const all = dataSh.getRange(1,1,lastRow,20).getValues();
   const map = buildHeaderMap(all[0]);
   const entries = [];
 
-  // FAST: only scan relevant station rows
   for (let r = 1; r < lastRow; r++) {
     if (normalize(all[r][map.station]) !== station) continue;
 
@@ -176,18 +207,22 @@ function getStationList(e) {
     });
   }
 
-  // Pick the correct result sheet
+  // 3️⃣ Pick correct result sheet
   const resultSheet =
-    judgeType === "difficulty" ? FS_DIFF :
-    judgeType === "technical" ? FS_TECH :
-    judgeType === "re" ? FS_RE :
-    judgeType === "presentation" ? FS_PRESENT :
-    RESULT_SHEET_SPEED;
+      judgeType === "difficulty" ? FS_DIFF :
+      judgeType === "technical" ? FS_TECH :
+      judgeType === "re" ? FS_RE :
+      judgeType === "presentation" ? FS_PRESENT :
+      RESULT_SHEET_SPEED;
 
   const resultSh = ss.getSheetByName(resultSheet);
-  if (!resultSh) return json({ ok:true, station, entries });
+  if (!resultSh) {
+    const resp = { ok:true, station, entries };
+    saveCachedStation(station, resp);
+    return json(resp);
+  }
 
-  // FAST DONE CHECK: Only load ID + station
+  // 4️⃣ FAST DONE CHECK
   const rh = lowerHeaders(resultSh.getRange(1,1,1,20).getValues()[0]);
   const idC = rh.indexOf("id") + 1;
   const stC = rh.indexOf("station") + 1;
@@ -210,7 +245,12 @@ function getStationList(e) {
     if (judged.has(e.entryId)) e.status = "done";
   });
 
-  return json({ ok:true, station, entries });
+  const finalResp = { ok:true, station, entries };
+
+  // 5️⃣ Store in cache → speeds up next loads
+  saveCachedStation(station, finalResp);
+
+  return json(finalResp);
 }
 
 /* ------------------------------------------------------------
@@ -263,19 +303,16 @@ function writeSpeed(p) {
  * FREESTYLE WRITER — UPDATED (Uses frontend timestamp)
  * ------------------------------------------------------------ */
 function writeFreestyle(p) {
-  const {
-    SHEET_ID,
-    FS_DIFF, FS_TECH, FS_RE, FS_PRESENT
-  } = getConfig();
+  const { SHEET_ID, FS_DIFF, FS_TECH, FS_RE, FS_PRESENT } = getConfig();
 
   const jt = (p.judgeType || "").toLowerCase();
 
   const sheetName =
-    jt === "difficulty" ? FS_DIFF :
-    jt === "technical" ? FS_TECH :
-    jt === "re" ? FS_RE :
-    jt === "presentation" ? FS_PRESENT :
-    null;
+      jt === "difficulty" ? FS_DIFF :
+      jt === "technical" ? FS_TECH :
+      jt === "re" ? FS_RE :
+      jt === "presentation" ? FS_PRESENT :
+      null;
 
   if (!sheetName)
     return { ok:false, error:"Invalid judgeType" };
@@ -286,7 +323,8 @@ function writeFreestyle(p) {
   const REQUIRED =
     jt === "difficulty"
       ? ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"]
-      : ["TIMESTAMP","ID","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","SCORE1","SCORE2","SCORE3","SCORE4","REMARK"];
+      : ["TIMESTAMP","ID","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION",
+         "SCORE1","SCORE2","SCORE3","SCORE4","REMARK"];
 
   if (sh.getLastRow() === 0) {
     sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
