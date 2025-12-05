@@ -23,13 +23,11 @@
   ============================================================ */
   function updateUI() {
     for (const lvl in counts) {
-      const el = document.querySelector("#count" + lvl.replace(".", ""));
+      let el = document.querySelector("#count" + lvl.replace(".", ""));
       if (el) el.textContent = counts[lvl];
     }
-
     let total = 0;
     for (const lvl in counts) total += counts[lvl] * POINTS[lvl];
-
     totalScoreEl.textContent = total.toFixed(2);
   }
 
@@ -71,16 +69,17 @@
   });
 
   /* ============================================================
-     SUBMIT (FULL PATCHED VERSION)
+     SUBMIT (FULL PATCH + BUTTON FIX)
   ============================================================ */
   btnSubmit.addEventListener("click", async () => {
 
+    // Logic lock only — no UI text change
     if (btnSubmit.dataset.lock === "1") return;
     btnSubmit.dataset.lock = "1";
 
     const params = new URLSearchParams(location.search);
 
-    // ⭐ MATCH SPEED OVERLAY BEHAVIOR
+    /* ⭐ SHOW OVERLAY (MATCH SPEED-JUDGE) */
     const overlay = document.getElementById("submitOverlay");
     const overlayText = document.getElementById("overlayText");
 
@@ -88,8 +87,8 @@
     overlay.style.opacity = "1";
     overlayText.textContent = "Submitting…";
 
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = "Saving…";
+    // ⭐ DO NOT change button text or style anymore
+    // btnSubmit.disabled = true;  // Not needed visually, no style change
 
     const payload = {
       judgeType: "difficulty",
@@ -111,14 +110,10 @@
       const result = await apiPost(payload);
       if (!result || !result.ok) throw new Error(result?.error || "Server error");
 
-      // ⭐ SAME FEEDBACK AS SPEED
+      /* ⭐ SPEED-STYLE SUCCESS FEEDBACK */
       overlayText.textContent = "Saved ✔";
 
-      /* ============================================================
-         ⭐ FIX 1 — INSTANT BLUE CARD UPDATE
-         Correct cache key for freestyle:
-         freestyle_cache_<station>
-      ============================================================ */
+      /* ⭐ INSTANT BLUE CARD UPDATE (Correct cache key) */
       try {
         const station = params.get("station");
         const entryId = params.get("id");
@@ -138,7 +133,7 @@
         console.warn("Freestyle cache update error:", err);
       }
 
-      // ⭐ Same delay as speed
+      // ⭐ Exit same as speed
       setTimeout(() => {
         history.back();
       }, 300);
@@ -146,13 +141,11 @@
     } catch (err) {
       overlayText.textContent = "Submit failed";
 
-      setTimeout(() => {
-        overlay.classList.add("hide");
-      }, 700);
+      // hide overlay smoothly
+      setTimeout(() => overlay.classList.add("hide"), 700);
 
-      btnSubmit.disabled = false;
+      // unlock logic only
       btnSubmit.dataset.lock = "0";
-      btnSubmit.textContent = "Submit";
     }
   });
 
