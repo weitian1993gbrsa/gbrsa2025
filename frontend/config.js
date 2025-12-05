@@ -9,7 +9,7 @@ window.CONFIG = {
 
   // Sheets
   DATA_SHEET_NAME: "DATA",
-  RESULT_SHEET_SPEED: "RESULT_SPEED"   // ✔ renamed correctly
+  RESULT_SHEET_SPEED: "RESULT_SPEED"
 
   // Freestyle result sheets will be added after backend upgrade:
   // RESULT_DIFF: "",

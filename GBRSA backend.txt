@@ -1,80 +1,62 @@
 /** ============================================================
- * GBRSA BACKEND 2025 — FINAL SINGLE-FILE VERSION
- * Supports:
- * ✔ SPEED scoring (append)
- * ✔ FREESTYLE scoring (4-judge MERGE into RESULT_F)
- * ✔ STATION LIST
- * ✔ PARTICIPANT LOOKUP
- * ✔ DYNAMIC HEADER MAPPING
+ *  GBRSA BACKEND 2025 — CLEAN SPEED-ONLY VERSION
+ *  Supports:
+ *   ✔ SPEED scoring (append)
+ *   ✔ SPEED station list
+ *   ✔ PARTICIPANT lookup
+ *   ✔ AUTO header detection
  * ============================================================ **/
 
 /* ------------------------------------------------------------
- * 1️⃣ CONFIG
+ * 1️⃣ FIXED CONFIG
  * ------------------------------------------------------------ */
 function getConfig() {
-  const SP = PropertiesService.getScriptProperties();
   return {
-    SHEET_ID: SP.getProperty("SHEET_ID") || "YOUR_SHEET_ID",
-    DATA_SHEET: SP.getProperty("DATA_SHEET_NAME") || "DATA",
-    RESULT_SHEET_SPEED: SP.getProperty("RESULT_SHEET_NAME") || "RESULT",
-    RESULT_SHEET_FREESTYLE: SP.getProperty("RESULT_F_SHEET_NAME") || "RESULT_F",
+    SHEET_ID: "1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg",   // your sheet ID
+    DATA_SHEET: "DATA",
+    RESULT_SHEET_SPEED: "RESULT_SPEED",
     TZ: "Asia/Kuala_Lumpur"
   };
 }
 
 /* ------------------------------------------------------------
- * 2️⃣ UTILITIES
+ *  UTILITIES
  * ------------------------------------------------------------ */
 function json(o) {
   return ContentService.createTextOutput(JSON.stringify(o))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function normalize(s) {
-  return String(s || "").trim();
-}
-
-function safe(v) {
-  return v == null ? "" : v;
-}
+const normalize = s => String(s || "").trim();
+const safe = v => (v == null ? "" : v);
 
 function lowerHeaders(row) {
-  return row.map(v => String(v || "").toLowerCase().trim());
-}
-
-function toDate(val, tz) {
-  if (val instanceof Date) return val;
-  try {
-    const d = new Date(
-      Utilities.formatDate(new Date(val), tz, "yyyy-MM-dd'T'HH:mm:ss")
-    );
-    return isNaN(d) ? null : d;
-  } catch (e) {
-    return null;
-  }
-}
-
-/** Dynamic write-to-row helper */
-function writeRowByHeader(sh, data) {
-  const header = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
-  const hmap = {};
-
-  header.forEach((h, i) => {
-    const key = String(h || "").trim().toLowerCase();
-    if (key) hmap[key] = i + 1;
-  });
-
-  const row = new Array(header.length).fill("");
-  for (const key in data) {
-    const col = hmap[key.toLowerCase()];
-    if (col) row[col - 1] = data[key];
-  }
-
-  sh.appendRow(row);
+  return row.map(v => String(v || "").trim().toLowerCase());
 }
 
 /* ------------------------------------------------------------
- * 3️⃣ ROUTER
+ *  HEADER MAPPING
+ * ------------------------------------------------------------ */
+function buildHeaderMap(headerRow) {
+  const H = lowerHeaders(headerRow);
+  const find = nameList => H.findIndex(h => nameList.includes(h));
+  return {
+    id: find(["id"]),
+    name1: find(["name1"]),
+    name2: find(["name2"]),
+    name3: find(["name3"]),
+    name4: find(["name4"]),
+    team: find(["team"]),
+    state: find(["state"]),
+    heat: find(["heat"]),
+    station: find(["station"]),
+    event: find(["event"]),
+    division: find(["division"])
+  };
+}
+
+/* ------------------------------------------------------------
+ *  ROUTER
  * ------------------------------------------------------------ */
 function doGet(e) {
   const cmd = (e.parameter.cmd || "").toLowerCase();
@@ -82,13 +64,10 @@ function doGet(e) {
   switch (cmd) {
     case "participant":
       return getParticipant(e);
-
     case "stationlist":
       return getStationList(e);
-
     case "ping":
       return json({ ok: true, ts: Date.now() });
-
     default:
       return json({ ok: true, msg: "GBRSA backend online" });
   }
@@ -97,29 +76,19 @@ function doGet(e) {
 function doPost(e) {
   try {
     let p = {};
-
     if (e.postData?.contents) {
-      try {
-        p = JSON.parse(e.postData.contents);
-      } catch {
-        p = e.parameter;
-      }
-    } else {
-      p = e.parameter;
-    }
+      try { p = JSON.parse(e.postData.contents); }
+      catch { p = e.parameter; }
+    } else p = e.parameter;
 
-    const form = (p._form || "").toLowerCase();
-
-    if (form === "freestyle") return json(writeFreestyle(p));
     return json(writeSpeed(p));
-
   } catch (err) {
     return json({ ok: false, error: String(err) });
   }
 }
 
 /* ------------------------------------------------------------
- * 4️⃣ PARTICIPANT LOOKUP
+ *  PARTICIPANT LOOKUP
  * ------------------------------------------------------------ */
 function getParticipant(e) {
   const { SHEET_ID, DATA_SHEET } = getConfig();
@@ -135,7 +104,6 @@ function getParticipant(e) {
   for (let r = 1; r < vals.length; r++) {
     if (normalize(vals[r][map.id]) === id) {
       const row = vals[r];
-
       return json({
         ok: true,
         participant: {
@@ -158,34 +126,16 @@ function getParticipant(e) {
   return json({ ok: false, error: "ID not found" });
 }
 
-function buildHeaderMap(header) {
-  const H = lowerHeaders(header);
-  const find = names => H.findIndex(h => names.includes(h));
-
-  return {
-    id: find(["id"]),
-    name1: find(["name1"]),
-    name2: find(["name2"]),
-    name3: find(["name3"]),
-    name4: find(["name4"]),
-    team: find(["team"]),
-    state: find(["state"]),
-    heat: find(["heat"]),
-    station: find(["station"]),
-    event: find(["event"]),
-    division: find(["division"])
-  };
-}
-
+/* ------------------------------------------------------------
+ *  SPEED STATION LIST
+ * ------------------------------------------------------------ */
 function getStationList(e) {
-  const { SHEET_ID, DATA_SHEET, RESULT_SHEET_SPEED, TZ } = getConfig();
+  const { SHEET_ID, DATA_SHEET, RESULT_SHEET_SPEED } = getConfig();
   const station = normalize(e.parameter.station);
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
 
-  // ===============================
-  //  READ DATA SHEET
-  // ===============================
+  // --- READ DATA SHEET ---
   const dataSh = ss.getSheetByName(DATA_SHEET);
   const dVals = dataSh.getRange(1, 1, dataSh.getLastRow(), 20).getValues();
   const header = dVals[0];
@@ -210,17 +160,16 @@ function getStationList(e) {
       team: safe(row[map.team]),
       state: safe(row[map.state]),
       heat: safe(row[map.heat]),
-      station: safe(row[map.station]),
+      station,
       event: safe(row[map.event]),
       division: safe(row[map.division]),
-      displayName: [row[map.name1], row[map.name2], row[map.name3], row[map.name4]].filter(Boolean).join(" "),
+      displayName: [row[map.name1], row[map.name2], row[map.name3], row[map.name4]]
+        .filter(Boolean).join(" "),
       status: "pending"
     });
   }
 
-  // ===============================
-  //  READ RESULT SHEET — SAME LOGIC AS OLD BACKEND
-  // ===============================
+  // --- READ SPEED RESULT SHEET ---
   const resultSh = ss.getSheetByName(RESULT_SHEET_SPEED);
   const judgedToday = new Set();
 
@@ -228,140 +177,88 @@ function getStationList(e) {
     const rv = resultSh.getRange(1, 1, resultSh.getLastRow(), 20).getValues();
     const rh = lowerHeaders(rv[0]);
 
-    const tsC = rh.indexOf("timestamp");   // IMPORTANT: FIXED INDEX
+    const tsC = rh.indexOf("timestamp");
     const idC = rh.indexOf("id");
     const stC = rh.indexOf("station");
 
-    if (tsC === -1 || idC === -1 || stC === -1) {
-      // fallback to support older sheets
-      return json({ ok: true, station, entries });
-    }
+    if (tsC !== -1 && idC !== -1 && stC !== -1) {
+      const now = new Date();
 
-    const now = new Date(); // Faster than toDate
+      for (let r = 1; r < rv.length; r++) {
+        const ts = rv[r][tsC];
+        if (!(ts instanceof Date)) continue;
 
-    for (let r = 1; r < rv.length; r++) {
-      const ts = rv[r][tsC];
-      if (!(ts instanceof Date)) continue; // skip blank or invalid
+        const same =
+          ts.getFullYear() === now.getFullYear() &&
+          ts.getMonth() === now.getMonth() &&
+          ts.getDate() === now.getDate();
 
-      const sameDay =
-        ts.getFullYear() === now.getFullYear() &&
-        ts.getMonth() === now.getMonth() &&
-        ts.getDate() === now.getDate();
-
-      if (sameDay && normalize(rv[r][stC]) === station) {
-        judgedToday.add(normalize(rv[r][idC]));
+        if (same && normalize(rv[r][stC]) === station) {
+          judgedToday.add(normalize(rv[r][idC]));
+        }
       }
     }
   }
 
-  // APPLY DONE STATE
   entries.forEach(e => {
-    if (judgedToday.has(e.entryId)) {
-      e.status = "done";
-    }
+    if (judgedToday.has(e.entryId)) e.status = "done";
   });
 
   return json({ ok: true, station, entries });
 }
 
 /* ------------------------------------------------------------
- * 6️⃣ SPEED WRITER (append only)
+ *  SPEED WRITER — FULL AUTO HEADER DETECTION
  * ------------------------------------------------------------ */
 function writeSpeed(p) {
   const { SHEET_ID, RESULT_SHEET_SPEED } = getConfig();
   const ss = SpreadsheetApp.openById(SHEET_ID);
-  const sh = ss.getSheetByName(RESULT_SHEET_SPEED);
+  const sh = ss.getSheetByName(RESULT_SHEET_SPEED) || ss.insertSheet(RESULT_SHEET_SPEED);
 
-  if (!sh) throw new Error("RESULT sheet missing!");
-
-  const data = {
-    TIMESTAMP: new Date(),
-    ID: p.ID,
-    SCORE: p.SCORE,
-    "FALSE START": p["FALSE START"],
-    REMARK: p.REMARK,
-    NAME1: p.NAME1,
-    NAME2: p.NAME2,
-    NAME3: p.NAME3,
-    NAME4: p.NAME4,
-    TEAM: p.TEAM,
-    STATE: p.STATE,
-    HEAT: p.HEAT,
-    STATION: p.STATION,
-    EVENT: p.EVENT,
-    DIVISION: p.DIVISION
-  };
-
-  writeRowByHeader(sh, data);
-  return { ok: true };
-}
-
-/* ------------------------------------------------------------
- * 7️⃣ FREESTYLE 4-JUDGE MERGE WRITER
- * ------------------------------------------------------------ */
-function writeFreestyle(p) {
-  const { SHEET_ID, RESULT_SHEET_FREESTYLE } = getConfig();
-
-  const ss = SpreadsheetApp.openById(SHEET_ID);
-  const sh = ss.getSheetByName(RESULT_SHEET_FREESTYLE);
-
-  if (!sh) throw new Error("RESULT_F sheet not found");
+  const header = [
+    "TIMESTAMP","ID","SCORE","FALSE START","REMARK",
+    "NAME1","NAME2","NAME3","NAME4",
+    "TEAM","STATE","HEAT","STATION","EVENT","DIVISION"
+  ];
 
   const lastRow = sh.getLastRow();
-  const lastCol = sh.getLastColumn();
 
-  const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
-  const hmap = {};
-  header.forEach((h, i) => (hmap[String(h).trim().toLowerCase()] = i + 1));
+  // If completely empty, write header
+  if (lastRow === 0) {
+    sh.getRange(1,1,1,header.length).setValues([header]);
+  }
 
-  const ID = String(p.ID).trim();
-  let targetRow = -1;
+  // Detect header row in case user shifts rows
+  const range = sh.getRange(1,1,Math.max(1,lastRow), header.length).getValues();
+  let headerRow = -1;
 
-  // Locate existing row
-  for (let r = 2; r <= lastRow; r++) {
-    const rid = String(sh.getRange(r, hmap["id"]).getValue()).trim();
-    if (rid === ID) {
-      targetRow = r;
+  for (let r = 0; r < range.length; r++) {
+    const row = range[r].map(v => String(v || "").trim().toLowerCase());
+    if (header.every(h => row.includes(h.toLowerCase()))) {
+      headerRow = r + 1;
       break;
     }
   }
 
-  // If no row → create one
-  if (targetRow === -1) {
-    targetRow = lastRow + 1;
-    sh.getRange(targetRow, 1, 1, lastCol).setValues([new Array(lastCol).fill("")]);
+  // If not found, force recreate header at row 1
+  if (headerRow === -1) {
+    sh.clear();
+    sh.getRange(1,1,1,header.length).setValues([header]);
+    headerRow = 1;
   }
 
-  // MERGE updates
-  const updates = {};
+  // Append data under last row
+  const insertRow = sh.getLastRow() + 1;
 
-  if (p.DIFF !== undefined && p.DIFF !== "") updates["diff"] = p.DIFF;
-  if (p.MISSES !== undefined && p.MISSES !== "") updates["misses"] = p.MISSES;
-  if (p.BREAKS !== undefined && p.BREAKS !== "") updates["breaks"] = p.BREAKS;
-  if (p.MissRE !== undefined && p.MissRE !== "") updates["missre"] = p.MissRE;
-  if (p.PRESENTATION !== undefined && p.PRESENTATION !== "")
-    updates["presentation"] = p.PRESENTATION;
+  sh.getRange(insertRow, 1, 1, header.length).setValues([[
+    new Date(),
+    p.ID,
+    p.SCORE,
+    p["FALSE START"],
+    p.REMARK,
+    p.NAME1, p.NAME2, p.NAME3, p.NAME4,
+    p.TEAM, p.STATE, p.HEAT, p.STATION, p.EVENT, p.DIVISION
+  ]]);
 
-  // Identity fields
-  Object.assign(updates, {
-    timestamp: new Date(),
-    id: p.ID,
-    name1: p.NAME1,
-    team: p.TEAM,
-    state: p.STATE,
-    heat: p.HEAT,
-    station: p.STATION,
-    event: p.EVENT,
-    division: p.DIVISION
-  });
-
-  // Apply merged updates
-  for (const key in updates) {
-    const col = hmap[key.toLowerCase()];
-    if (col) {
-      sh.getRange(targetRow, col).setValue(updates[key]);
-    }
-  }
-
-  return { ok: true, row: targetRow };
+  return { ok:true };
 }
