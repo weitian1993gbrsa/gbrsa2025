@@ -45,14 +45,14 @@
       if (navigator.vibrate) navigator.vibrate([80]);
 
       btn.classList.add("pressed");
-      setTimeout(()=>btn.classList.remove("pressed"),150);
+      setTimeout(() => btn.classList.remove("pressed"), 150);
     });
   });
 
   /* ============================================================
      UNDO
   ============================================================ */
-  undoBtn.addEventListener("click", ()=>{
+  undoBtn.addEventListener("click", () => {
     if (!lastAction) return;
     counts[lastAction.level] = lastAction.prev;
     lastAction = null;
@@ -62,7 +62,7 @@
   /* ============================================================
      RESET
   ============================================================ */
-  resetBtn.addEventListener("click", ()=>{
+  resetBtn.addEventListener("click", () => {
     for (let lvl in counts) counts[lvl] = 0;
     lastAction = null;
     updateUI();
@@ -83,7 +83,8 @@
     const params = new URLSearchParams(location.search);
 
     const payload = {
-      judgeType: "difficulty",   // Tells backend which sheet
+      judgeType: "difficulty",
+
       ID: params.get("id") || "",
       NAME1: params.get("name1") || "",
       TEAM: params.get("team") || "",
@@ -93,10 +94,10 @@
       EVENT: params.get("event") || "",
       DIVISION: params.get("division") || "",
 
-      // difficulty result mapped correctly for backend
-      SCORE1: Number(totalScoreEl.textContent),
+      // ✔ Correct field name for backend
+      DIFF: Number(totalScoreEl.textContent),
 
-      REMARK: "" // no remark field in UI
+      REMARK: ""
     };
 
     try {
@@ -105,7 +106,7 @@
 
       btnSubmit.textContent = "Saved ✔";
 
-      // Match speed-judge.js → go back to station
+      // Same as speed-judge → go back to station
       setTimeout(() => {
         history.back();
       }, 350);
