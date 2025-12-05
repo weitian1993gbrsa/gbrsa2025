@@ -23,16 +23,17 @@
   ============================================================ */
   function updateUI() {
     for (const lvl in counts) {
-      let el = document.querySelector("#count" + lvl.replace(".", ""));
+      const el = document.querySelector("#count" + lvl.replace(".", ""));
       if (el) el.textContent = counts[lvl];
     }
+
     let total = 0;
     for (const lvl in counts) total += counts[lvl] * POINTS[lvl];
     totalScoreEl.textContent = total.toFixed(2);
   }
 
   /* ============================================================
-     SKILL BUTTON BEHAVIOR
+     SKILL BUTTONS
   ============================================================ */
   document.querySelectorAll(".skill-btn").forEach(btn => {
     btn.addEventListener("pointerdown", () => {
@@ -69,17 +70,22 @@
   });
 
   /* ============================================================
-     SUBMIT (FULL PATCH + BUTTON FIX)
+     SUBMIT (COMPLETE FIXED VERSION)
   ============================================================ */
   btnSubmit.addEventListener("click", async () => {
 
-    // Logic lock only — no UI text change
+    // Logic lock only
     if (btnSubmit.dataset.lock === "1") return;
     btnSubmit.dataset.lock = "1";
 
     const params = new URLSearchParams(location.search);
+    const station = params.get("station");
+    const judgeType = params.get("judgeType");
+    const key = params.get("key");
 
-    /* ⭐ SHOW OVERLAY (MATCH SPEED-JUDGE) */
+    /* ------------------------------------------------------------
+       SHOW SUBMIT OVERLAY (speed-style)
+    ------------------------------------------------------------ */
     const overlay = document.getElementById("submitOverlay");
     const overlayText = document.getElementById("overlayText");
 
@@ -87,9 +93,11 @@
     overlay.style.opacity = "1";
     overlayText.textContent = "Submitting…";
 
-    // ⭐ DO NOT change button text or style anymore
-    // btnSubmit.disabled = true;  // Not needed visually, no style change
+    // DO NOT change button text or style anymore
 
+    /* ------------------------------------------------------------
+       BUILD PAYLOAD
+    ------------------------------------------------------------ */
     const payload = {
       judgeType: "difficulty",
 
@@ -98,7 +106,7 @@
       TEAM: params.get("team") || "",
       STATE: params.get("state") || "",
       HEAT: params.get("heat") || "",
-      STATION: params.get("station") || "",
+      STATION: station,
       EVENT: params.get("event") || "",
       DIVISION: params.get("division") || "",
 
@@ -110,14 +118,17 @@
       const result = await apiPost(payload);
       if (!result || !result.ok) throw new Error(result?.error || "Server error");
 
-      /* ⭐ SPEED-STYLE SUCCESS FEEDBACK */
+      /* ------------------------------------------------------------
+         SPEED-STYLE SUCCESS
+      ------------------------------------------------------------ */
       overlayText.textContent = "Saved ✔";
 
-      /* ⭐ INSTANT BLUE CARD UPDATE (Correct cache key) */
+      /* ------------------------------------------------------------
+         UPDATE LOCAL CACHE (BLUE CARD)
+      ------------------------------------------------------------ */
       try {
-        const station = params.get("station");
-        const entryId = params.get("id");
         const CACHE_KEY = "freestyle_cache_" + station;
+        const entryId = params.get("id");
 
         const raw = localStorage.getItem(CACHE_KEY);
         if (raw) {
@@ -130,18 +141,24 @@
           localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
         }
       } catch (err) {
-        console.warn("Freestyle cache update error:", err);
+        console.warn("Cache update failed:", err);
       }
 
-      // ⭐ Exit same as speed
+      /* ------------------------------------------------------------
+         ⭐ MOBILE FIX:
+         Use location.href instead of history.back()
+         → Forces full reload
+         → Loads updated BLUE card
+      ------------------------------------------------------------ */
       setTimeout(() => {
-        history.back();
+        location.href =
+          `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
       }, 300);
 
     } catch (err) {
-      overlayText.textContent = "Submit failed";
 
-      // hide overlay smoothly
+      overlayText.textContent = "Submit Failed";
+
       setTimeout(() => overlay.classList.add("hide"), 700);
 
       // unlock logic only
