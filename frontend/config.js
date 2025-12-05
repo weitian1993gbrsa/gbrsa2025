@@ -9,13 +9,8 @@ window.CONFIG = {
 
   // Sheets
   DATA_SHEET_NAME: "DATA",
-  RESULT_SHEET_SPEED: "RESULT_SPEED"
-
-  // Freestyle result sheets will be added after backend upgrade:
-  // RESULT_DIFF: "DIFF",
-  // RESULT_RE: "RE",
-  // RESULT_TECH: "TECHNICAL",
-  // RESULT_PRESENTATION: "PRESENTATION"
+  RESULT_SHEET_SPEED: "RESULT_SPEED",
+  RESULT_SHEET_DIFF: "DIFF"
 };
 
 // Login backend URL
