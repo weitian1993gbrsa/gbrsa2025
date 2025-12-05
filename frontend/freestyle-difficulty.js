@@ -17,6 +17,7 @@
   const btnSubmit    = $("#btnSubmit");
   const undoBtn      = $("#undoBtn");
   const resetBtn     = $("#resetBtn");
+  const overlay      = $("#submitOverlay");
 
   /* ============================================================
      UPDATE UI
@@ -37,13 +38,10 @@
   document.querySelectorAll(".skill-btn").forEach(btn => {
     btn.addEventListener("pointerdown", () => {
       const lvl = btn.dataset.level;
-
       lastAction = { level: lvl, prev: counts[lvl] };
       counts[lvl]++;
-
       updateUI();
       if (navigator.vibrate) navigator.vibrate([80]);
-
       btn.classList.add("pressed");
       setTimeout(() => btn.classList.remove("pressed"), 150);
     });
@@ -69,22 +67,20 @@
   });
 
   /* ============================================================
-     SUBMIT — SAME BEHAVIOR AS SPEED-JUDGE
+     SUBMIT — SAME BEHAVIOR AS SPEED-JUDGE WITH OVERLAY
   ============================================================ */
   btnSubmit.addEventListener("click", async (e) => {
 
-    // Prevent double tap
     if (btnSubmit.dataset.lock === "1") return;
     btnSubmit.dataset.lock = "1";
 
     btnSubmit.disabled = true;
-    btnSubmit.textContent = "Saving…";
+    overlay.classList.remove("hide");  // show overlay
 
     const params = new URLSearchParams(location.search);
 
     const payload = {
       judgeType: "difficulty",
-
       ID: params.get("id") || "",
       NAME1: params.get("name1") || "",
       TEAM: params.get("team") || "",
@@ -93,10 +89,7 @@
       STATION: params.get("station") || "",
       EVENT: params.get("event") || "",
       DIVISION: params.get("division") || "",
-
-      // ✔ Correct field name for backend
       DIFF: Number(totalScoreEl.textContent),
-
       REMARK: ""
     };
 
@@ -106,7 +99,6 @@
 
       btnSubmit.textContent = "Saved ✔";
 
-      // Same as speed-judge → go back to station
       setTimeout(() => {
         history.back();
       }, 350);
@@ -118,6 +110,7 @@
       btnSubmit.disabled = false;
       btnSubmit.dataset.lock = "0";
       btnSubmit.textContent = "Submit";
+      overlay.classList.add("hide");  // hide overlay on failure
     }
   });
 
