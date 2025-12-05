@@ -1,7 +1,7 @@
 (function () {
 
   /* ============================================================
-     MATCH SPEED-STATION: CLEAR CACHE ON HARD RELOAD
+     CLEAR CACHE ON HARD RELOAD
   ============================================================ */
   if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
     Object.keys(localStorage).forEach(k => {
@@ -27,7 +27,7 @@
   judgeTypeLabel.textContent = judgeType.toUpperCase();
 
   /* ============================================================
-     SECURITY CHECK
+     SECURITY
   ============================================================ */
   const k = window.JUDGE_KEYS[key];
   if (!k || k.event !== "freestyle" || String(k.station) !== station) {
@@ -40,12 +40,12 @@
   }
 
   /* ============================================================
-     CACHE
+     CACHE SYSTEM
   ============================================================ */
   const CACHE_KEY = "freestyle_cache_" + station;
 
   function saveCache(data) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_){}
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch(_){}
   }
 
   function loadCache() {
@@ -64,7 +64,7 @@
   const formatNames = p => esc(p.NAME1 || "");
 
   /* ============================================================
-     CREATE CARD
+     CARD CREATION
   ============================================================ */
   function createCard(p) {
     const card = document.createElement("button");
@@ -129,7 +129,7 @@
   }
 
   /* ============================================================
-     SORT LIKE SPEED (STRICT BY HEAT)
+     SORT
   ============================================================ */
   function sortEntries(arr) {
     return arr.sort((a,b)=>Number(a.heat)-Number(b.heat));
@@ -149,7 +149,7 @@
   }
 
   /* ============================================================
-     LOAD LIST (SAME BEHAVIOR AS SPEED)
+     LOAD
   ============================================================ */
   async function load() {
     const cached = loadCache();
@@ -170,12 +170,10 @@
   }
 
   /* ============================================================
-     REFRESH BUTTON — EXACT SAME AS SPEED
+     REFRESH BUTTON
   ============================================================ */
   if (btnRefresh)
-    btnRefresh.addEventListener("click", () => {
-      location.reload();
-    });
+    btnRefresh.addEventListener("click", () => location.reload());
 
   window.addEventListener("load", load);
 
