@@ -77,70 +77,35 @@
   }
 
   /* ============================================================
-     CARD CREATION (NO INDEX, NO MOVE-BOTTOM)
+     CARD CREATION (EXTREMELY LIGHTWEIGHT)
   ============================================================ */
   function createCard(p) {
     const card = document.createElement("button");
+    card.className = (p.status === "done") ? "station-card done" : "station-card pending";
     card.type = "button";
-    card.className =
-      p.status === "done" ? "station-card done" : "station-card pending";
-
     card.style.touchAction = "manipulation";
 
-    /* TOP ROW */
-    const top = document.createElement("div");
-    top.className = "top-row";
+    card.innerHTML = `
+      <div class="top-row">
+        <span>Heat ${p.heat}</span>
+        <span>ID#: ${p.entryId}</span>
+      </div>
+      <div class="name">${formatNames(p)}</div>
+      <div class="team">${p.team || ""}</div>
+      <div class="event-row">
+        <div class="status">${(p.status === "done") ? "COMPLETED" : "NEW"}</div>
+        <div class="event">${p.event}</div>
+      </div>
+    `;
 
-    const heat = document.createElement("span");
-    heat.textContent = "Heat " + p.heat;
-
-    const num = document.createElement("span");
-    num.textContent = `ID#: ${p.entryId}`;
-
-    top.appendChild(heat);
-    top.appendChild(num);
-
-    /* NAME */
-    const name = document.createElement("div");
-    name.className = "name";
-    name.textContent = formatNames(p);
-
-    /* TEAM */
-    const team = document.createElement("div");
-    team.className = "team";
-    team.textContent = p.team || "";
-
-    /* EVENT ROW */
-    const eventRow = document.createElement("div");
-    eventRow.className = "event-row";
-
-    const statusEl = document.createElement("div");
-    statusEl.className = "status";
-    statusEl.textContent = (p.status === "done") ? "COMPLETED" : "NEW";
-
-    const eventName = document.createElement("div");
-    eventName.className = "event";
-    eventName.textContent = p.event;
-
-    eventRow.appendChild(statusEl);
-    eventRow.appendChild(eventName);
-
-    card.appendChild(top);
-    card.appendChild(name);
-    card.appendChild(team);
-    card.appendChild(eventRow);
-
-    /* SAFE CLICK HANDLER */
+    /* SAFE CLICK */
     card.addEventListener("click", (e) => {
-      e.stopPropagation();
       e.preventDefault();
+      e.stopPropagation();
 
       if (card.dataset.clicked === "1") return;
       card.dataset.clicked = "1";
-      setTimeout(() => card.dataset.clicked = "0", 400);
-
-      card.style.pointerEvents = "none";
-      setTimeout(() => (card.style.pointerEvents = ""), 800);
+      setTimeout(() => (card.dataset.clicked = "0"), 400);
 
       if (!navigator.onLine) {
         alert("No internet connection — cannot judge.");
@@ -166,14 +131,14 @@
   }
 
   /* ============================================================
-     SORT STRICTLY BY HEAT ONLY
+     SORT STRICTLY BY HEAT
   ============================================================ */
   function sortEntries(arr) {
     return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
   }
 
   /* ============================================================
-     RENDER LIST — FAST CHUNKED RENDERING
+     SUPER-FAST RENDERING (ADAPTIVE)
   ============================================================ */
   function renderList(data) {
     let arr = (data.entries || []).filter(p =>
@@ -181,19 +146,27 @@
     );
 
     arr = sortEntries(arr);
-
     listEl.innerHTML = "";
 
+    // Adaptive chunk size → fast phones get bigger chunks
+    let CHUNK =
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency >= 6)
+        ? 25
+        : 10;
+
     let i = 0;
-    const CHUNK = 20;
 
     function renderChunk() {
       const end = Math.min(i + CHUNK, arr.length);
+
+      const frag = document.createDocumentFragment();
       for (; i < end; i++) {
-        listEl.appendChild(createCard(arr[i]));
+        frag.appendChild(createCard(arr[i]));
       }
+      listEl.appendChild(frag);
+
       if (i < arr.length) {
-        requestAnimationFrame(renderChunk); // smooth rendering
+        requestIdleCallback(renderChunk, { timeout: 50 });
       }
     }
 
@@ -206,7 +179,7 @@
   async function load() {
     const cached = loadCache();
     if (cached) {
-      renderList(cached);
+      renderList(cached);   // Instantly show cached version
     } else {
       listEl.innerHTML = `<div class="hint">Loading…</div>`;
     }
