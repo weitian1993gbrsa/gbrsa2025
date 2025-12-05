@@ -4,16 +4,16 @@
   const params = new URLSearchParams(location.search);
 
   /* ============================================================
-     PRELOAD + WARMUP (same as speed)
+     PRELOAD + WARMUP (same style as speed judge)
   ============================================================ */
-  const returnURL =
+  const returnURL = 
     `freestyle-station.html?station=${params.get("station")}&key=${params.get("key")}`;
 
   fetch(returnURL).catch(()=>{});
   fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 
   /* ============================================================
-     SCORING SYSTEM (unchanged)
+     SCORING SYSTEM (UNCHANGED)
   ============================================================ */
   const POINTS = {
     "0.5": 0.12, "1": 0.15, "2": 0.23, "3": 0.34,
@@ -38,6 +38,9 @@
     totalScoreEl.textContent = total.toFixed(2);
   }
 
+  /* ============================================================
+     SKILL BUTTON LOGIC
+  ============================================================ */
   document.querySelectorAll(".skill-btn").forEach(btn => {
     btn.style.touchAction = "manipulation";
 
@@ -52,9 +55,12 @@
 
       btn.classList.add("pressed");
       setTimeout(() => btn.classList.remove("pressed"), 150);
-    }, { passive:true });
+    }, { passive: true });
   });
 
+  /* ============================================================
+     UNDO / RESET
+  ============================================================ */
   undoBtn.addEventListener("click", () => {
     if (!lastAction) return;
     counts[lastAction.level] = lastAction.prev;
@@ -69,15 +75,14 @@
   });
 
   /* ============================================================
-     SUBMIT (IDENTICAL TO Speed behavior)
+     SUBMIT (IDENTICAL TO SPEED-JUDGE BEHAVIOR)
   ============================================================ */
-
   const overlay = $("#submitOverlay");
   const overlayText = $("#overlayText");
 
   btnSubmit.addEventListener("click", async () => {
 
-    // prevent double tap
+    // prevent double submit
     if (btnSubmit.dataset.lock === "1") return;
     btnSubmit.dataset.lock = "1";
 
@@ -89,6 +94,7 @@
 
     const payload = {
       judgeType: "difficulty",
+
       ID: params.get("id"),
       NAME1: params.get("name1"),
       TEAM: params.get("team"),
@@ -97,6 +103,7 @@
       STATION: params.get("station"),
       EVENT: params.get("event"),
       DIVISION: params.get("division"),
+
       DIFF: diffScore,
       REMARK: ""
     };
@@ -106,7 +113,7 @@
         overlayText.textContent = "Saved ✔";
 
         /* ============================================================
-           INSTANT CACHE UPDATE — MATCH SPEED EXACTLY
+           ⭐ MATCH SPEED — INSTANT BLUE CARD UPDATE
         ============================================================ */
         try {
           const station = params.get("station");
@@ -118,18 +125,20 @@
             const cacheData = JSON.parse(raw);
 
             cacheData.entries = cacheData.entries.map(e =>
-              e.entryId === entryId ? { ...e, status:"done" } : e
+              e.entryId === entryId ? { ...e, status: "done" } : e
             );
 
             localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
           }
-        } catch (err) {}
+        } catch (err) {
+          console.warn("Cache update error:", err);
+        }
 
         /* ============================================================
-           SAME REDIRECT AS SPEED
+           ⭐ MATCH SPEED — REDIRECT USING FIXED URL
         ============================================================ */
         setTimeout(() => {
-          location.href = returnURL;
+          location.href = returnURL;   // ALWAYS back to freestyle station
         }, 150);
       })
 
