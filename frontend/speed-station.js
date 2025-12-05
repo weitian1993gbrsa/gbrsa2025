@@ -46,6 +46,7 @@
   }
 
   const SPEED_EVENTS = window.SPEED_EVENTS || [];
+  const SPEED_SET = new Set(SPEED_EVENTS);
 
   /* ============================================================
      CACHE SYSTEM
@@ -93,7 +94,6 @@
     const heat = document.createElement("span");
     heat.textContent = "Heat " + p.heat;
 
-    // Show Entry ID only
     const num = document.createElement("span");
     num.textContent = `ID#: ${p.entryId}`;
 
@@ -167,24 +167,37 @@
 
   /* ============================================================
      SORT STRICTLY BY HEAT ONLY
-     (NO NEW/DONE EFFECT ON ORDER)
   ============================================================ */
   function sortEntries(arr) {
     return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
   }
 
   /* ============================================================
-     RENDER LIST
+     RENDER LIST — FAST CHUNKED RENDERING
   ============================================================ */
   function renderList(data) {
     let arr = (data.entries || []).filter(p =>
-      SPEED_EVENTS.includes(String(p.event).trim())
+      SPEED_SET.has(String(p.event).trim())
     );
 
-    arr = sortEntries(arr); // ⭐ Strict heat order only
+    arr = sortEntries(arr);
 
     listEl.innerHTML = "";
-    arr.forEach((p) => listEl.appendChild(createCard(p)));
+
+    let i = 0;
+    const CHUNK = 20;
+
+    function renderChunk() {
+      const end = Math.min(i + CHUNK, arr.length);
+      for (; i < end; i++) {
+        listEl.appendChild(createCard(arr[i]));
+      }
+      if (i < arr.length) {
+        requestAnimationFrame(renderChunk); // smooth rendering
+      }
+    }
+
+    renderChunk();
   }
 
   /* ============================================================
