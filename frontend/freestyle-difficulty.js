@@ -1,7 +1,19 @@
 (function () {
 
+  const $ = (q) => document.querySelector(q);
+  const params = new URLSearchParams(location.search);
+
   /* ============================================================
-     POINT TABLE (IJRU)
+     PRELOAD + WARMUP (same as speed)
+  ============================================================ */
+  const returnURL =
+    `freestyle-station.html?station=${params.get("station")}&key=${params.get("key")}`;
+
+  fetch(returnURL).catch(()=>{});
+  fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
+
+  /* ============================================================
+     SCORING SYSTEM (unchanged)
   ============================================================ */
   const POINTS = {
     "0.5": 0.12, "1": 0.15, "2": 0.23, "3": 0.34,
@@ -11,16 +23,11 @@
   let counts = { "0.5":0, "1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0 };
   let lastAction = null;
 
-  const $ = (q) => document.querySelector(q);
-
   const totalScoreEl = $("#totalScore");
-  const btnSubmit    = $("#btnSubmit");
-  const undoBtn      = $("#undoBtn");
-  const resetBtn     = $("#resetBtn");
+  const undoBtn = $("#undoBtn");
+  const resetBtn = $("#resetBtn");
+  const btnSubmit = $("#btnSubmit");
 
-  /* ============================================================
-     UPDATE UI
-  ============================================================ */
   function updateUI() {
     for (const lvl in counts) {
       let el = document.querySelector("#count" + lvl.replace(".", ""));
@@ -31,10 +38,9 @@
     totalScoreEl.textContent = total.toFixed(2);
   }
 
-  /* ============================================================
-     SKILL BUTTON BEHAVIOR
-  ============================================================ */
   document.querySelectorAll(".skill-btn").forEach(btn => {
+    btn.style.touchAction = "manipulation";
+
     btn.addEventListener("pointerdown", () => {
       const lvl = btn.dataset.level;
 
@@ -46,12 +52,9 @@
 
       btn.classList.add("pressed");
       setTimeout(() => btn.classList.remove("pressed"), 150);
-    });
+    }, { passive:true });
   });
 
-  /* ============================================================
-     UNDO
-  ============================================================ */
   undoBtn.addEventListener("click", () => {
     if (!lastAction) return;
     counts[lastAction.level] = lastAction.prev;
@@ -59,9 +62,6 @@
     updateUI();
   });
 
-  /* ============================================================
-     RESET
-  ============================================================ */
   resetBtn.addEventListener("click", () => {
     for (let lvl in counts) counts[lvl] = 0;
     lastAction = null;
@@ -69,75 +69,76 @@
   });
 
   /* ============================================================
-     SUBMIT — SAME LOGIC AS YOUR BACKUP
+     SUBMIT (IDENTICAL TO Speed behavior)
   ============================================================ */
+
+  const overlay = $("#submitOverlay");
+  const overlayText = $("#overlayText");
+
   btnSubmit.addEventListener("click", async () => {
 
+    // prevent double tap
     if (btnSubmit.dataset.lock === "1") return;
     btnSubmit.dataset.lock = "1";
 
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = "Saving…";
+    const diffScore = Number(totalScoreEl.textContent);
 
-    const params = new URLSearchParams(location.search);
+    overlay.style.opacity = "1";
+    overlay.classList.remove("hide");
+    overlayText.textContent = "Submitting…";
 
     const payload = {
       judgeType: "difficulty",
-
-      ID: params.get("id") || "",
-      NAME1: params.get("name1") || "",
-      TEAM: params.get("team") || "",
-      STATE: params.get("state") || "",
-      HEAT: params.get("heat") || "",
-      STATION: params.get("station") || "",
-      EVENT: params.get("event") || "",
-      DIVISION: params.get("division") || "",
-
-      DIFF: Number(totalScoreEl.textContent),
+      ID: params.get("id"),
+      NAME1: params.get("name1"),
+      TEAM: params.get("team"),
+      STATE: params.get("state"),
+      HEAT: params.get("heat"),
+      STATION: params.get("station"),
+      EVENT: params.get("event"),
+      DIVISION: params.get("division"),
+      DIFF: diffScore,
       REMARK: ""
     };
 
-    try {
-      const result = await apiPost(payload);
-      if (!result || !result.ok) throw new Error(result?.error || "Server error");
+    apiPost(payload)
+      .then(() => {
+        overlayText.textContent = "Saved ✔";
 
-      btnSubmit.textContent = "Saved ✔";
+        /* ============================================================
+           INSTANT CACHE UPDATE — MATCH SPEED EXACTLY
+        ============================================================ */
+        try {
+          const station = params.get("station");
+          const entryId = params.get("id");
+          const CACHE_KEY = "station_cache_" + station;
 
-      /* ============================================================
-         ⭐ INSTANT BLUE CARD (FIX)
-         Same cache key used by speed judge: "station_cache_<station>"
-      ============================================================ */
-      try {
-        const station = params.get("station");
-        const entryId = params.get("id");
-        const CACHE_KEY = "station_cache_" + station; // FIXED
+          const raw = localStorage.getItem(CACHE_KEY);
+          if (raw) {
+            const cacheData = JSON.parse(raw);
 
-        const raw = localStorage.getItem(CACHE_KEY);
-        if (raw) {
-          const cacheData = JSON.parse(raw);
+            cacheData.entries = cacheData.entries.map(e =>
+              e.entryId === entryId ? { ...e, status:"done" } : e
+            );
 
-          cacheData.entries = cacheData.entries.map(e =>
-            e.entryId === entryId ? { ...e, status: "done" } : e
-          );
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+          }
+        } catch (err) {}
 
-          localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-        }
-      } catch (err) {
-        console.warn("Cache update error:", err);
-      }
+        /* ============================================================
+           SAME REDIRECT AS SPEED
+        ============================================================ */
+        setTimeout(() => {
+          location.href = returnURL;
+        }, 150);
+      })
 
-      // return to station
-      setTimeout(() => {
-        history.back();
-      }, 350);
+      .catch(() => {
+        overlayText.textContent = "Submit failed";
+        setTimeout(() => overlay.classList.add("hide"), 800);
 
-    } catch (err) {
-      alert("Submit failed — " + err.message);
-
-      btnSubmit.disabled = false;
-      btnSubmit.dataset.lock = "0";
-      btnSubmit.textContent = "Submit";
-    }
+        btnSubmit.dataset.lock = "0";
+      });
   });
 
   updateUI();
