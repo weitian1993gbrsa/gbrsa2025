@@ -113,14 +113,16 @@
 
     card.addEventListener("click", () => {
       location.href =
-        `freestyle-judge.html?id=${p.entryId}`
-        + `&name1=${encodeURIComponent(p.NAME1||"")}`
-        + `&team=${encodeURIComponent(p.team||"")}`
-        + `&state=${encodeURIComponent(p.state||"")}`
-        + `&heat=${encodeURIComponent(p.heat||"")}`
-        + `&station=${station}`
-        + `&key=${key}`
-        + `&judgeType=${judgeType}`;
+        `freestyle-difficulty.html?id=${p.entryId}`
+      + `&name1=${encodeURIComponent(p.NAME1||"")}`
+      + `&team=${encodeURIComponent(p.team||"")}`
+      + `&state=${encodeURIComponent(p.state||"")}`
+      + `&heat=${encodeURIComponent(p.heat||"")}`
+      + `&station=${station}`
+      + `&key=${key}`
+      + `&event=${encodeURIComponent(p.event||"")}`
+      + `&division=${encodeURIComponent(p.division||"")}`
+      + `&judgeType=${judgeType}`;
     });
 
     return card;
