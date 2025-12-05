@@ -1,78 +1,60 @@
 (function () {
 
-  // ============================================================
-  // CLEAR CACHE ON HARD REFRESH (F5 / Reload)
-  // ============================================================
-  if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
-    Object.keys(localStorage).forEach(k => {
-      if (k.startsWith("freestyle_cache_")) {
-        localStorage.removeItem(k);
-      }
-    });
-  }
-
   const $ = (q, el = document) => el.querySelector(q);
 
   const listEl = $("#entryList");
   const stationLabel = $("#stationLabel");
+  const judgeLabel = $("#judgeTypeLabel");
   const btnRefresh = $("#btnRefresh");
 
   const qs = new URLSearchParams(location.search);
-
   const station = qs.get("station");
   const key = qs.get("key");
-  const judgeType = qs.get("judgeType");
-
-  stationLabel.textContent = station;
+  const judgeType = qs.get("judgeType"); // difficulty / technical / re / presentation
 
   /* ============================================================
-     SECURITY — Must be freestyle judge
+     SECURITY CHECK
   ============================================================ */
   const keyInfo = window.JUDGE_KEYS[key];
   if (!keyInfo || keyInfo.event !== "freestyle") {
     document.body.innerHTML =
-      `<h2 style="padding:2rem;color:#b00020;">Invalid Access</h2>`;
+      `<h2 style="padding:2rem;color:red;">Invalid Access</h2>`;
     return;
   }
 
-  const FREESTYLE_EVENTS = window.FREESTYLE_EVENTS || [];
+  if (!judgeType) {
+    document.body.innerHTML =
+      `<h2 style="padding:2rem;color:red;">Missing judgeType</h2>`;
+    return;
+  }
+
+  stationLabel.textContent = station;
+  judgeLabel.textContent = judgeType.toUpperCase();
 
   /* ============================================================
-     CACHE SYSTEM
+     HTML ESCAPE
   ============================================================ */
-  const CACHE_KEY = "freestyle_cache_" + station;
-
-  function saveCache(data) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) {}
-  }
-
-  function loadCache() {
-    try {
-      const raw = localStorage.getItem(CACHE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (_) { return null; }
-  }
-
   const esc = s => String(s || "").replace(/[&<>"']/g, c => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;",
     "\"": "&quot;", "'": "&#39;"
   }[c]));
 
-  function formatNames(p) {
-    return [p.NAME1, p.NAME2, p.NAME3, p.NAME4]
-      .filter(v => v && v.trim())
-      .map(esc)
-      .join(", ");
+  /* ============================================================
+     NAME FORMAT (ONLY NAME1)
+  ============================================================ */
+  function formatName(p) {
+    return esc(p.NAME1 || "");
   }
 
   /* ============================================================
-     CARD CREATION (NO INDEX)
+     CREATE CARD
   ============================================================ */
   function createCard(p) {
     const card = document.createElement("button");
     card.type = "button";
-    card.className =
-      p.status === "done" ? "station-card done" : "station-card pending";
+    card.className = p.status === "done"
+      ? "station-card done"
+      : "station-card pending";
 
     card.style.touchAction = "manipulation";
 
@@ -89,10 +71,10 @@
     top.appendChild(heat);
     top.appendChild(idLabel);
 
-    /* NAME */
+    /* NAME1 ONLY */
     const name = document.createElement("div");
     name.className = "name";
-    name.textContent = formatNames(p);
+    name.textContent = formatName(p);
 
     /* TEAM */
     const team = document.createElement("div");
@@ -114,30 +96,21 @@
     eventRow.appendChild(statusEl);
     eventRow.appendChild(evt);
 
+    /* APPEND ALL */
     card.appendChild(top);
     card.appendChild(name);
     card.appendChild(team);
     card.appendChild(eventRow);
 
-    /* SAFE TAP HANDLER */
+    /* CARD CLICK HANDLER — FIXED WITH judgeType PASSING */
     card.addEventListener("pointerdown", (e) => {
       e.preventDefault();
 
-      if (card.dataset.clicked === "1") return;
-      card.dataset.clicked = "1";
-      setTimeout(() => (card.dataset.clicked = "0"), 350);
-
-      if (!navigator.onLine) {
-        alert("No Internet");
-        return;
-      }
-
       location.href =
-        `freestyle-${judgeType}.html?id=${p.entryId}`
+        `freestyle-${judgeType}.html`
+        + `?judgeType=${judgeType}`
+        + `&id=${p.entryId}`
         + `&name1=${encodeURIComponent(p.NAME1 || "")}`
-        + `&name2=${encodeURIComponent(p.NAME2 || "")}`
-        + `&name3=${encodeURIComponent(p.NAME3 || "")}`
-        + `&name4=${encodeURIComponent(p.NAME4 || "")}`
         + `&team=${encodeURIComponent(p.team || "")}`
         + `&state=${encodeURIComponent(p.state || "")}`
         + `&heat=${encodeURIComponent(p.heat || "")}`
@@ -151,20 +124,17 @@
   }
 
   /* ============================================================
-     SORT STRICTLY BY HEAT (JUST LIKE SPEED)
+     SORT BY HEAT
   ============================================================ */
   function sortEntries(arr) {
     return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
   }
 
   /* ============================================================
-     RENDER LIST
+     RENDER
   ============================================================ */
   function renderList(data) {
-    let arr = (data.entries || []).filter(p =>
-      FREESTYLE_EVENTS.includes(String(p.event).trim())
-    );
-
+    let arr = data.entries || [];
     arr = sortEntries(arr);
 
     listEl.innerHTML = "";
@@ -172,34 +142,30 @@
   }
 
   /* ============================================================
-     LOAD (Cache → Backend)
+     LOAD
   ============================================================ */
   async function load() {
-    const cached = loadCache();
-    if (cached) {
-      renderList(cached);
-    } else {
-      listEl.innerHTML = `<div class="hint">Loading…</div>`;
-    }
+    listEl.innerHTML = `<div class="hint">Loading…</div>`;
 
     const data = await apiGet({
-      cmd: "stationlist",
+      cmd: "stationlist_fs",
       station,
+      judgeType,
       _ts: Date.now()
     }).catch(() => null);
 
-    if (!data || !data.ok) return;
+    if (!data || !data.ok) {
+      listEl.innerHTML = `<div class="hint">Failed to load</div>`;
+      return;
+    }
 
-    saveCache(data);
     renderList(data);
   }
 
   /* ============================================================
      REFRESH BUTTON
   ============================================================ */
-  if (btnRefresh) btnRefresh.addEventListener("click", () => {
-    location.reload();
-  });
+  btnRefresh.addEventListener("click", load);
 
   window.addEventListener("load", load);
 
