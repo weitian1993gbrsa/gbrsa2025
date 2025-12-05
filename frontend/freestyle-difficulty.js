@@ -69,18 +69,21 @@
   });
 
   /* ============================================================
-     SUBMIT — ADMIN STYLE
+     SUBMIT — SAME BEHAVIOR AS SPEED-JUDGE
   ============================================================ */
-  btnSubmit.addEventListener("click", async () => {
+  btnSubmit.addEventListener("click", async (e) => {
+
+    // Prevent double tap
+    if (btnSubmit.dataset.lock === "1") return;
+    btnSubmit.dataset.lock = "1";
 
     btnSubmit.disabled = true;
-    btnSubmit.textContent = "Saving...";
+    btnSubmit.textContent = "Saving…";
 
     const params = new URLSearchParams(location.search);
 
     const payload = {
-      _form: "freestyle",
-
+      judgeType: "difficulty",   // Tells backend which sheet
       ID: params.get("id") || "",
       NAME1: params.get("name1") || "",
       TEAM: params.get("team") || "",
@@ -90,22 +93,29 @@
       EVENT: params.get("event") || "",
       DIVISION: params.get("division") || "",
 
-      // Difficulty result
-      DIFF: Number(totalScoreEl.textContent),
+      // difficulty result mapped correctly for backend
+      SCORE1: Number(totalScoreEl.textContent),
 
+      REMARK: "" // no remark field in UI
     };
 
     try {
       const result = await apiPost(payload);
-      if (!result || !result.ok) throw new Error(result?.error || "Server rejected");
+      if (!result || !result.ok) throw new Error(result?.error || "Server error");
 
       btnSubmit.textContent = "Saved ✔";
-      setTimeout(() => history.back(), 400);
+
+      // Match speed-judge.js → go back to station
+      setTimeout(() => {
+        history.back();
+      }, 350);
 
     } catch (err) {
-      console.error(err);
       alert("Submit failed — " + err.message);
+      console.error(err);
+
       btnSubmit.disabled = false;
+      btnSubmit.dataset.lock = "0";
       btnSubmit.textContent = "Submit";
     }
   });
