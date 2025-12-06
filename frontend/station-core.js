@@ -1,10 +1,5 @@
 /* ============================================================
    STATION CORE — Universal Station Loader (Speed + Freestyle)
-   Includes: 
-   ✔ Turbo cache
-   ✔ Card status color
-   ✔ Name1–Name4 combined display
-   ✔ Supports speed & freestyle
 ============================================================ */
 
 (function () {
@@ -16,11 +11,8 @@
   let station = null;
   let judgeKey = null;
   let judgeType = null;
-  let eventType = null; // speed or freestyle
+  let eventType = null;
 
-  /* ------------------------------------------------------------
-     INIT FROM URL PARAMETERS
-  ------------------------------------------------------------ */
   function init() {
     const qs = new URLSearchParams(location.search);
 
@@ -30,13 +22,9 @@
     eventType = window.JUDGE_KEYS?.[judgeKey]?.event || "speed";
 
     headerTitleEl.textContent = `Station ${station}`;
-
     loadStationList();
   }
 
-  /* ------------------------------------------------------------
-     API CALL TO BACKEND
-  ------------------------------------------------------------ */
   async function loadStationList() {
 
     stationListEl.innerHTML = `<div class="loading">Loading...</div>`;
@@ -60,9 +48,6 @@
     }
   }
 
-  /* ------------------------------------------------------------
-     RENDER ENTRY CARDS
-  ------------------------------------------------------------ */
   function renderEntries(entries) {
 
     if (!entries || entries.length === 0) {
@@ -77,12 +62,11 @@
       const card = document.createElement("div");
       card.className = `station-card ${e.status === "done" ? "done" : "new"}`;
 
-      /* ⭐ NEW FIX — Combine name1–name4 cleanly */
+      /* ⭐ FIXED — SAFE COMBINATION OF NAMES */
       const names = [e.NAME1, e.NAME2, e.NAME3, e.NAME4]
-        .filter(n => n && n.trim() !== "")
+        .filter(n => n && String(n).trim() !== "")
         .join(" • ");
 
-      /* Card Layout */
       card.innerHTML = `
         <div class="entry-content">
 
@@ -108,9 +92,6 @@
     });
   }
 
-  /* ------------------------------------------------------------
-     OPEN JUDGE FORM (Speed or Freestyle)
-  ------------------------------------------------------------ */
   function openJudgeForm(e) {
 
     const params = new URLSearchParams({
@@ -137,9 +118,6 @@
     location.href = `freestyle-difficulty.html?${params.toString()}`;
   }
 
-  /* ------------------------------------------------------------
-     PUBLIC REFRESH BUTTON
-  ------------------------------------------------------------ */
   window.refreshStation = function () {
     loadStationList();
   };
