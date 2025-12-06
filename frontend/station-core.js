@@ -22,10 +22,10 @@
         options.mode ||
         (judgeType ? "freestyle" : "speed");
 
-      const listEl        = $("#entryList");
-      const stationLabel  = $("#stationLabel");
+      const listEl         = $("#entryList");
+      const stationLabel   = $("#stationLabel");
       const judgeTypeLabel = $("#judgeTypeLabel");
-      const btnRefresh    = $("#btnRefresh");
+      const btnRefresh     = $("#btnRefresh");
 
       stationLabel.textContent = station;
 
@@ -53,6 +53,15 @@
           ? ("station_cache_" + station)
           : ("freestyle_cache_" + station);
 
+      /* ------------------------------------------------------------
+         ANDROID SWIPE-REFRESH FIX
+         Detect browser reload and clear cache (forces fresh data)
+      ------------------------------------------------------------ */
+      if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
+        console.log("[StationCore] Android swipe refresh detected — clearing cache");
+        localStorage.removeItem(CACHE_KEY);
+      }
+
       function saveCache(data) {
         try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) {}
       }
@@ -65,7 +74,7 @@
       }
 
       /* ------------------------------------------------------------
-         ESCAPE
+         ESCAPE HTML
       ------------------------------------------------------------ */
       const esc = s =>
         String(s || "").replace(/[&<>"']/g, c =>
@@ -101,7 +110,7 @@
           type === "technical"     ? "freestyle-technical.html" :
           type === "re"            ? "freestyle-re.html" :
           type === "presentation"  ? "freestyle-presentation.html" :
-          "freestyle-difficulty.html"; // fallback
+          "freestyle-difficulty.html";
 
         return (
           `${page}?id=${p.entryId}` +
@@ -166,7 +175,6 @@
         card.appendChild(team);
         card.appendChild(eventRow);
 
-        // CLICK → judge
         card.addEventListener("click", () => {
           location.href = resolveJudgePage(p);
         });
@@ -235,7 +243,7 @@
       }
 
       /* ------------------------------------------------------------
-         ANDROID PULL-DOWN REFRESH
+         BACKUP: Custom Pull-down (optional)
       ------------------------------------------------------------ */
       let startY = 0;
 
@@ -246,11 +254,8 @@
       document.addEventListener("touchmove", (e) => {
         const currentY = e.touches[0].clientY;
 
-        // pull-down gesture from top
         if (window.scrollY === 0 && currentY - startY > 80) {
-          console.log("[StationCore] Pull-down refresh detected!");
-
-          // clear cache + reload same as refresh button
+          console.log("[StationCore] Custom pull-down refresh triggered");
           localStorage.removeItem(CACHE_KEY);
           location.reload();
         }
