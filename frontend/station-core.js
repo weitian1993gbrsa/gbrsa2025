@@ -72,7 +72,19 @@
           ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])
         );
 
-      const formatNames = p => esc(p.NAME1 || "");
+      /* ------------------------------------------------------------
+         ⭐ PATCHED NAME FORMATTER (Name1–4 Support)
+      ------------------------------------------------------------ */
+      const formatNames = p => {
+        const names = [
+          p.NAME1,
+          p.NAME2,
+          p.NAME3,
+          p.NAME4
+        ].filter(n => n && String(n).trim() !== "");
+
+        return esc(names.join(", "));
+      };
 
       /* ------------------------------------------------------------
          JUDGE PAGE RESOLVER
@@ -141,7 +153,7 @@
 
         const name = document.createElement("div");
         name.className = "name";
-        name.textContent = formatNames(p);
+        name.textContent = formatNames(p);   // ⭐ patched
 
         const team = document.createElement("div");
         team.className = "team";
