@@ -55,7 +55,7 @@
 
       /* ------------------------------------------------------------
          ANDROID SWIPE-REFRESH FIX
-         Detect browser reload and clear cache (forces fresh data)
+         Detect browser reload → clear cache → force fresh data
       ------------------------------------------------------------ */
       if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
         console.log("[StationCore] Android swipe refresh detected — clearing cache");
@@ -102,7 +102,7 @@
           );
         }
 
-        // FREESTYLE:
+        // --- FREESTYLE ---
         const type = judgeType;
 
         const page =
@@ -183,15 +183,12 @@
       }
 
       /* ------------------------------------------------------------
-         SORTING
+         SORTING & RENDER
       ------------------------------------------------------------ */
       function sortEntries(arr) {
         return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
       }
 
-      /* ------------------------------------------------------------
-         RENDER
-      ------------------------------------------------------------ */
       function render(data) {
         let arr = data.entries || [];
 
@@ -233,7 +230,7 @@
       }
 
       /* ------------------------------------------------------------
-         REFRESH BUTTON
+         REFRESH BUTTON (manual)
       ------------------------------------------------------------ */
       if (btnRefresh) {
         btnRefresh.addEventListener("click", () => {
@@ -241,25 +238,6 @@
           location.reload();
         });
       }
-
-      /* ------------------------------------------------------------
-         BACKUP: Custom Pull-down (optional)
-      ------------------------------------------------------------ */
-      let startY = 0;
-
-      document.addEventListener("touchstart", (e) => {
-        startY = e.touches[0].clientY;
-      }, { passive: true });
-
-      document.addEventListener("touchmove", (e) => {
-        const currentY = e.touches[0].clientY;
-
-        if (window.scrollY === 0 && currentY - startY > 80) {
-          console.log("[StationCore] Custom pull-down refresh triggered");
-          localStorage.removeItem(CACHE_KEY);
-          location.reload();
-        }
-      }, { passive: true });
 
       /* ------------------------------------------------------------
          ON PAGE LOAD
