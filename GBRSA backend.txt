@@ -1,10 +1,7 @@
 /** ============================================================
- *  GBRSA BACKEND 2025 — SPEED + FREESTYLE (AUTO-HEADER + TURBO CACHE)
+ *  GBRSA BACKEND 2025 — FULLY PATCHED (Timestamp Fix Applied)
  * ============================================================ **/
 
-/* ------------------------------------------------------------
- * CONFIG
- * ------------------------------------------------------------ */
 function getConfig() {
   return {
     SHEET_ID: "1jJzY7YPWp2z--NoA9zjegzss4ZJXH4_eTuaePmHe0dg",
@@ -21,9 +18,6 @@ function getConfig() {
   };
 }
 
-/* ------------------------------------------------------------
- * UTILITIES
- * ------------------------------------------------------------ */
 function json(o) {
   return ContentService.createTextOutput(JSON.stringify(o))
     .setMimeType(ContentService.MimeType.JSON);
@@ -54,9 +48,6 @@ function buildHeaderMap(headerRow) {
   };
 }
 
-/* ------------------------------------------------------------
- * ROUTER
- * ------------------------------------------------------------ */
 function doGet(e) {
   const cmd = (e.parameter.cmd || "").toLowerCase();
 
@@ -80,7 +71,6 @@ function doPost(e) {
     const jt = (p.judgeType || "").toLowerCase();
 
     if (["difficulty","technical","re","presentation"].includes(jt)) {
-      // Clear cache so new "done" status appears within 10 sec
       clearStationCache(p.STATION);
       return json(writeFreestyle(p));
     }
@@ -93,9 +83,7 @@ function doPost(e) {
   }
 }
 
-/* ------------------------------------------------------------
- * PARTICIPANT LOOKUP
- * ------------------------------------------------------------ */
+/* ---------------- PARTICIPANT LOOKUP ---------------- */
 function getParticipant(e) {
   const { SHEET_ID, DATA_SHEET } = getConfig();
 
@@ -134,63 +122,35 @@ function getParticipant(e) {
   return json({ ok:false, error:"ID not found" });
 }
 
-/* ------------------------------------------------------------
- * ⭐⭐⭐ TURBO CACHE HELPERS (Option A: Cache per Station)
- * ------------------------------------------------------------ */
-function getCacheObject() {
-  const c = CacheService.getScriptCache();
-  return c;
-}
+/* ---------------- CACHE HELPERS ---------------- */
+function getCacheObject() { return CacheService.getScriptCache(); }
+function getCachedStation(s) { const r = getCacheObject().get("station_"+s); return r ? JSON.parse(r) : null; }
+function saveCachedStation(s, d) { getCacheObject().put("station_"+s, JSON.stringify(d), 10); }
+function clearStationCache(s) { getCacheObject().remove("station_"+s); }
 
-function getCachedStation(station) {
-  const cache = getCacheObject();
-  const raw = cache.get("station_" + station);
-  return raw ? JSON.parse(raw) : null;
-}
-
-function saveCachedStation(station, data) {
-  const cache = getCacheObject();
-  cache.put("station_" + station, JSON.stringify(data), 10); // 10 seconds
-}
-
-function clearStationCache(station) {
-  const cache = getCacheObject();
-  cache.remove("station_" + station);
-}
-
-/* ------------------------------------------------------------
- * ⭐⭐⭐ SUPER-OPTIMIZED + TURBO CACHED STATION LIST
- * ------------------------------------------------------------ */
+/* ---------------- STATION LIST (WITH DATE FIX) ---------------- */
 function getStationList(e) {
-  const { SHEET_ID, DATA_SHEET,
-          RESULT_SHEET_SPEED,
-          FS_DIFF, FS_TECH, FS_RE, FS_PRESENT } = getConfig();
+  const {
+    SHEET_ID, DATA_SHEET,
+    RESULT_SHEET_SPEED, FS_DIFF, FS_TECH, FS_RE, FS_PRESENT
+  } = getConfig();
 
   const station = normalize(e.parameter.station);
-  const judgeType = normalize(e.parameter.judgeType);
+  const judgeType = normalize(e.parameter.judgeType || "");
 
-  // 1️⃣ Try cache first — INSTANT result (0ms load)
   const cached = getCachedStation(station);
   if (cached) return json(cached);
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const dataSh = ss.getSheetByName(DATA_SHEET);
-
   const lastRow = dataSh.getLastRow();
-  if (lastRow < 2) {
-    const emptyResp = { ok:true, station, entries: [] };
-    saveCachedStation(station, emptyResp);
-    return json(emptyResp);
-  }
 
-  // 2️⃣ Load sheet once (fast)
   const all = dataSh.getRange(1,1,lastRow,20).getValues();
   const map = buildHeaderMap(all[0]);
-  const entries = [];
 
+  const entries = [];
   for (let r = 1; r < lastRow; r++) {
     if (normalize(all[r][map.station]) !== station) continue;
-
     entries.push({
       entryId: safe(all[r][map.id]),
       NAME1: safe(all[r][map.name1]),
@@ -207,35 +167,47 @@ function getStationList(e) {
     });
   }
 
-  // 3️⃣ Pick correct result sheet
-  const resultSheet =
+  const sheetName =
       judgeType === "difficulty" ? FS_DIFF :
       judgeType === "technical" ? FS_TECH :
       judgeType === "re" ? FS_RE :
       judgeType === "presentation" ? FS_PRESENT :
       RESULT_SHEET_SPEED;
 
-  const resultSh = ss.getSheetByName(resultSheet);
+  const resultSh = ss.getSheetByName(sheetName);
   if (!resultSh) {
-    const resp = { ok:true, station, entries };
-    saveCachedStation(station, resp);
-    return json(resp);
+    const r = { ok:true, station, entries };
+    saveCachedStation(station, r);
+    return json(r);
   }
 
-  // 4️⃣ FAST DONE CHECK
   const rh = lowerHeaders(resultSh.getRange(1,1,1,20).getValues()[0]);
   const idC = rh.indexOf("id") + 1;
   const stC = rh.indexOf("station") + 1;
+  const tsC = rh.indexOf("timestamp") + 1;
 
   const judged = new Set();
   const rRows = resultSh.getLastRow();
 
-  if (idC > 0 && stC > 0 && rRows > 1) {
+  const todayStr = Utilities.formatDate(new Date(), "Asia/Kuala_Lumpur", "yyyy-MM-dd");
+
+  if (idC > 0 && stC > 0 && tsC > 0 && rRows > 1) {
     const idVals = resultSh.getRange(2, idC, rRows - 1, 1).getValues();
     const stVals = resultSh.getRange(2, stC, rRows - 1, 1).getValues();
+    const tsVals = resultSh.getRange(2, tsC, rRows - 1, 1).getValues();
 
     for (let i = 0; i < idVals.length; i++) {
-      if (normalize(stVals[i][0]) === station) {
+      const st = normalize(stVals[i][0]);
+      const tsRaw = tsVals[i][0];
+      if (!tsRaw) continue;
+
+      const rowDateStr = Utilities.formatDate(
+        new Date(tsRaw),
+        "Asia/Kuala_Lumpur",
+        "yyyy-MM-dd"
+      );
+
+      if (st === station && rowDateStr === todayStr) {
         judged.add(normalize(idVals[i][0]));
       }
     }
@@ -245,17 +217,13 @@ function getStationList(e) {
     if (judged.has(e.entryId)) e.status = "done";
   });
 
-  const finalResp = { ok:true, station, entries };
+  const resp = { ok:true, station, entries };
+  saveCachedStation(station, resp);
 
-  // 5️⃣ Store in cache → speeds up next loads
-  saveCachedStation(station, finalResp);
-
-  return json(finalResp);
+  return json(resp);
 }
 
-/* ------------------------------------------------------------
- * SPEED WRITER (UNCHANGED)
- * ------------------------------------------------------------ */
+/* ---------------- SPEED WRITER (TIMESTAMP FIXED) ---------------- */
 function writeSpeed(p) {
   const { SHEET_ID, RESULT_SHEET_SPEED } = getConfig();
 
@@ -268,19 +236,18 @@ function writeSpeed(p) {
     "TEAM","STATE","HEAT","STATION","EVENT","DIVISION"
   ];
 
-  if (sh.getLastRow() === 0) {
-    sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
-  }
+  if (sh.getLastRow() === 0) sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
 
   const header = sh.getRange(1,1,1,REQUIRED.length).getValues()[0]
     .map(h => String(h).trim().toUpperCase());
-
   const COL = {};
   REQUIRED.forEach(h => COL[h] = header.indexOf(h) + 1);
 
   const row = sh.getLastRow() + 1;
 
+  /** STORE RAW DATE OBJECT (NOT STRING) **/
   sh.getRange(row, COL["TIMESTAMP"]).setValue(new Date());
+
   sh.getRange(row, COL["ID"]).setValue(p.ID);
   sh.getRange(row, COL["SCORE"]).setValue(p.SCORE);
   sh.getRange(row, COL["FALSE START"]).setValue(p["FALSE START"]);
@@ -296,92 +263,51 @@ function writeSpeed(p) {
   sh.getRange(row, COL["EVENT"]).setValue(p.EVENT);
   sh.getRange(row, COL["DIVISION"]).setValue(p.DIVISION);
 
+  /** Apply Malaysia format **/
+  sh.getRange(2, COL["TIMESTAMP"], sh.getLastRow()-1, 1)
+    .setNumberFormat("dd/MM/yyyy HH:mm:ss");
+
   return { ok:true };
 }
 
-/* ------------------------------------------------------------
- * FREESTYLE WRITER — FIXED VERSION (MATCHES YOUR SHEETS)
- * ------------------------------------------------------------ */
+/* ---------------- FREESTYLE WRITER (TIMESTAMP FIXED) ---------------- */
 function writeFreestyle(p) {
   const { SHEET_ID, FS_DIFF, FS_TECH, FS_RE, FS_PRESENT } = getConfig();
 
   const jt = (p.judgeType || "").toLowerCase();
+  const sheetName =
+      jt === "difficulty" ? FS_DIFF :
+      jt === "technical" ? FS_TECH :
+      jt === "re" ? FS_RE :
+      jt === "presentation" ? FS_PRESENT :
+      null;
 
-  let sheetName = null;
-  let REQUIRED = null;
-
-  // DIFFICULTY
-  if (jt === "difficulty") {
-    sheetName = FS_DIFF;
-    REQUIRED = ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
-  }
-
-  // TECHNICAL (MISSES + BREAKS)
-  else if (jt === "technical") {
-    sheetName = FS_TECH;
-    REQUIRED = ["TIMESTAMP","ID","MISSES","BREAKS","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
-  }
-
-  // RE (MISSRE)
-  else if (jt === "re") {
-    sheetName = FS_RE;
-    REQUIRED = ["TIMESTAMP","ID","MISSRE","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
-  }
-
-  // PRESENTATION
-  else if (jt === "presentation") {
-    sheetName = FS_PRESENT;
-    REQUIRED = ["TIMESTAMP","ID","PRESENTATION","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
-  }
-
-  // If judgeType is wrong
-  else {
-    return { ok:false, error:"Invalid judgeType" };
-  }
+  if (!sheetName) return { ok:false, error:"Invalid judgeType" };
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const sh = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
 
-  // Create header row if sheet empty
+  const REQUIRED =
+    jt === "difficulty"
+      ? ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"]
+      : ["TIMESTAMP","ID","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION",
+         "SCORE1","SCORE2","SCORE3","SCORE4","REMARK"];
+
   if (sh.getLastRow() === 0) {
     sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
   }
 
   const header = sh.getRange(1,1,1,REQUIRED.length).getValues()[0]
     .map(h => String(h).trim().toUpperCase());
-
   const COL = {};
   REQUIRED.forEach(h => COL[h] = header.indexOf(h) + 1);
 
   const row = sh.getLastRow() + 1;
-  const fullTS = p.TIMESTAMP ? new Date(p.TIMESTAMP) : new Date();
 
-  // Timestamp & ID
-  sh.getRange(row, COL["TIMESTAMP"]).setValue(fullTS);
+  /** Store RAW DATE object **/
+  sh.getRange(row, COL["TIMESTAMP"]).setValue(new Date());
+
   sh.getRange(row, COL["ID"]).setValue(p.ID);
-
-  // Difficulty
-  if (jt === "difficulty") {
-    sh.getRange(row, COL["DIFF"]).setValue(p.DIFF);
-  }
-
-  // Technical: MISSES + BREAKS
-  if (jt === "technical") {
-    sh.getRange(row, COL["MISSES"]).setValue(p.MISSES);
-    sh.getRange(row, COL["BREAKS"]).setValue(p.BREAKS);
-  }
-
-  // RE: MISSRE
-  if (jt === "re") {
-    sh.getRange(row, COL["MISSRE"]).setValue(p.MISSRE);
-  }
-
-  // Presentation: PRESENTATION
-  if (jt === "presentation") {
-    sh.getRange(row, COL["PRESENTATION"]).setValue(p.PRESENTATION);
-  }
-
-  // Shared participant info
   sh.getRange(row, COL["NAME1"]).setValue(p.NAME1);
   sh.getRange(row, COL["TEAM"]).setValue(p.TEAM);
   sh.getRange(row, COL["STATE"]).setValue(p.STATE);
@@ -390,8 +316,20 @@ function writeFreestyle(p) {
   sh.getRange(row, COL["EVENT"]).setValue(p.EVENT);
   sh.getRange(row, COL["DIVISION"]).setValue(p.DIVISION);
 
+  if (jt === "difficulty") {
+    sh.getRange(row, COL["DIFF"]).setValue(p.DIFF);
+  } else {
+    sh.getRange(row, COL["SCORE1"]).setValue(p.SCORE1 || "");
+    sh.getRange(row, COL["SCORE2"]).setValue(p.SCORE2 || "");
+    sh.getRange(row, COL["SCORE3"]).setValue(p.SCORE3 || "");
+    sh.getRange(row, COL["SCORE4"]).setValue(p.SCORE4 || "");
+  }
+
   sh.getRange(row, COL["REMARK"]).setValue(p.REMARK || "");
+
+  /** Apply Malaysia display format **/
+  sh.getRange(2, COL["TIMESTAMP"], sh.getLastRow()-1, 1)
+    .setNumberFormat("dd/MM/yyyy HH:mm:ss");
 
   return { ok:true };
 }
-
