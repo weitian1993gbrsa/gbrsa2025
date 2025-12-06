@@ -300,32 +300,49 @@ function writeSpeed(p) {
 }
 
 /* ------------------------------------------------------------
- * FREESTYLE WRITER — UPDATED (Uses frontend timestamp)
+ * FREESTYLE WRITER — FIXED VERSION (MATCHES YOUR SHEETS)
  * ------------------------------------------------------------ */
 function writeFreestyle(p) {
   const { SHEET_ID, FS_DIFF, FS_TECH, FS_RE, FS_PRESENT } = getConfig();
 
   const jt = (p.judgeType || "").toLowerCase();
 
-  const sheetName =
-      jt === "difficulty" ? FS_DIFF :
-      jt === "technical" ? FS_TECH :
-      jt === "re" ? FS_RE :
-      jt === "presentation" ? FS_PRESENT :
-      null;
+  let sheetName = null;
+  let REQUIRED = null;
 
-  if (!sheetName)
+  // DIFFICULTY
+  if (jt === "difficulty") {
+    sheetName = FS_DIFF;
+    REQUIRED = ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+  }
+
+  // TECHNICAL (MISSES + BREAKS)
+  else if (jt === "technical") {
+    sheetName = FS_TECH;
+    REQUIRED = ["TIMESTAMP","ID","MISSES","BREAKS","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+  }
+
+  // RE (MISSRE)
+  else if (jt === "re") {
+    sheetName = FS_RE;
+    REQUIRED = ["TIMESTAMP","ID","MISSRE","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+  }
+
+  // PRESENTATION
+  else if (jt === "presentation") {
+    sheetName = FS_PRESENT;
+    REQUIRED = ["TIMESTAMP","ID","PRESENTATION","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+  }
+
+  // If judgeType is wrong
+  else {
     return { ok:false, error:"Invalid judgeType" };
+  }
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const sh = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
 
-  const REQUIRED =
-    jt === "difficulty"
-      ? ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"]
-      : ["TIMESTAMP","ID","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION",
-         "SCORE1","SCORE2","SCORE3","SCORE4","REMARK"];
-
+  // Create header row if sheet empty
   if (sh.getLastRow() === 0) {
     sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
   }
@@ -337,11 +354,34 @@ function writeFreestyle(p) {
   REQUIRED.forEach(h => COL[h] = header.indexOf(h) + 1);
 
   const row = sh.getLastRow() + 1;
-
   const fullTS = p.TIMESTAMP ? new Date(p.TIMESTAMP) : new Date();
-  sh.getRange(row, COL["TIMESTAMP"]).setValue(fullTS);
 
+  // Timestamp & ID
+  sh.getRange(row, COL["TIMESTAMP"]).setValue(fullTS);
   sh.getRange(row, COL["ID"]).setValue(p.ID);
+
+  // Difficulty
+  if (jt === "difficulty") {
+    sh.getRange(row, COL["DIFF"]).setValue(p.DIFF);
+  }
+
+  // Technical: MISSES + BREAKS
+  if (jt === "technical") {
+    sh.getRange(row, COL["MISSES"]).setValue(p.MISSES);
+    sh.getRange(row, COL["BREAKS"]).setValue(p.BREAKS);
+  }
+
+  // RE: MISSRE
+  if (jt === "re") {
+    sh.getRange(row, COL["MISSRE"]).setValue(p.MISSRE);
+  }
+
+  // Presentation: PRESENTATION
+  if (jt === "presentation") {
+    sh.getRange(row, COL["PRESENTATION"]).setValue(p.PRESENTATION);
+  }
+
+  // Shared participant info
   sh.getRange(row, COL["NAME1"]).setValue(p.NAME1);
   sh.getRange(row, COL["TEAM"]).setValue(p.TEAM);
   sh.getRange(row, COL["STATE"]).setValue(p.STATE);
@@ -350,16 +390,8 @@ function writeFreestyle(p) {
   sh.getRange(row, COL["EVENT"]).setValue(p.EVENT);
   sh.getRange(row, COL["DIVISION"]).setValue(p.DIVISION);
 
-  if (jt === "difficulty") {
-    sh.getRange(row, COL["DIFF"]).setValue(p.DIFF);
-  } else {
-    sh.getRange(row, COL["SCORE1"]).setValue(p.SCORE1 || "");
-    sh.getRange(row, COL["SCORE2"]).setValue(p.SCORE2 || "");
-    sh.getRange(row, COL["SCORE3"]).setValue(p.SCORE3 || "");
-    sh.getRange(row, COL["SCORE4"]).setValue(p.SCORE4 || "");
-  }
-
   sh.getRange(row, COL["REMARK"]).setValue(p.REMARK || "");
 
   return { ok:true };
 }
+

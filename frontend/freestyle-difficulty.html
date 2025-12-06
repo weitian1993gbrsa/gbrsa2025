@@ -101,7 +101,19 @@
 <script defer src="./app.js"></script>
 <script defer src="./config.js"></script>
 <script defer src="./nozoom.js"></script>
-<script defer src="./freestyle-difficulty.js"></script>
+<script defer src="./judge-core.js"></script>
+<script defer src="./judge-forms.js"></script>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    const logic = initJudgeForm("difficulty");
+    JudgeCore.init({
+        judgeType: "difficulty",
+        submitButton: document.getElementById("btnSubmit"),
+        buildScore: () => logic.getScore()
+    });
+});
+</script>
 
 <!-- Submit Overlay -->
 <div id="submitOverlay" class="overlay hide">

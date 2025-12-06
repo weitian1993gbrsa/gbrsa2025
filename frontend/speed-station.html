@@ -10,7 +10,13 @@
   <!-- IMPORTANT: LOAD ORDER -->
   <script defer src="./config.js"></script>
   <script defer src="./app.js"></script>
-  <script defer src="./speed-station.js"></script>
+  <script defer src="./station-core.js"></script>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    StationCore.init({ mode:"speed" });
+});
+</script>
 
   <style>
     /* Sticky header fix */

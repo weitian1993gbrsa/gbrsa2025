@@ -15,8 +15,20 @@
   <!-- Core scripts -->
   <script defer src="./config.js"></script>
   <script defer src="./app.js"></script>
-  <script defer src="./speed-judge.js"></script>
+  <script defer src="./judge-core.js"></script>
+  <script defer src="./judge-forms.js"></script>
 
+  <script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const logic = initJudgeForm("speed");
+    JudgeCore.init({
+        judgeType: "speed",
+        submitButton: document.querySelector(".np-enter"),
+        buildScore: () => logic.getScore()
+    });
+});
+</script>
+  
   <style>
     .judge-header {
       display: flex;
@@ -143,7 +155,7 @@
         <button type="button" class="np-clear" data-key="clear">Clear</button>
         <button type="button" data-key="0">0</button>
 
-        <button type="submit" class="np-enter">Submit</button>
+        <button type="button" class="np-enter">Submit</button>
       </div>
 
       <input type="hidden" name="SCORE" id="hiddenScore"/>
