@@ -234,6 +234,31 @@
         });
       }
 
+      /* ------------------------------------------------------------
+         ANDROID PULL-DOWN REFRESH
+      ------------------------------------------------------------ */
+      let startY = 0;
+
+      document.addEventListener("touchstart", (e) => {
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+
+      document.addEventListener("touchmove", (e) => {
+        const currentY = e.touches[0].clientY;
+
+        // pull-down gesture from top
+        if (window.scrollY === 0 && currentY - startY > 80) {
+          console.log("[StationCore] Pull-down refresh detected!");
+
+          // clear cache + reload same as refresh button
+          localStorage.removeItem(CACHE_KEY);
+          location.reload();
+        }
+      }, { passive: true });
+
+      /* ------------------------------------------------------------
+         ON PAGE LOAD
+      ------------------------------------------------------------ */
       window.addEventListener("load", load);
     }
   };
