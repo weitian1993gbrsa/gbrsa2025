@@ -61,10 +61,7 @@
 
           let current = this.scoreScreen.textContent.trim();
 
-          // Remove leading zero
           if (current === "0") current = "";
-
-          // Prevent typing more than 3 digits
           if (current.length >= MAX_DIGITS) return;
 
           this.scoreScreen.textContent = current + key;
@@ -82,8 +79,7 @@
 
 
   /* ------------------------------------------------------------
-     DIFFICULTY (FREESTYLE) — Full UI Logic + Scoring
-     Based on the user's old freestyle-difficulty.js
+     DIFFICULTY (FREESTYLE)
 ------------------------------------------------------------ */
   JudgeForms.difficulty = {
 
@@ -102,9 +98,7 @@
       this.undoBtn = document.querySelector("#undoBtn");
       this.resetBtn = document.querySelector("#resetBtn");
 
-      /* -------------------------------------------
-         SKILL BUTTONS
-      ------------------------------------------- */
+      /* SKILL BUTTONS */
       document.querySelectorAll(".skill-btn").forEach(btn => {
         btn.addEventListener("pointerdown", () => {
           const lvl = btn.dataset.level;
@@ -114,45 +108,38 @@
 
           this.updateUI();
 
-          if (navigator.vibrate) navigator.vibrate([80]);
+          if (navigator.vibrate) navigator.vibrate([80]); // vibration
           btn.classList.add("pressed");
           setTimeout(() => btn.classList.remove("pressed"), 150);
         });
       });
 
-      /* -------------------------------------------
-   UNDO ACTION — High Sensitivity Patch
-------------------------------------------- */
-const undoHandler = () => {
-  if (!this.lastAction) return;
+      /* UNDO (high sensitivity) */
+      const undoHandler = () => {
+        if (!this.lastAction) return;
 
-  this.counts[this.lastAction.level] = this.lastAction.prev;
-  this.lastAction = null;
-  this.updateUI();
-};
+        this.counts[this.lastAction.level] = this.lastAction.prev;
+        this.lastAction = null;
+        this.updateUI();
 
-// Touchstart = instant response (mobile)
-this.undoBtn.addEventListener("touchstart", undoHandler, { passive: true });
+        if (navigator.vibrate) navigator.vibrate([40]);
+      };
 
-// Pointerdown = covers mouse, stylus, some Android
-this.undoBtn.addEventListener("pointerdown", undoHandler);
+      this.undoBtn.addEventListener("touchstart", undoHandler, { passive: true });
+      this.undoBtn.addEventListener("pointerdown", undoHandler);
 
-
-      /* -------------------------------------------
-         RESET ALL COUNTS
-      ------------------------------------------- */
+      /* RESET */
       this.resetBtn.addEventListener("click", () => {
         for (let lvl in this.counts) this.counts[lvl] = 0;
         this.lastAction = null;
         this.updateUI();
+
+        if (navigator.vibrate) navigator.vibrate([120]); // strong vibration
       });
 
       this.updateUI();
     },
 
-    /* -------------------------------------------
-       Update Displayed Counts + Total Score
-    ------------------------------------------- */
     updateUI() {
       for (const lvl in this.counts) {
         const id = "#count" + lvl.replace(".", "");
@@ -166,19 +153,14 @@ this.undoBtn.addEventListener("pointerdown", undoHandler);
       this.totalScoreEl.textContent = total.toFixed(2);
     },
 
-    /* -------------------------------------------
-       Return Score to judge-core.js
-    ------------------------------------------- */
     getScore() {
-      return {
-        DIFF: Number(this.totalScoreEl?.textContent || 0)
-      };
+      return { DIFF: Number(this.totalScoreEl?.textContent || 0) };
     }
   };
 
 
 /* ------------------------------------------------------------
-   TECHNICAL (FREESTYLE) — IJRU STYLE UNDO
+   TECHNICAL — patched vibration + IJRU undo behavior
 ------------------------------------------------------------ */
 JudgeForms.technical = {
 
@@ -199,7 +181,6 @@ JudgeForms.technical = {
     const undoBtn  = document.getElementById("undoBtn");
     const resetBtn = document.getElementById("resetBtn");
 
-    // Hide UNDO initially
     undoBtn.classList.add("hidden");
 
     /* === MISSES TAP === */
@@ -213,6 +194,11 @@ JudgeForms.technical = {
       missEl.textContent = window.technicalMisses;
 
       undoBtn.classList.remove("hidden");
+
+      // vibration + animation
+      if (navigator.vibrate) navigator.vibrate([80]);
+      missBtn.classList.add("pressed");
+      setTimeout(() => missBtn.classList.remove("pressed"), 150);
     });
 
     /* === BREAKS TAP === */
@@ -226,6 +212,10 @@ JudgeForms.technical = {
       breakEl.textContent = window.technicalBreaks;
 
       undoBtn.classList.remove("hidden");
+
+      if (navigator.vibrate) navigator.vibrate([80]);
+      breakBtn.classList.add("pressed");
+      setTimeout(() => breakBtn.classList.remove("pressed"), 150);
     });
 
     /* === UNDO === */
@@ -238,10 +228,10 @@ JudgeForms.technical = {
       missEl.textContent  = window.technicalMisses;
       breakEl.textContent = window.technicalBreaks;
 
-      // Hide after undo (IJRU behavior)
       undoBtn.classList.add("hidden");
-
       this.lastAction = null;
+
+      if (navigator.vibrate) navigator.vibrate([40]); // light vibration
     });
 
     /* === RESET === */
@@ -249,11 +239,13 @@ JudgeForms.technical = {
       window.technicalMisses = 0;
       window.technicalBreaks = 0;
 
-      missEl.textContent  = 0;
+      missEl.textContent = 0;
       breakEl.textContent = 0;
 
       undoBtn.classList.add("hidden");
       this.lastAction = null;
+
+      if (navigator.vibrate) navigator.vibrate([120]); // strong vibration
     });
   },
 
