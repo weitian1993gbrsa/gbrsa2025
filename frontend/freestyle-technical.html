@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+  <title>Technical Judge</title>
+
+  <link rel="stylesheet" href="./styles.css"/>
+
+  <style>
+    * { -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+    body { background:#f4f5f7; margin:0; font-family:Arial, sans-serif; }
+
+    /* ===== HEADER (Copied from Difficulty) ===== */
+    header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1rem; background:white; border-bottom:1px solid #ddd;
+    }
+    .back-btn {
+      background:white; border:1px solid #ccc;
+      padding:12px 22px; font-size:18px; border-radius:12px;
+    }
+    .submit-btn {
+      background:#1e88ff; color:white; padding:12px 26px;
+      border-radius:12px; border:none; font-size:18px; font-weight:bold;
+    }
+
+    /* ===== CONTROL BAR ===== */
+    .control-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:1rem 1.2rem; margin:0 auto; max-width:650px;
+    }
+    .btn-undo {
+      background:rgb(233,165,39); border:1px solid #ccc;
+      padding:12px 26px; font-size:18px; border-radius:12px;
+    }
+    .btn-reset {
+      background:#e53935; color:white; border:none;
+      font-size:18px; padding:12px 26px; border-radius:12px;
+    }
+
+    /* ===== Hide undo (IJRU style) ===== */
+    .hidden {
+      opacity:0;
+      pointer-events:none;
+      visibility:hidden;
+    }
+
+    /* ===== 2 Column Layout ===== */
+    .grid {
+      display:grid; grid-template-columns:repeat(2,1fr); gap:18px;
+      margin:1rem auto; max-width:650px; width:100%; padding:0 1rem;
+    }
+
+    .skill-btn {
+      height:380px;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      color:white; font-weight:700;
+      user-select:none; border:none;
+      border-radius:12px;
+      transition:transform .15s ease;
+    }
+    .skill-btn:active { transform:scale(0.95); }
+
+    .miss-btn { background:#e53935; }
+    .break-btn { background:#fb8c00; }
+
+    /* New font sizes (PATCHED) */
+    .block-label {
+      font-size:46px;
+      font-weight:700;
+      letter-spacing:1px;
+    }
+    .block-number {
+      font-size:20px;
+      font-weight:800;
+      margin-top:12px;
+    }
+
+    /* ===== Overlay ===== */
+    .overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999;
+    }
+    .overlay.hide { display: none; }
+    .overlay-card {
+      background: #fff; padding: 2rem 3rem; border-radius: 16px; text-align: center;
+    }
+    .loading .dot {
+      display: inline-block; width: 10px; height: 10px; margin: 0 3px;
+      background: #333; border-radius: 50%; animation: blink 1s infinite;
+    }
+    .loading .dot:nth-child(2) { animation-delay: 0.2s; }
+    .loading .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,80%,100% {opacity:0;} 40% {opacity:1;} }
+    .overlay-text { margin-top: 1rem; font-weight: 600; }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <button class="back-btn" onclick="history.back()">Back</button>
+  <h1 style="margin:0;font-size:16px;">Technical Judge</h1>
+  <button class="submit-btn" id="btnSubmit">Submit</button>
+</header>
+
+<div class="control-row">
+  <button id="undoBtn" class="btn-undo hidden">Undo</button>
+  <div></div>
+  <button id="resetBtn" class="btn-reset">Reset</button>
+</div>
+
+<div class="grid">
+  <button class="skill-btn miss-btn" data-type="miss">
+    <div class="block-label">MISSES</div>
+    <div id="missCount" class="block-number">0</div>
+  </button>
+
+  <button class="skill-btn break-btn" data-type="break">
+    <div class="block-label">BREAKS</div>
+    <div id="breakCount" class="block-number">0</div>
+  </button>
+</div>
+
+<!-- Scripts -->
+<script defer src="./app.js"></script>
+<script defer src="./config.js"></script>
+<script defer src="./nozoom.js"></script>
+<script defer src="./judge-core.js"></script>
+<script defer src="./judge-forms.js"></script>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    const logic = initJudgeForm("technical");
+    JudgeCore.init({
+        judgeType: "technical",
+        submitButton: document.getElementById("btnSubmit"),
+        buildScore: () => logic.getScore()
+    });
+});
+</script>
+
+<div id="submitOverlay" class="overlay hide">
+  <div class="overlay-card">
+    <div class="loading">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div id="overlayText" class="overlay-text">Submitting…</div>
+  </div>
+</div>
+
+</body>
+</html>

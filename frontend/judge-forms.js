@@ -169,25 +169,94 @@
   };
 
 
-  /* ------------------------------------------------------------
-     TECHNICAL (FREESTYLE)
+/* ------------------------------------------------------------
+   TECHNICAL (FREESTYLE) — IJRU STYLE UNDO
 ------------------------------------------------------------ */
-  JudgeForms.technical = {
+JudgeForms.technical = {
 
-    init() {
-      console.log("[JudgeForms] TECHNICAL init");
+  lastAction: null,
 
-      if (window.technicalMisses == null) window.technicalMisses = 0;
-      if (window.technicalBreaks == null) window.technicalBreaks = 0;
-    },
+  init() {
+    console.log("[JudgeForms] TECHNICAL init");
 
-    getScore() {
-      return {
-        MISSES: window.technicalMisses,
-        BREAKS: window.technicalBreaks
+    window.technicalMisses = 0;
+    window.technicalBreaks = 0;
+
+    const missEl  = document.getElementById("missCount");
+    const breakEl = document.getElementById("breakCount");
+
+    const missBtn  = document.querySelector("[data-type='miss']");
+    const breakBtn = document.querySelector("[data-type='break']");
+
+    const undoBtn  = document.getElementById("undoBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    // Hide UNDO initially
+    undoBtn.classList.add("hidden");
+
+    /* === MISSES TAP === */
+    missBtn.addEventListener("pointerdown", () => {
+      this.lastAction = {
+        prevMiss: window.technicalMisses,
+        prevBreak: window.technicalBreaks
       };
-    }
-  };
+
+      window.technicalMisses++;
+      missEl.textContent = window.technicalMisses;
+
+      undoBtn.classList.remove("hidden");
+    });
+
+    /* === BREAKS TAP === */
+    breakBtn.addEventListener("pointerdown", () => {
+      this.lastAction = {
+        prevMiss: window.technicalMisses,
+        prevBreak: window.technicalBreaks
+      };
+
+      window.technicalBreaks++;
+      breakEl.textContent = window.technicalBreaks;
+
+      undoBtn.classList.remove("hidden");
+    });
+
+    /* === UNDO === */
+    undoBtn.addEventListener("click", () => {
+      if (!this.lastAction) return;
+
+      window.technicalMisses = this.lastAction.prevMiss;
+      window.technicalBreaks = this.lastAction.prevBreak;
+
+      missEl.textContent  = window.technicalMisses;
+      breakEl.textContent = window.technicalBreaks;
+
+      // Hide after undo (IJRU behavior)
+      undoBtn.classList.add("hidden");
+
+      this.lastAction = null;
+    });
+
+    /* === RESET === */
+    resetBtn.addEventListener("click", () => {
+      window.technicalMisses = 0;
+      window.technicalBreaks = 0;
+
+      missEl.textContent  = 0;
+      breakEl.textContent = 0;
+
+      undoBtn.classList.add("hidden");
+      this.lastAction = null;
+    });
+  },
+
+  getScore() {
+    return {
+      MISSES: window.technicalMisses,
+      BREAKS: window.technicalBreaks
+    };
+  }
+};
+
 
 
   /* ------------------------------------------------------------
