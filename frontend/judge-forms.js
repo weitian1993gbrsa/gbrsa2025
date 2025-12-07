@@ -121,14 +121,22 @@
       });
 
       /* -------------------------------------------
-         UNDO ACTION
-      ------------------------------------------- */
-      this.undoBtn.addEventListener("click", () => {
-        if (!this.lastAction) return;
-        this.counts[this.lastAction.level] = this.lastAction.prev;
-        this.lastAction = null;
-        this.updateUI();
-      });
+   UNDO ACTION — High Sensitivity Patch
+------------------------------------------- */
+const undoHandler = () => {
+  if (!this.lastAction) return;
+
+  this.counts[this.lastAction.level] = this.lastAction.prev;
+  this.lastAction = null;
+  this.updateUI();
+};
+
+// Touchstart = instant response (mobile)
+this.undoBtn.addEventListener("touchstart", undoHandler, { passive: true });
+
+// Pointerdown = covers mouse, stylus, some Android
+this.undoBtn.addEventListener("pointerdown", undoHandler);
+
 
       /* -------------------------------------------
          RESET ALL COUNTS
