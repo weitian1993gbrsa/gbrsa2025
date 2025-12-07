@@ -1,4 +1,39 @@
 /* ============================================================
+   UNIVERSAL RESPONSIVE LAYOUT (IJRU STYLE)
+   Automatically wraps judge pages and applies consistent layout
+============================================================ */
+function injectResponsiveLayout() {
+  const body = document.body;
+
+  // Avoid double-wrapping
+  if (body.classList.contains("gbrsa-responsive-ready")) return;
+  body.classList.add("gbrsa-responsive-ready");
+
+  // Wrap everything inside a universal container
+  const wrapper = document.createElement("div");
+  wrapper.className = "judge-container";
+
+  while (body.firstChild) {
+    wrapper.appendChild(body.firstChild);
+  }
+  body.appendChild(wrapper);
+
+  // Auto-fix grids
+  document.querySelectorAll(".grid, .skill-grid").forEach(grid => {
+    grid.classList.add("judge-grid");
+  });
+
+  // Auto-fix skill buttons
+  document.querySelectorAll(".skill-btn").forEach(btn => {
+    btn.classList.add("judge-skill-btn");
+  });
+}
+
+// Run immediately on page load
+document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
+
+
+/* ============================================================
    JUDGE CORE — Universal Submit Handler (Speed + Freestyle)
    Handles:
    ✔ URL parsing
