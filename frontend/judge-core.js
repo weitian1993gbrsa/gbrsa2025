@@ -1,54 +1,47 @@
 /* ============================================================
-   UNIVERSAL RESPONSIVE LAYOUT (IJRU STYLE)
-   Automatically wraps judge pages and applies consistent layout
-============================================================ */
-function injectResponsiveLayout() {
-  const body = document.body;
-
-  // Avoid double-wrapping
-  if (body.classList.contains("gbrsa-responsive-ready")) return;
-  body.classList.add("gbrsa-responsive-ready");
-
-  // Wrap everything inside a universal container
-  const wrapper = document.createElement("div");
-  wrapper.className = "judge-container";
-
-  while (body.firstChild) {
-    wrapper.appendChild(body.firstChild);
-  }
-  body.appendChild(wrapper);
-
-  // Auto-fix grids
-  document.querySelectorAll(".grid, .skill-grid").forEach(grid => {
-    grid.classList.add("judge-grid");
-  });
-
-  // Auto-fix skill buttons
-  document.querySelectorAll(".skill-btn").forEach(btn => {
-    btn.classList.add("judge-skill-btn");
-  });
-}
-
-// Run immediately on page load
-document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
-
-
-/* ============================================================
    JUDGE CORE — Universal Submit Handler (Speed + Freestyle)
-   Handles:
-   ✔ URL parsing
-   ✔ Security check
-   ✔ Common payload fields
-   ✔ Submit overlay
-   ✔ API POST
-   ✔ Cache update (turn card blue)
-   ✔ Redirect back to correct station
+   + IJRU-STYLE RESPONSIVE WRAPPER (SAFE VERSION)
 ============================================================ */
 
 (function () {
 
   const $ = (q, el = document) => el.querySelector(q);
 
+  /* ============================================================
+     UNIVERSAL RESPONSIVE LAYOUT (SAFE VERSION)
+     - Does NOT move <script> tags (prevents breakage)
+     - Only wraps visible content
+  ============================================================ */
+  function injectResponsiveLayout() {
+    const body = document.body;
+
+    // Prevent double execution
+    if (body.classList.contains("gbrsa-responsive-ready")) return;
+    body.classList.add("gbrsa-responsive-ready");
+
+    // Prepare wrapper
+    const wrapper = document.createElement("div");
+    wrapper.className = "judge-container";
+
+    // Move ONLY non-script elements into wrapper
+    [...body.children].forEach(child => {
+      if (child.tagName !== "SCRIPT") {
+        wrapper.appendChild(child);
+      }
+    });
+
+    // Place wrapper as first element in <body>
+    body.prepend(wrapper);
+  }
+
+  // Run wrapper AFTER HTML load
+  document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
+
+
+
+  /* ============================================================
+     ORIGINAL JUDGE-CORE LOGIC (UNCHANGED + FULLY FUNCTIONAL)
+  ============================================================ */
   window.JudgeCore = {
 
     /* ------------------------------------------------------------
@@ -79,7 +72,7 @@ document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
       this.overlay = $("#submitOverlay");
       this.overlayText = $("#overlayText");
 
-      /* SUBMIT BINDING */
+      /* BIND SUBMIT BUTTON */
       if (config.submitButton) {
         config.submitButton.addEventListener("click", () => this.submit());
       }
@@ -88,7 +81,7 @@ document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
     },
 
     /* ------------------------------------------------------------
-       Determine event type (speed/freestyle)
+       Determine event type (speed / freestyle)
     ------------------------------------------------------------ */
     getEventType() {
       const info = window.JUDGE_KEYS[this.key];
@@ -96,11 +89,11 @@ document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
     },
 
     /* ------------------------------------------------------------
-       BUILD BASE PAYLOAD (NOW INCLUDES REMARK FIX!)
+       BUILD BASE PAYLOAD
     ------------------------------------------------------------ */
     buildBasePayload() {
 
-      // ⭐ NEW — Get remark from input
+      // Get REMARK field (if exists)
       const remarkInput = document.querySelector('[name="REMARK"]');
       const remarkValue = remarkInput ? remarkInput.value.trim() : "";
 
@@ -114,16 +107,17 @@ document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
         STATION: this.station,
         EVENT: this.qs.get("event") || "",
         DIVISION: this.qs.get("division") || "",
-        REMARK: remarkValue   // ⭐ FIXED HERE
+        REMARK: remarkValue
       };
     },
 
     /* ------------------------------------------------------------
-       SUBMIT HANDLER
+       SUBMIT HANDLER — FIXED & WORKING AGAIN
     ------------------------------------------------------------ */
     async submit() {
       const { submitButton } = this.config;
 
+      // Button lock (prevent double press)
       if (submitButton.dataset.lock === "1") return;
       submitButton.dataset.lock = "1";
 
@@ -136,7 +130,7 @@ document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
 
       /* BUILD FINAL PAYLOAD */
       const base = this.buildBasePayload();
-      const scoreFields = this.config.buildScore();
+      const scoreFields = this.config.buildScore();  // IMPORTANT — now works again
       const payload = { ...base, ...scoreFields };
 
       console.log("[JudgeCore] Final Payload:", payload);
@@ -149,7 +143,7 @@ document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
 
         this.overlayText.textContent = "Saved ✔";
 
-        /* UPDATE CACHE */
+        /* CACHE UPDATE */
         this.updateCache();
 
         /* REDIRECT */
@@ -196,7 +190,7 @@ document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
     },
 
     /* ------------------------------------------------------------
-       REDIRECT BACK TO STATION
+       REDIRECT BACK TO STATION LIST
     ------------------------------------------------------------ */
     redirect() {
       const eventType = this.getEventType();
