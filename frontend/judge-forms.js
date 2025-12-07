@@ -108,7 +108,7 @@
 
           this.updateUI();
 
-          if (navigator.vibrate) navigator.vibrate([80]); // vibration
+          if (navigator.vibrate) navigator.vibrate([120]); // vibration
           btn.classList.add("pressed");
           setTimeout(() => btn.classList.remove("pressed"), 150);
         });
@@ -122,7 +122,7 @@
         this.lastAction = null;
         this.updateUI();
 
-        if (navigator.vibrate) navigator.vibrate([40]);
+        if (navigator.vibrate) navigator.vibrate([120]);
       };
 
       this.undoBtn.addEventListener("touchstart", undoHandler, { passive: true });
@@ -196,7 +196,7 @@ JudgeForms.technical = {
       undoBtn.classList.remove("hidden");
 
       // vibration + animation
-      if (navigator.vibrate) navigator.vibrate([80]);
+      if (navigator.vibrate) navigator.vibrate([120]);
       missBtn.classList.add("pressed");
       setTimeout(() => missBtn.classList.remove("pressed"), 150);
     });
@@ -213,7 +213,7 @@ JudgeForms.technical = {
 
       undoBtn.classList.remove("hidden");
 
-      if (navigator.vibrate) navigator.vibrate([80]);
+      if (navigator.vibrate) navigator.vibrate([120]);
       breakBtn.classList.add("pressed");
       setTimeout(() => breakBtn.classList.remove("pressed"), 150);
     });
@@ -231,7 +231,7 @@ JudgeForms.technical = {
       undoBtn.classList.add("hidden");
       this.lastAction = null;
 
-      if (navigator.vibrate) navigator.vibrate([40]); // light vibration
+      if (navigator.vibrate) navigator.vibrate([120]); // light vibration
     });
 
     /* === RESET === */
