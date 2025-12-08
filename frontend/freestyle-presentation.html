@@ -60,18 +60,19 @@
 
     .plus { background: #28c766; }
 
-    /* MISS button (same height as others) */
+    /* ⭐ NEW — MISS BUTTON SPANS TWO ROWS */
     .miss-btn {
-        height: 120px;
         background: #e0b400;
         border-radius: 0px;
         color: black;
         font-weight: 800;
-        font-size: 20px;
+        font-size: 22px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        
+        height: 256px;  /* 120px + 120px + gap → perfect match */
     }
 </style>
 </head>
@@ -85,7 +86,7 @@
     <button id="resetBtn" class="top-btn red">Reset</button>
 </div>
 
-<!-- MAIN GRID WITH MISS ON ROW 3 -->
+<!-- MAIN GRID WITH TALL MISS BUTTON -->
 <div class="pres-grid">
 
     <!-- Row 1 -->
@@ -98,16 +99,17 @@
     <div></div>
     <div class="pres-btn plus">Musicality +<br><span id="musPlus">0</span></div>
 
-    <!-- Row 3 (MISS CENTERED) -->
+    <!-- Row 3 + Row 4 merged (MISS BUTTON) -->
     <div class="pres-btn minus">Entertainment -<br><span id="entMinus">0</span></div>
 
+    <!-- ⭐ TALL MISS BUTTON (spans 2 rows) -->
     <div class="miss-btn" id="missBtn">
         Miss<br><span id="missCount">0</span>
     </div>
 
     <div class="pres-btn plus">Entertainment +<br><span id="entPlus">0</span></div>
 
-    <!-- Row 4 -->
+    <!-- Row 4 (left & right only; middle taken by MISS) -->
     <div class="pres-btn minus">Form -<br><span id="formMinus">0</span></div>
     <div></div>
     <div class="pres-btn plus">Form +<br><span id="formPlus">0</span></div>
