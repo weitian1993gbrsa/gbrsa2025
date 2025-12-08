@@ -34,7 +34,7 @@
     .orange { background: #f48c06; }
     .red { background: #d64545; }
 
-    /* 3-column main grid */
+    /* 3-column grid */
     .pres-grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -53,7 +53,12 @@
     /* Minus / Plus buttons */
     .pres-btn {
         background: #d64545;
-        padding: 32px 0;
+        height: 120px;                  /* UNIFORM HEIGHT */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+
         border-radius: 0px;
         color: white;
         text-align: center;
@@ -68,9 +73,13 @@
 
     /* Miss button (center column) */
     .miss-btn {
-        margin-top: 130px; /* Perfectly center in middle row */
+        height: 120px;                 /* MATCH ROW HEIGHT */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+
         background: #d64545;
-        padding: 140px 0;
         border-radius: 0px;
         color: white;
         font-size: 18px;
@@ -94,7 +103,7 @@
     <!-- MAIN 3-COLUMN GRID -->
     <div class="pres-grid">
 
-        <!-- LEFT COLUMN (MINUS BUTTONS) -->
+        <!-- LEFT COLUMN -->
         <div class="pres-col">
             <div class="pres-btn minus" data-type="creativity-minus">
                 Creativity -<br><span id="creMinus">0</span>
@@ -117,14 +126,14 @@
             </div>
         </div>
 
-        <!-- CENTER COLUMN — MISS BUTTON -->
+        <!-- CENTER COLUMN — FIXED MISS BUTTON ALIGNMENT -->
         <div class="pres-col">
             <div class="miss-btn" id="missBtn">
                 Miss<br><span id="missCount">0</span>
             </div>
         </div>
 
-        <!-- RIGHT COLUMN (PLUS BUTTONS) -->
+        <!-- RIGHT COLUMN -->
         <div class="pres-col">
             <div class="pres-btn plus" data-type="creativity-plus">
                 Creativity +<br><span id="crePlus">0</span>
