@@ -1,77 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Presentation Judge</title>
+
 <style>
+    body {
+        margin: 0;
+        background: #f5f5f5;
+        font-family: system-ui, sans-serif;
+    }
 
-.pres-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 
-        auto     /* row 1 */
-        auto     /* row 2 */
-        auto     /* row 3 */
-        auto     /* row 4 */
-        auto;    /* row 5 */
-    gap: 16px;
-    padding: 16px;
-    max-width: 1000px;
-    margin: auto;
-}
+    /* Header buttons */
+    .pres-header {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        padding: 16px;
+    }
 
-.pres-btn {
-    height: 120px;
-    background: #d64545;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-    color:white;
-    text-align:center;
-}
+    .top-btn {
+        padding: 14px 26px;
+        border-radius: 0px;
+        border: none;
+        color: white;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+    }
 
-.plus { background:#28c766; }
+    .green { background: #28c766; }
+    .orange { background: #f48c06; }
+    .red { background: #d64545; }
 
-.miss-btn {
-    background:#e0b400;
-    color:black;
-    font-weight:800;
-    font-size:22px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-    grid-column: 2;
-    grid-row: 3 / span 2;  /* ⭐ THIS LOCKS IT PERFECTLY */
-}
+    /* Main grid 3 columns */
+    .pres-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+        padding: 16px;
+        max-width: 1000px;
+        margin: auto;
+    }
 
+    .pres-btn {
+        height: 120px;
+        background: #d64545;
+        border-radius: 0px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-weight: 500;
+        user-select: none;
+    }
+
+    .plus { background: #28c766; }
+
+    /* MISS button (same height as others) */
+    .miss-btn {
+        height: 120px;
+        background: #e0b400;
+        border-radius: 0px;
+        color: black;
+        font-weight: 800;
+        font-size: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
 </style>
+</head>
 
+<body>
 
+<!-- HEADER BUTTONS -->
+<div class="pres-header">
+    <button id="nextStepBtn" class="top-btn green">Next</button>
+    <button id="undoBtn" class="top-btn orange">Undo</button>
+    <button id="resetBtn" class="top-btn red">Reset</button>
+</div>
+
+<!-- MAIN GRID WITH MISS ON ROW 3 -->
 <div class="pres-grid">
 
     <!-- Row 1 -->
-    <div class="pres-btn" style="grid-row:1; grid-column:1;">Creativity -<br>0</div>
-    <div style="grid-row:1; grid-column:2;"></div>
-    <div class="pres-btn plus" style="grid-row:1; grid-column:3;">Creativity +<br>0</div>
+    <div class="pres-btn minus">Creativity -<br><span id="creMinus">0</span></div>
+    <div></div>
+    <div class="pres-btn plus">Creativity +<br><span id="crePlus">0</span></div>
 
     <!-- Row 2 -->
-    <div class="pres-btn" style="grid-row:2; grid-column:1;">Musicality -<br>0</div>
-    <div style="grid-row:2; grid-column:2;"></div>
-    <div class="pres-btn plus" style="grid-row:2; grid-column:3;">Musicality +<br>0</div>
+    <div class="pres-btn minus">Musicality -<br><span id="musMinus">0</span></div>
+    <div></div>
+    <div class="pres-btn plus">Musicality +<br><span id="musPlus">0</span></div>
 
-    <!-- Row 3 -->
-    <div class="pres-btn" style="grid-row:3; grid-column:1;">Entertainment -<br>0</div>
+    <!-- Row 3 (MISS CENTERED) -->
+    <div class="pres-btn minus">Entertainment -<br><span id="entMinus">0</span></div>
 
-    <!-- ⭐ MISS BUTTON, row 3 & 4 -->
-    <div class="miss-btn" id="missBtn">Miss<br><span id="missCount">0</span></div>
+    <div class="miss-btn" id="missBtn">
+        Miss<br><span id="missCount">0</span>
+    </div>
 
-    <div class="pres-btn plus" style="grid-row:3; grid-column:3;">Entertainment +<br>0</div>
+    <div class="pres-btn plus">Entertainment +<br><span id="entPlus">0</span></div>
 
     <!-- Row 4 -->
-    <div class="pres-btn" style="grid-row:4; grid-column:1;">Form -<br>0</div>
-    <div style="grid-row:4; grid-column:2;"></div>
-    <div class="pres-btn plus" style="grid-row:4; grid-column:3;">Form +<br>0</div>
+    <div class="pres-btn minus">Form -<br><span id="formMinus">0</span></div>
+    <div></div>
+    <div class="pres-btn plus">Form +<br><span id="formPlus">0</span></div>
 
     <!-- Row 5 -->
-    <div class="pres-btn" style="grid-row:5; grid-column:1;">Repetitive -<br>0</div>
-    <div style="grid-row:5; grid-column:2;"></div>
-    <div class="pres-btn plus" style="grid-row:5; grid-column:3;">Variety +<br>0</div>
+    <div class="pres-btn minus">Repetitive -<br><span id="varMinus">0</span></div>
+    <div></div>
+    <div class="pres-btn plus">Variety +<br><span id="varPlus">0</span></div>
 
 </div>
+
+</body>
+</html>
