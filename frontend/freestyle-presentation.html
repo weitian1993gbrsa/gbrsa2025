@@ -15,64 +15,70 @@
     /* Header */
     .pres-header {
         display: flex;
-        justify-content: center;
-        gap: 16px;
-        padding: 16px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 999;
+        border-bottom: 1px solid #ddd;
     }
+
     .top-btn {
-        padding: 14px 26px;
-        border: none;
-        border-radius: 0;
-        color: #fff;
-        font-size: 18px;
-        font-weight: 700;
+        padding: 10px 22px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background: white;
         cursor: pointer;
+        font-weight: 600;
     }
-    .green { background: #28c766; }
-    .orange { background: #f48c06; }
-    .red { background: #d64545; }
+    .submit-btn { background: #0d6efd; color: white; border: none; }
 
     /* GRID */
     .pres-grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        grid-auto-rows: 80px;
+        grid-auto-rows: 110px;
         gap: 16px;
         padding: 16px;
-        max-width: 1000px;
+        max-width: 900px;
         margin: auto;
     }
 
-    /* Standard buttons */
     .pres-btn {
         background: #d64545;
         color: white;
-        border-radius: 0;
+        border-radius: 6px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
-        font-size: 14px;
-        font-weight: 400;
+        font-size: 18px;
+        font-weight: 600;
         user-select: none;
+        cursor: pointer;
     }
+
     .plus { background: #28c766; }
 
-    /* MISS BUTTON (now spans 3 rows) */
+    /* MISS BUTTON spans 3 rows */
     .miss-btn {
         grid-row: span 3;
         background: #e0b400;
         color: black;
-        font-size: 22px;
-        font-weight: 800;
-        border-radius: 0;
+        border-radius: 6px;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        flex-direction: column;
-        text-align: center;
+        font-size: 26px;
+        font-weight: 800;
+        cursor: pointer;
+        user-select:none;
     }
+
 </style>
 </head>
 
@@ -80,45 +86,80 @@
 
 <!-- HEADER -->
 <div class="pres-header">
-    <button class="top-btn green">Next</button>
-    <button class="top-btn orange">Undo</button>
-    <button class="top-btn red">Reset</button>
+    <button class="top-btn" onclick="history.back()">Back</button>
+    <div style="font-size:20px; font-weight:700;">Presentation Judge</div>
+    <button class="top-btn submit-btn" id="nextBtn">Next</button>
 </div>
 
 <!-- GRID -->
 <div class="pres-grid">
 
-    <!-- ROW 1 -->
-    <div class="pres-btn">Creativity -<br>0</div>
+    <!-- Row 1 -->
+    <div class="pres-btn minus" data-type="creativity-minus">
+        Creativity -<br><span id="creMinus">0</span>
+    </div>
     <div></div>
-    <div class="pres-btn plus">Creativity +<br>0</div>
+    <div class="pres-btn plus" data-type="creativity-plus">
+        Creativity +<br><span id="crePlus">0</span>
+    </div>
 
-    <!-- ROW 2 -->
-    <div class="pres-btn">Musicality -<br>0</div>
+    <!-- Row 2 -->
+    <div class="pres-btn minus" data-type="musicality-minus">
+        Musicality -<br><span id="musMinus">0</span>
+    </div>
 
-    <!-- MISS spans rows 2, 3, 4 -->
+    <!-- MISS spans 3 rows -->
     <div class="miss-btn" id="missBtn">
         Miss<br><span id="missCount">0</span>
     </div>
 
-    <div class="pres-btn plus">Musicality +<br>0</div>
+    <div class="pres-btn plus" data-type="musicality-plus">
+        Musicality +<br><span id="musPlus">0</span>
+    </div>
 
-    <!-- ROW 3 -->
-    <div class="pres-btn">Entertainment -<br>0</div>
-    <!-- MISS OCCUPIES MIDDLE COLUMN -->
-    <div class="pres-btn plus">Entertainment +<br>0</div>
+    <!-- Row 3 -->
+    <div class="pres-btn minus" data-type="entertain-minus">
+        Entertainment -<br><span id="entMinus">0</span>
+    </div>
+    <div class="pres-btn plus" data-type="entertain-plus">
+        Entertainment +<br><span id="entPlus">0</span>
+    </div>
 
-    <!-- ROW 4 -->
-    <div class="pres-btn">Form -<br>0</div>
-    <!-- MISS STILL HERE -->
-    <div class="pres-btn plus">Form +<br>0</div>
+    <!-- Row 4 -->
+    <div class="pres-btn minus" data-type="form-minus">
+        Form -<br><span id="formMinus">0</span>
+    </div>
+    <div class="pres-btn plus" data-type="form-plus">
+        Form +<br><span id="formPlus">0</span>
+    </div>
 
-    <!-- ROW 5 -->
-    <div class="pres-btn">Repetitive -<br>0</div>
+    <!-- Row 5 -->
+    <div class="pres-btn minus" data-type="variety-minus">
+        Repetitive -<br><span id="varMinus">0</span>
+    </div>
     <div></div>
-    <div class="pres-btn plus">Variety +<br>0</div>
+    <div class="pres-btn plus" data-type="variety-plus">
+        Variety +<br><span id="varPlus">0</span>
+    </div>
 
 </div>
+
+<script src="judge-forms.js"></script>
+<script>
+    initJudgeForm("presentation");
+</script>
+
+<script>
+document.getElementById("nextBtn").addEventListener("click", () => {
+    const data = window.JudgeForms.presentation.getScore();
+
+    // Save data for Page 2
+    localStorage.setItem("presentationPage1", JSON.stringify(data));
+
+    // Go to summary page
+    window.location.href = "presentation-summary.html";
+});
+</script>
 
 </body>
 </html>
