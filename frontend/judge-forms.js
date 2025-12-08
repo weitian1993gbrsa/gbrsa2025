@@ -276,140 +276,22 @@ JudgeForms.technical = {
   };
 
 
-/* ============================================================
-   PRESENTATION (PAGE 1 + PAGE 2)
-============================================================ */
-JudgeForms.presentation = {
+  /* ------------------------------------------------------------
+     PRESENTATION (FREESTYLE)
+------------------------------------------------------------ */
+  JudgeForms.presentation = {
 
-    /* IJRU Weights */
-    WEIGHTS: {
-        creativity: 0.15,
-        musicality: 0.20,
-        entertainment: 0.25,
-        form: 0.25,
-        variety: 0.15
-    },
-
-    /* Storage for Page 1 */
-    page1Data: {
-        creMinus: 0, crePlus: 0,
-        musMinus: 0, musPlus: 0,
-        entMinus: 0, entPlus: 0,
-        formMinus: 0, formPlus: 0,
-        varMinus: 0, varPlus: 0,
-        misses: 0
-    },
-
-    /* Detect Page 1 or Page 2 */
     init() {
-        const isPage2 = document.body.dataset.page === "presentation-summary";
-        if (isPage2) this.initPage2();
-        else this.initPage1();
+      console.log("[JudgeForms] PRESENTATION init");
+
+      if (window.presentationScore == null) window.presentationScore = 0;
     },
 
-    /* ============================
-       PAGE 1
-    ============================ */
-    initPage1() {
-        console.log("[Presentation] Page 1 Init");
-
-        const map = {
-            "creativity-minus": "creMinus",
-            "creativity-plus": "crePlus",
-            "musicality-minus": "musMinus",
-            "musicality-plus": "musPlus",
-            "entertain-minus": "entMinus",
-            "entertain-plus": "entPlus",
-            "form-minus": "formMinus",
-            "form-plus": "formPlus",
-            "variety-minus": "varMinus",
-            "variety-plus": "varPlus"
-        };
-
-        Object.keys(map).forEach(type => {
-            const btn = document.querySelector(`[data-type='${type}']`);
-            if (!btn) return;
-
-            const key = map[type];
-            const label = document.getElementById(key);
-
-            btn.addEventListener("pointerdown", () => {
-                this.page1Data[key]++;
-                label.textContent = this.page1Data[key];
-                btn.classList.add("pressed");
-                setTimeout(()=>btn.classList.remove("pressed"),120);
-            });
-        });
-
-        const missBtn = document.getElementById("missBtn");
-        const missLabel = document.getElementById("missCount");
-
-        missBtn.addEventListener("pointerdown", () => {
-            this.page1Data.misses++;
-            missLabel.textContent = this.page1Data.misses;
-        });
-
-        /* FIXED — Save FULL page1Data, not getScore() */
-        document.getElementById("nextBtn").addEventListener("click", () => {
-            localStorage.setItem("presentationPage1",
-                JSON.stringify(this.page1Data)
-            );
-            window.location.href = "presentation-summary.html";
-        });
-    },
-
-    /* ============================
-       PAGE 2
-    ============================ */
-    initPage2() {
-        console.log("[Presentation] Page 2 Init");
-
-        const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
-        this.page1Data = data;
-
-        this.finalScore = this.computeWeightedScore(data);
-
-        if (document.getElementById("scoreText"))
-            scoreText.textContent = `Score (${this.finalScore})`;
-
-        if (document.getElementById("missText"))
-            missText.textContent = `Misses (${data.misses || 0})`;
-
-        const cats = ["cre","mus","ent","form","var"];
-
-        cats.forEach(key => {
-            const minus = data[key+"Minus"] || 0;
-            const plus  = data[key+"Plus"]  || 0;
-
-            const finalVal = 12 + plus - minus;
-
-            const slider = document.getElementById(`slider_${key}`);
-            const center = document.getElementById(`center_${key}`);
-
-            if (slider) slider.value = finalVal;
-            if (center) center.textContent = finalVal;
-        });
-    },
-
-    /* Weighted score */
-    computeWeightedScore(d) {
-        let sum =
-            (12 + d.crePlus - d.creMinus) * this.WEIGHTS.creativity +
-            (12 + d.musPlus - d.musMinus) * this.WEIGHTS.musicality +
-            (12 + d.entPlus - d.entMinus) * this.WEIGHTS.entertainment +
-            (12 + d.formPlus - d.formMinus) * this.WEIGHTS.form +
-            (12 + d.varPlus - d.varMinus) * this.WEIGHTS.variety;
-
-        sum -= d.misses * 1;
-
-        return Number(sum.toFixed(1));
-    },
-
-    /* IMPORTANT — return ONLY page1Data for Next Page usage */
     getScore() {
-        return this.page1Data;
+      return { PRESENTATION: window.presentationScore };
     }
-};
+  };
+
 
   /* ------------------------------------------------------------
      AUTO INIT API
