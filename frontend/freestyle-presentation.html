@@ -34,7 +34,7 @@
     .orange { background: #f48c06; }
     .red { background: #d64545; }
 
-    /* Main grid 3 columns */
+    /* 3 Column Grid */
     .pres-grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -60,8 +60,9 @@
 
     .plus { background: #28c766; }
 
-    /* ⭐ NEW — MISS BUTTON SPANS TWO ROWS */
+    /* ⭐ Correct MISS button — spans EXACTLY 2 grid rows */
     .miss-btn {
+        grid-row: span 2;     /* <--- MAGIC FIX */
         background: #e0b400;
         border-radius: 0px;
         color: black;
@@ -71,8 +72,6 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        
-        height: 256px;  /* 120px + 120px + gap → perfect match */
     }
 </style>
 </head>
@@ -86,38 +85,38 @@
     <button id="resetBtn" class="top-btn red">Reset</button>
 </div>
 
-<!-- MAIN GRID WITH TALL MISS BUTTON -->
+<!-- MAIN GRID -->
 <div class="pres-grid">
 
     <!-- Row 1 -->
-    <div class="pres-btn minus">Creativity -<br><span id="creMinus">0</span></div>
+    <div class="pres-btn">Creativity -<br>0</div>
     <div></div>
-    <div class="pres-btn plus">Creativity +<br><span id="crePlus">0</span></div>
+    <div class="pres-btn plus">Creativity +<br>0</div>
 
     <!-- Row 2 -->
-    <div class="pres-btn minus">Musicality -<br><span id="musMinus">0</span></div>
+    <div class="pres-btn">Musicality -<br>0</div>
     <div></div>
-    <div class="pres-btn plus">Musicality +<br><span id="musPlus">0</span></div>
+    <div class="pres-btn plus">Musicality +<br>0</div>
 
-    <!-- Row 3 + Row 4 merged (MISS BUTTON) -->
-    <div class="pres-btn minus">Entertainment -<br><span id="entMinus">0</span></div>
+    <!-- Row 3 -->
+    <div class="pres-btn">Entertainment -<br>0</div>
 
-    <!-- ⭐ TALL MISS BUTTON (spans 2 rows) -->
+    <!-- ⭐ MISS BUTTON spanning row 3–4 -->
     <div class="miss-btn" id="missBtn">
         Miss<br><span id="missCount">0</span>
     </div>
 
-    <div class="pres-btn plus">Entertainment +<br><span id="entPlus">0</span></div>
+    <div class="pres-btn plus">Entertainment +<br>0</div>
 
-    <!-- Row 4 (left & right only; middle taken by MISS) -->
-    <div class="pres-btn minus">Form -<br><span id="formMinus">0</span></div>
+    <!-- Row 4 -->
+    <div class="pres-btn">Form -<br>0</div>
     <div></div>
-    <div class="pres-btn plus">Form +<br><span id="formPlus">0</span></div>
+    <div class="pres-btn plus">Form +<br>0</div>
 
     <!-- Row 5 -->
-    <div class="pres-btn minus">Repetitive -<br><span id="varMinus">0</span></div>
+    <div class="pres-btn">Repetitive -<br>0</div>
     <div></div>
-    <div class="pres-btn plus">Variety +<br><span id="varPlus">0</span></div>
+    <div class="pres-btn plus">Variety +<br>0</div>
 
 </div>
 
