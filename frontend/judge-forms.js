@@ -254,7 +254,7 @@
 
 
   /* ------------------------------------------------------------
-     PRESENTATION PAGE 1 + PAGE 2
+     PRESENTATION — PAGE 1 + PAGE 2
   ------------------------------------------------------------ */
 
   JudgeForms.presentation = {
@@ -282,36 +282,53 @@
       else this.initPage1();
     },
 
-    /* ---------- PAGE 1 ----------- */
+    /* ---------------------- PAGE 1 ---------------------- */
+
     initPage1() {
 
       const undoBtn = document.getElementById("undoBtn");
       undoBtn.classList.add("hidden");
 
-      /* =====================================================
-         RESTORE SAVED VALUES WHEN RETURNING FROM SUMMARY
-         ===================================================== */
-      const saved = localStorage.getItem("presentationPage1");
-      if (saved) {
-        const d = JSON.parse(saved);
-        this.page1Data = d;
+      /* Detect participant change */
+      const currentEntry = JSON.parse(localStorage.getItem("currentEntry") || "{}");
+      const lastEntry = JSON.parse(localStorage.getItem("lastPresentationEntry") || "{}");
 
-        document.getElementById("creMinus").textContent = d.creMinus;
-        document.getElementById("crePlus").textContent  = d.crePlus;
-        document.getElementById("musMinus").textContent = d.musMinus;
-        document.getElementById("musPlus").textContent  = d.musPlus;
-        document.getElementById("entMinus").textContent = d.entMinus;
-        document.getElementById("entPlus").textContent  = d.entPlus;
-        document.getElementById("formMinus").textContent = d.formMinus;
-        document.getElementById("formPlus").textContent  = d.formPlus;
-        document.getElementById("varMinus").textContent = d.varMinus;
-        document.getElementById("varPlus").textContent  = d.varPlus;
-        document.getElementById("missCount").textContent = d.misses;
+      const isNewParticipant = currentEntry.ID !== lastEntry.ID;
+
+      if (isNewParticipant) {
+        // Reset everything
+        this.page1Data = {
+          creMinus: 0, crePlus: 0,
+          musMinus: 0, musPlus: 0,
+          entMinus: 0, entPlus: 0,
+          formMinus: 0, formPlus: 0,
+          varMinus: 0, varPlus: 0,
+          misses: 0
+        };
+      } else {
+        // Returning from Page 2 → restore stored values
+        const saved = localStorage.getItem("presentationPage1");
+        if (saved) this.page1Data = JSON.parse(saved);
       }
 
-      /* =====================================================
-         BUTTON MAP
-      ===================================================== */
+      /* Update UI with loaded or reset data */
+      const d = this.page1Data;
+      const ids = [
+        "creMinus","crePlus","musMinus","musPlus",
+        "entMinus","entPlus","formMinus","formPlus",
+        "varMinus","varPlus","missCount"
+      ];
+      const fields = [
+        d.creMinus, d.crePlus, d.musMinus, d.musPlus,
+        d.entMinus, d.entPlus, d.formMinus, d.formPlus,
+        d.varMinus, d.varPlus, d.misses
+      ];
+      ids.forEach((id,i)=>{ document.getElementById(id).textContent = fields[i]; });
+
+      /* Save last entry */
+      localStorage.setItem("lastPresentationEntry", JSON.stringify(currentEntry));
+
+      /* Button map */
       const map = {
         "creativity-minus": "creMinus",
         "creativity-plus": "crePlus",
@@ -328,68 +345,57 @@
       Object.keys(map).forEach(type => {
         const btn = document.querySelector(`[data-type='${type}']`);
         if (!btn) return;
-
         const key = map[type];
         const label = document.getElementById(key);
 
         btn.addEventListener("pointerdown", () => {
           this.page1Data[key]++;
           label.textContent = this.page1Data[key];
-
           this.lastAction = { field: key };
           undoBtn.classList.remove("hidden");
-
           if (navigator.vibrate) navigator.vibrate(40);
         });
       });
 
-      /* Miss Button */
+      /* Miss button */
       const missBtn = document.getElementById("missBtn");
       const missLabel = document.getElementById("missCount");
 
       missBtn.addEventListener("pointerdown", () => {
         this.page1Data.misses++;
         missLabel.textContent = this.page1Data.misses;
-
         this.lastAction = { field: "misses" };
         undoBtn.classList.remove("hidden");
-
         if (navigator.vibrate) navigator.vibrate(40);
       });
 
-      /* Undo Button */
+      /* Undo */
       undoBtn.addEventListener("click", () => {
         if (!this.lastAction) return;
-
         const field = this.lastAction.field;
         this.page1Data[field]--;
-
         if (this.page1Data[field] < 0) this.page1Data[field] = 0;
-
-        if (field === "misses") {
+        if (field === "misses")
           document.getElementById("missCount").textContent = this.page1Data.misses;
-        } else {
+        else
           document.getElementById(field).textContent = this.page1Data[field];
-        }
-
         this.lastAction = null;
         undoBtn.classList.add("hidden");
       });
 
-      /* Next Button */
+      /* Next */
       document.getElementById("nextBtn").addEventListener("click", () => {
         localStorage.setItem("presentationPage1", JSON.stringify(this.page1Data));
         window.location.href = "freestyle-presentation summary.html" + location.search;
       });
     },
 
-    /* ---------- PAGE 2 ----------- */
+    /* ---------------------- PAGE 2 ---------------------- */
+
     initPage2() {
       console.log("[Presentation] Page 2 Init");
-
       const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
       this.page1Data = data;
-
       this.finalScore = this.computeWeightedScore(data);
     },
 
@@ -412,7 +418,7 @@
 
 
   /* ------------------------------------------------------------
-     AUTO INIT WRAPPER
+     AUTO INIT
   ------------------------------------------------------------ */
 
   window.initJudgeForm = function (judgeType) {
