@@ -13,9 +13,7 @@
     }
 
     /* ===== REMOVE BUTTON HIGHLIGHT / FOCUS / TAP COLORS ===== */
-    * {
-        -webkit-tap-highlight-color: transparent;
-    }
+    * { -webkit-tap-highlight-color: transparent; }
 
     button, .pres-btn, .miss-btn {
         outline: none !important;
@@ -23,8 +21,7 @@
         user-select: none;
     }
 
-    button:focus,
-    button:active {
+    button:focus, button:active {
         outline: none !important;
         box-shadow: none !important;
     }
@@ -56,7 +53,7 @@
         font-weight: bold;
     }
 
-    /* ===== RESET BUTTON (MATCH DIFFICULTY) ===== */
+    /* ===== RESET BUTTON ===== */
     .reset-btn {
         background: #e53935;
         color: white;
@@ -92,9 +89,7 @@
         cursor: pointer;
     }
 
-    .plus {
-        background: #28c766;
-    }
+    .plus { background: #28c766; }
 
     .miss-btn {
         grid-row: span 3;
@@ -117,69 +112,38 @@
 <!-- ===== TOP BAR BUTTONS ===== -->
 <div class="top-bar">
     <button class="top-btn" onclick="history.back()">Back</button>
-
     <button class="reset-btn" id="resetBtn">Reset</button>
-
     <button class="top-btn submit-btn" id="nextBtn">Next</button>
 </div>
 
 <!-- ===== BUTTON GRID ===== -->
 <div class="pres-grid">
-    <div class="pres-btn minus" data-type="creativity-minus">
-        Creativity -<br><span id="creMinus">0</span>
-    </div>
-
+    <div class="pres-btn minus" data-type="creativity-minus">Creativity -<br><span id="creMinus">0</span></div>
     <div></div>
+    <div class="pres-btn plus" data-type="creativity-plus">Creativity +<br><span id="crePlus">0</span></div>
 
-    <div class="pres-btn plus" data-type="creativity-plus">
-        Creativity +<br><span id="crePlus">0</span>
-    </div>
+    <div class="pres-btn minus" data-type="musicality-minus">Musicality -<br><span id="musMinus">0</span></div>
 
-    <div class="pres-btn minus" data-type="musicality-minus">
-        Musicality -<br><span id="musMinus">0</span>
-    </div>
+    <div class="miss-btn" id="missBtn">Miss<br><span id="missCount">0</span></div>
 
-    <div class="miss-btn" id="missBtn">
-        Miss<br><span id="missCount">0</span>
-    </div>
+    <div class="pres-btn plus" data-type="musicality-plus">Musicality +<br><span id="musPlus">0</span></div>
 
-    <div class="pres-btn plus" data-type="musicality-plus">
-        Musicality +<br><span id="musPlus">0</span>
-    </div>
+    <div class="pres-btn minus" data-type="entertain-minus">Entertainment -<br><span id="entMinus">0</span></div>
+    <div class="pres-btn plus" data-type="entertain-plus">Entertainment +<br><span id="entPlus">0</span></div>
 
-    <div class="pres-btn minus" data-type="entertain-minus">
-        Entertainment -<br><span id="entMinus">0</span>
-    </div>
+    <div class="pres-btn minus" data-type="form-minus">Form -<br><span id="formMinus">0</span></div>
+    <div class="pres-btn plus" data-type="form-plus">Form +<br><span id="formPlus">0</span></div>
 
-    <div class="pres-btn plus" data-type="entertain-plus">
-        Entertainment +<br><span id="entPlus">0</span>
-    </div>
-
-    <div class="pres-btn minus" data-type="form-minus">
-        Form -<br><span id="formMinus">0</span>
-    </div>
-
-    <div class="pres-btn plus" data-type="form-plus">
-        Form +<br><span id="formPlus">0</span>
-    </div>
-
-    <div class="pres-btn minus" data-type="variety-minus">
-        Repetitive -<br><span id="varMinus">0</span>
-    </div>
-
+    <div class="pres-btn minus" data-type="variety-minus">Repetitive -<br><span id="varMinus">0</span></div>
     <div></div>
-
-    <div class="pres-btn plus" data-type="variety-plus">
-        Variety +<br><span id="varPlus">0</span>
-    </div>
+    <div class="pres-btn plus" data-type="variety-plus">Variety +<br><span id="varPlus">0</span></div>
 </div>
 
 <script src="judge-forms.js"></script>
 
 <script>
-// === LOAD PARTICIPANT FROM URL ===
+// === LOAD PARTICIPANT INFO ===
 const qs = new URLSearchParams(location.search);
-
 const entry = {
     ID: qs.get("id"),
     NAME1: qs.get("name1") || "",
@@ -190,26 +154,38 @@ const entry = {
     EVENT: qs.get("event") || "",
     DIVISION: qs.get("division") || ""
 };
-
 localStorage.setItem("currentEntry", JSON.stringify(entry));
 
-// ==== INIT SCORING ====
+// === INIT FORM ===
 initJudgeForm("presentation");
 
-// ==== NEXT BUTTON → SUMMARY PAGE ====
+// === GO TO SUMMARY PAGE ===
 document.getElementById("nextBtn").addEventListener("click", () => {
-    localStorage.setItem(
-        "presentationPage1",
+    localStorage.setItem("presentationPage1",
         JSON.stringify(JudgeForms.presentation.page1Data)
     );
-
-    window.location.href =
-        "freestyle-presentation summary.html" + location.search;
+    window.location.href = "freestyle-presentation summary.html" + location.search;
 });
 
-// ==== RESET BUTTON (MATCH DIFFICULTY → FULL PAGE RELOAD) ====
+// === PERFECT RESET — NO NAN, NO RELOAD ===
 document.getElementById("resetBtn").addEventListener("click", () => {
-    location.reload();
+
+    // Reset visible UI
+    document.querySelectorAll("span[id]").forEach(span => span.textContent = "0");
+
+    // Reset internal data WITHOUT breaking event bindings
+    const data = JudgeForms.presentation.page1Data;
+    data.creativityMinus = 0;
+    data.creativityPlus = 0;
+    data.musicalityMinus = 0;
+    data.musicalityPlus = 0;
+    data.entertainMinus = 0;
+    data.entertainPlus = 0;
+    data.formMinus = 0;
+    data.formPlus = 0;
+    data.varietyMinus = 0;
+    data.varietyPlus = 0;
+    data.miss = 0;
 });
 </script>
 
