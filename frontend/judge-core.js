@@ -1,208 +1,121 @@
 /* ============================================================
    JUDGE CORE — Universal Submit Handler (Speed + Freestyle)
-   + IJRU-STYLE RESPONSIVE WRAPPER (SAFE VERSION)
 ============================================================ */
 
 (function () {
 
-  const $ = (q, el = document) => el.querySelector(q);
-
-  /* ============================================================
-     UNIVERSAL RESPONSIVE LAYOUT (SAFE VERSION)
-     - Does NOT move <script> tags (prevents breakage)
-     - Only wraps visible content
-  ============================================================ */
-  function injectResponsiveLayout() {
-    const body = document.body;
-
-    // Prevent double execution
-    if (body.classList.contains("gbrsa-responsive-ready")) return;
-    body.classList.add("gbrsa-responsive-ready");
-
-    // Prepare wrapper
-    const wrapper = document.createElement("div");
-    wrapper.className = "judge-container";
-
-    // Move ONLY non-script elements into wrapper
-    [...body.children].forEach(child => {
-      if (child.tagName !== "SCRIPT") {
-        wrapper.appendChild(child);
-      }
-    });
-
-    // Place wrapper as first element in <body>
-    body.prepend(wrapper);
-  }
-
-  // Run wrapper AFTER HTML load
-  document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
-
-
-
-  /* ============================================================
-     ORIGINAL JUDGE-CORE LOGIC (UNCHANGED + FULLY FUNCTIONAL)
-  ============================================================ */
   window.JudgeCore = {
 
-    /* ------------------------------------------------------------
-       INIT
-    ------------------------------------------------------------ */
-    init(config) {
-      this.config = config;
+    judgeType: "",
 
+    init(options = {}) {
+      console.log("[JudgeCore] Init", options);
+
+      this.judgeType = options.judgeType || "";
+      this.submitButton = options.submitButton;
+      this.buildScore = options.buildScore || function () { return {}; };
+
+      if (!this.submitButton) return;
+
+      this.submitButton.addEventListener("click", () => {
+        this.handleSubmit();
+      });
+    },
+
+    async handleSubmit() {
       const qs = new URLSearchParams(location.search);
-      this.station = qs.get("station");
-      this.key = qs.get("key");
-      this.judgeType = config.judgeType || qs.get("judgeType") || "speed";
+      const station = qs.get("station");
+      const key = qs.get("key");
+      const entryId = qs.get("id");
 
-      /* SECURITY CHECK */
-      const access = window.JUDGE_KEYS[this.key];
-      if (!access || access.event !== this.getEventType() || String(access.station) !== this.station) {
-        document.body.innerHTML =
-          `<div style="padding:2rem;text-align:center;">
-            <h2 style="color:#b00020;">Access Denied</h2>
-            <p>Unauthorized judge key</p>
-          </div>`;
-        return;
-      }
+      const judgeType = this.judgeType;
 
-      this.qs = qs;
+      // Build score payload
+      const score = this.buildScore() || {};
 
-      /* SUBMIT OVERLAY */
-      this.overlay = $("#submitOverlay");
-      this.overlayText = $("#overlayText");
-
-      /* BIND SUBMIT BUTTON */
-      if (config.submitButton) {
-        config.submitButton.addEventListener("click", () => this.submit());
-      }
-
-      console.log("[JudgeCore] Initialized for:", this.judgeType);
-    },
-
-    /* ------------------------------------------------------------
-       Determine event type (speed / freestyle)
-    ------------------------------------------------------------ */
-    getEventType() {
-      const info = window.JUDGE_KEYS[this.key];
-      return info?.event || "speed";
-    },
-
-    /* ------------------------------------------------------------
-       BUILD BASE PAYLOAD
-    ------------------------------------------------------------ */
-    buildBasePayload() {
-
-      // Get REMARK field (if exists)
-      const remarkInput = document.querySelector('[name="REMARK"]');
-      const remarkValue = remarkInput ? remarkInput.value.trim() : "";
-
-      return {
-        judgeType: this.judgeType,
-        ID: this.qs.get("id") || "",
-        NAME1: this.qs.get("name1") || "",
-        TEAM: this.qs.get("team") || "",
-        STATE: this.qs.get("state") || "",
-        HEAT: this.qs.get("heat") || "",
-        STATION: this.station,
-        EVENT: this.qs.get("event") || "",
-        DIVISION: this.qs.get("division") || "",
-        REMARK: remarkValue
+      // Build request payload
+      const payload = {
+        ID: entryId,
+        STATION: station,
+        judgeType: judgeType,
+        ...score,
+        ...this.getParticipantInfo()
       };
-    },
 
-    /* ------------------------------------------------------------
-       SUBMIT HANDLER — FIXED & WORKING AGAIN
-    ------------------------------------------------------------ */
-    async submit() {
-      const { submitButton } = this.config;
+      // Show overlay if exists
+      const overlay = document.getElementById("submitOverlay");
+      if (overlay) overlay.classList.remove("hide");
 
-      // Button lock (prevent double press)
-      if (submitButton.dataset.lock === "1") return;
-      submitButton.dataset.lock = "1";
-
-      /* SHOW OVERLAY */
       try {
-        this.overlay.classList.remove("hide");
-        this.overlay.style.opacity = "1";
-        this.overlayText.textContent = "Submitting…";
-      } catch (_) {}
+        const res = await fetch(config.backendURL, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
 
-      /* BUILD FINAL PAYLOAD */
-      const base = this.buildBasePayload();
-      const scoreFields = this.config.buildScore();  // IMPORTANT — now works again
-      const payload = { ...base, ...scoreFields };
+        const json = await res.json();
+        if (!json.ok) throw new Error("Submit failed");
 
-      console.log("[JudgeCore] Final Payload:", payload);
+        // ⭐⭐⭐ NEW: Mark card as DONE instantly (local cache update)
+        this.updateLocalStationCache(entryId, station, judgeType);
 
-      /* SUBMIT TO BACKEND */
-      try {
-        const result = await apiPost(payload);
-
-        if (!result || !result.ok) throw new Error(result.error || "Server error");
-
-        this.overlayText.textContent = "Saved ✔";
-
-        /* CACHE UPDATE */
-        this.updateCache();
-
-        /* REDIRECT */
-        setTimeout(() => this.redirect(), 300);
+        // Redirect back to station list
+        setTimeout(() => {
+          location.href = `freestyle-station.html?station=${station}&key=${key}&judgeType=${judgeType}`;
+        }, 350);
 
       } catch (err) {
-
-        console.error("Submit failed:", err);
-        this.overlayText.textContent = "Submit Failed";
-
-        setTimeout(() => {
-          this.overlay.classList.add("hide");
-          submitButton.dataset.lock = "0";
-        }, 700);
+        alert("Submit failed, please try again.\n\n" + err);
+        console.error(err);
       }
     },
 
     /* ------------------------------------------------------------
-       UPDATE CACHE (turn card blue)
+       PARTICIPANT INFO (stored by station loader)
     ------------------------------------------------------------ */
-    updateCache() {
+    getParticipantInfo() {
       try {
-        const eventType = this.getEventType();
-        const cacheKey =
-          eventType === "speed"
-            ? "station_cache_" + this.station
-            : "freestyle_cache_" + this.station;
+        const data = JSON.parse(localStorage.getItem("currentEntry") || "{}");
+        return {
+          NAME1: data.NAME1 || "",
+          NAME2: data.NAME2 || "",
+          NAME3: data.NAME3 || "",
+          NAME4: data.NAME4 || "",
+          TEAM: data.TEAM || "",
+          STATE: data.STATE || "",
+          HEAT: data.HEAT || "",
+          EVENT: data.EVENT || "",
+          DIVISION: data.DIVISION || ""
+        };
+      } catch {
+        return {};
+      }
+    },
 
-        const entryId = this.qs.get("id");
-
+    /* ------------------------------------------------------------
+       ⭐⭐⭐ NEW FUNCTION — INSTANT BLUE CARD
+       Updates local station list cache so card becomes DONE
+    ------------------------------------------------------------ */
+    updateLocalStationCache(entryId, station, judgeType) {
+      try {
+        const cacheKey = `freestyle_cache_${station}_${judgeType}`;
         const raw = localStorage.getItem(cacheKey);
-        if (raw) {
-          const data = JSON.parse(raw);
+        if (!raw) return;
 
-          data.entries = data.entries.map(e =>
-            e.entryId === entryId ? { ...e, status: "done" } : e
-          );
+        const data = JSON.parse(raw);
+
+        if (Array.isArray(data.entries)) {
+          data.entries.forEach(e => {
+            if (String(e.entryId) === String(entryId)) {
+              e.status = "done";        // ⭐ turn card BLUE instantly
+            }
+          });
 
           localStorage.setItem(cacheKey, JSON.stringify(data));
+          console.log(`[JudgeCore] Updated local cache → ${cacheKey}`);
         }
       } catch (err) {
-        console.warn("Cache update failed:", err);
+        console.warn("Local cache update failed:", err);
       }
-    },
-
-    /* ------------------------------------------------------------
-       REDIRECT BACK TO STATION LIST
-    ------------------------------------------------------------ */
-    redirect() {
-      const eventType = this.getEventType();
-
-      if (eventType === "speed") {
-        location.href = `speed-station.html?station=${this.station}&key=${this.key}`;
-        return;
-      }
-
-      location.href =
-        `freestyle-station.html?station=${this.station}` +
-        `&judgeType=${this.judgeType}&key=${this.key}`;
     }
 
   };
