@@ -12,17 +12,16 @@
         font-family: system-ui, sans-serif;
     }
 
-    /* Header */
     .pres-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 12px 20px;
+        background: white;
+        border-bottom: 1px solid #ddd;
         position: sticky;
         top: 0;
-        background: white;
         z-index: 999;
-        border-bottom: 1px solid #ddd;
     }
 
     .top-btn {
@@ -54,110 +53,72 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        text-align: center;
         font-size: 18px;
         font-weight: 600;
-        user-select: none;
         cursor: pointer;
+        user-select: none;
     }
 
     .plus { background: #28c766; }
 
-    /* MISS BUTTON spans 3 rows */
     .miss-btn {
         grid-row: span 3;
         background: #e0b400;
         color: black;
         border-radius: 6px;
         display: flex;
-        flex-direction: column;
         justify-content: center;
         align-items: center;
+        flex-direction: column;
         font-size: 26px;
         font-weight: 800;
         cursor: pointer;
-        user-select:none;
     }
-
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="pres-header">
     <button class="top-btn" onclick="history.back()">Back</button>
     <div style="font-size:20px; font-weight:700;">Presentation Judge</div>
     <button class="top-btn submit-btn" id="nextBtn">Next</button>
 </div>
 
-<!-- GRID -->
 <div class="pres-grid">
-
-    <!-- Row 1 -->
-    <div class="pres-btn minus" data-type="creativity-minus">
-        Creativity -<br><span id="creMinus">0</span>
-    </div>
+    <div class="pres-btn minus" data-type="creativity-minus">Creativity -<br><span id="creMinus">0</span></div>
     <div></div>
-    <div class="pres-btn plus" data-type="creativity-plus">
-        Creativity +<br><span id="crePlus">0</span>
-    </div>
+    <div class="pres-btn plus" data-type="creativity-plus">Creativity +<br><span id="crePlus">0</span></div>
 
-    <!-- Row 2 -->
-    <div class="pres-btn minus" data-type="musicality-minus">
-        Musicality -<br><span id="musMinus">0</span>
-    </div>
+    <div class="pres-btn minus" data-type="musicality-minus">Musicality -<br><span id="musMinus">0</span></div>
 
-    <!-- MISS spans 3 rows -->
-    <div class="miss-btn" id="missBtn">
-        Miss<br><span id="missCount">0</span>
-    </div>
+    <div class="miss-btn" id="missBtn">Miss<br><span id="missCount">0</span></div>
 
-    <div class="pres-btn plus" data-type="musicality-plus">
-        Musicality +<br><span id="musPlus">0</span>
-    </div>
+    <div class="pres-btn plus" data-type="musicality-plus">Musicality +<br><span id="musPlus">0</span></div>
 
-    <!-- Row 3 -->
-    <div class="pres-btn minus" data-type="entertain-minus">
-        Entertainment -<br><span id="entMinus">0</span>
-    </div>
-    <div class="pres-btn plus" data-type="entertain-plus">
-        Entertainment +<br><span id="entPlus">0</span>
-    </div>
+    <div class="pres-btn minus" data-type="entertain-minus">Entertainment -<br><span id="entMinus">0</span></div>
+    <div class="pres-btn plus"  data-type="entertain-plus">Entertainment +<br><span id="entPlus">0</span></div>
 
-    <!-- Row 4 -->
-    <div class="pres-btn minus" data-type="form-minus">
-        Form -<br><span id="formMinus">0</span>
-    </div>
-    <div class="pres-btn plus" data-type="form-plus">
-        Form +<br><span id="formPlus">0</span>
-    </div>
+    <div class="pres-btn minus" data-type="form-minus">Form -<br><span id="formMinus">0</span></div>
+    <div class="pres-btn plus"  data-type="form-plus">Form +<br><span id="formPlus">0</span></div>
 
-    <!-- Row 5 -->
-    <div class="pres-btn minus" data-type="variety-minus">
-        Repetitive -<br><span id="varMinus">0</span>
-    </div>
+    <div class="pres-btn minus" data-type="variety-minus">Repetitive -<br><span id="varMinus">0</span></div>
     <div></div>
-    <div class="pres-btn plus" data-type="variety-plus">
-        Variety +<br><span id="varPlus">0</span>
-    </div>
-
+    <div class="pres-btn plus" data-type="variety-plus">Variety +<br><span id="varPlus">0</span></div>
 </div>
 
 <script src="judge-forms.js"></script>
 <script>
-    initJudgeForm("presentation");
-</script>
+initJudgeForm("presentation");
 
-<script>
 document.getElementById("nextBtn").addEventListener("click", () => {
-    const data = window.JudgeForms.presentation.getScore();
+    // FIXED: save full page1Data instead of getScore()
+    localStorage.setItem(
+        "presentationPage1",
+        JSON.stringify(JudgeForms.presentation.page1Data)
+    );
 
-    // Save data for Page 2
-    localStorage.setItem("presentationPage1", JSON.stringify(data));
-
-    // Go to summary page
-    window.location.href = "presentation-summary.html";
+    window.location.href = "freestyle-presentation summary.html";
 });
 </script>
 
