@@ -3,18 +3,6 @@
    + Fullscreen Wrapper (650px centered, no-scroll, auto-shrink)
 ============================================================ */
 
-(function () {
-
-  const $ = (q, el = document) => el.querySelector(q);
-
-  /* ============================================================
-     🔥 UNIVERSAL FULLSCREEN LAYOUT ENGINE (OPTION A)
-     - Centers all judge pages in 650px white panel
-     - Removes scrolling
-     - Auto-shrinks UI on small screens
-     - Replaces old "Responsive Wrapper"
-  ============================================================ */
-
   function injectFullscreenLayout() {
 
     // Prevent multiple runs
