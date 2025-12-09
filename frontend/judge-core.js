@@ -3,21 +3,6 @@
    + Fullscreen Wrapper (Adaptive width, no-scroll, auto-shrink)
 ============================================================ */
 
-(function () {
-
-  const $ = (q, el = document) => el.querySelector(q);
-
-  /* ============================================================
-     🔥 UNIVERSAL FULLSCREEN LAYOUT ENGINE (OPTION C — ADAPTIVE)
-     - Phones:       max-width: 650px
-     - Small Tablet: max-width: 900px
-     - Large Tablet: max-width: 1100px
-     - Removes page scroll
-     - Auto-shrinks UI if device is short
-  ============================================================ */
-
-  function injectFullscreenLayout() {
-
     // Avoid double injection
     if (document.querySelector(".judge-wrapper")) return;
 
