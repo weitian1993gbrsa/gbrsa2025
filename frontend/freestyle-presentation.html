@@ -12,6 +12,23 @@
         font-family: system-ui, sans-serif;
     }
 
+    /* ===== REMOVE BUTTON HIGHLIGHT / FOCUS / TAP COLORS ===== */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    button, .pres-btn, .miss-btn {
+        outline: none !important;
+        box-shadow: none !important;
+        user-select: none;
+    }
+
+    button:focus,
+    button:active {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
     /* ===== TOP BUTTON BAR ===== */
     .top-bar {
         display: flex;
@@ -73,7 +90,6 @@
         font-size: 18px;
         font-weight: 600;
         cursor: pointer;
-        user-select: none;
     }
 
     .plus {
@@ -191,7 +207,7 @@ document.getElementById("nextBtn").addEventListener("click", () => {
         "freestyle-presentation summary.html" + location.search;
 });
 
-// ==== RESET BUTTON (MATCH DIFFICULTY: FULL PAGE RELOAD) ====
+// ==== RESET BUTTON (MATCH DIFFICULTY → FULL PAGE RELOAD) ====
 document.getElementById("resetBtn").addEventListener("click", () => {
     location.reload();
 });
