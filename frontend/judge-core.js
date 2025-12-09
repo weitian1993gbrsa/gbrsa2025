@@ -1,140 +1,80 @@
 /* ============================================================
-   JUDGE CORE — Universal Submit Handler (Speed + Freestyle)
-   + Fullscreen Wrapper (Adaptive width, no-scroll, auto-shrink)
-   + GLOBAL NO-ZOOM (added as requested)
+   JUDGE CORE — Universal Submit Handler + Fullscreen Layout Engine
+   (Speed + Freestyle)
 ============================================================ */
 
 (function () {
 
   /* ============================================================
-       🔥 GLOBAL ZOOM DISABLER (applies to ALL judge pages)
-  ============================================================ */
-  function disableZoom() {
-      let vp = document.querySelector("meta[name='viewport']");
-      if (!vp) {
-          vp = document.createElement("meta");
-          vp.name = "viewport";
-          document.head.appendChild(vp);
-      }
-
-      vp.setAttribute(
-          "content",
-          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-      );
-
-      // Prevent pinch zoom
-      document.addEventListener(
-          "gesturestart",
-          function (e) {
-              e.preventDefault();
-          },
-          { passive: false }
-      );
-
-      // Prevent double-tap zoom
-      let lastTouch = 0;
-      document.addEventListener(
-          "touchend",
-          function (e) {
-              const now = Date.now();
-              if (now - lastTouch <= 300) {
-                  e.preventDefault();
-              }
-              lastTouch = now;
-          },
-          { passive: false }
-      );
-  }
-
-  document.addEventListener("DOMContentLoaded", disableZoom);
-
-
-
-  const $ = (q, el = document) => el.querySelector(q);
-
-  /* ============================================================
-     🔥 UNIVERSAL FULLSCREEN LAYOUT ENGINE (OPTION C — ADAPTIVE)
-     - Phones:       max-width: 650px
-     - Small Tablet: max-width: 900px
-     - Large Tablet: max-width: 1100px
-     - Removes page scroll
-     - Auto-shrinks UI if device is short
+     GLOBAL FULLSCREEN LAYOUT INJECTION (OPTION A + AUTO SCALE)
+     - No scroll anywhere
+     - 650px centered wrapper
+     - Auto shrink on small screens
   ============================================================ */
 
   function injectFullscreenLayout() {
 
-    // Avoid double injection
-    if (document.querySelector(".judge-wrapper")) return;
+      // Prevent double injection
+      if (document.querySelector(".judge-wrapper")) return;
 
-    /* ---------- Inject Global CSS ---------- */
-    const css = `
-        html, body {
-            margin:0; padding:0;
-            height:100%;
-            overflow:hidden;           /* 🔥 No scrolling */
-            background:#e9e9e9;
-            font-family:system-ui,sans-serif;
-            -webkit-user-select:none;
-            user-select:none;
-        }
+      /* ---------- Inject global CSS ---------- */
+      const css = `
+          html, body {
+              margin:0; padding:0;
+              height:100%;
+              overflow:hidden;                     /* NO SCROLL */
+              background:#e9e9e9;                  /* grey outer */
+              font-family:system-ui,sans-serif;
+              -webkit-user-select:none;
+              user-select:none;
+          }
 
-        * { -webkit-tap-highlight-color:transparent; }
+          * { -webkit-tap-highlight-color: transparent; }
 
-        .judge-wrapper {
-            width:100%;
-            max-width:650px;           /* 🔥 Default (phones) */
-            height:100%;
-            margin:0 auto;
-            background:white;
-            display:flex;
-            flex-direction:column;
-            box-shadow:0 0 14px rgba(0,0,0,0.22);
-            transform-origin: top center;
-        }
+          .judge-wrapper {
+              width:100%;
+              max-width:650px;
+              height:100%;
+              margin:0 auto;
+              background:white;
+              display:flex;
+              flex-direction:column;
+              box-shadow:0 0 12px rgba(0,0,0,0.18);
+              transform-origin: top center;
+          }
 
-        /* 🔥 Adaptive width (Option C) */
-        @media (min-width:800px) {
-            .judge-wrapper { max-width:900px; }
-        }
-        @media (min-width:1200px) {
-            .judge-wrapper { max-width:1100px; }
-        }
+          /* Auto-scale for VERY small screens */
+          @media (max-height:700px) {
+              .judge-wrapper {
+                  transform: scale(0.92);
+              }
+          }
+          @media (max-height:620px) {
+              .judge-wrapper {
+                  transform: scale(0.85);
+              }
+          }
+      `;
 
-        /* 🔥 Auto-Shrink for short screens */
-        @media (max-height:700px) {
-            .judge-wrapper { transform:scale(0.92); }
-        }
-        @media (max-height:620px) {
-            .judge-wrapper { transform:scale(0.85); }
-        }
-        @media (max-height:560px) {
-            .judge-wrapper { transform:scale(0.78); }
-        }
+      const style = document.createElement("style");
+      style.textContent = css;
+      document.head.appendChild(style);
 
-        .judge-content {
-            flex:1;
-            overflow:hidden;           /* NO scrolling */
-            display:block;
-        }
-    `;
-    const style = document.createElement("style");
-    style.textContent = css;
-    document.head.appendChild(style);
+      /* ---------- Apply wrapper ---------- */
+      const wrapper = document.createElement("div");
+      wrapper.className = "judge-wrapper";
 
-    /* ---------- Wrap Page Content ---------- */
-    const wrapper = document.createElement("div");
-    wrapper.className = "judge-wrapper";
+      // Move ALL content except scripts into wrapper
+      const content = document.createElement("div");
+      content.style.flex = "1";           /* Fill vertical space */
+      content.style.overflow = "hidden";  /* No scroll allowed */
 
-    const content = document.createElement("div");
-    content.className = "judge-content";
+      [...document.body.children].forEach(el => {
+          if (el.tagName !== "SCRIPT") content.appendChild(el);
+      });
 
-    // Move everything except <script> into wrapper
-    [...document.body.children].forEach(el => {
-        if (el.tagName !== "SCRIPT") content.appendChild(el);
-    });
-
-    wrapper.appendChild(content);
-    document.body.prepend(wrapper);
+      wrapper.appendChild(content);
+      document.body.prepend(wrapper);
   }
 
   document.addEventListener("DOMContentLoaded", injectFullscreenLayout);
@@ -142,8 +82,10 @@
 
 
   /* ============================================================
-     ORIGINAL JUDGE-CORE LOGIC (unchanged)
+     ORIGINAL JUDGE LOGIC (UNCHANGED)
   ============================================================ */
+
+  const $ = (q, el = document) => el.querySelector(q);
 
   window.JudgeCore = {
 
@@ -158,10 +100,10 @@
       /* SECURITY CHECK */
       const access = window.JUDGE_KEYS[this.key];
       if (!access || access.event !== this.getEventType() || String(access.station) !== this.station) {
-        document.body.innerHTML = `
-          <div style="padding:2rem;text-align:center;">
-            <h2 style="color:#b00020;">Access Denied</h2>
-            <p>Unauthorized judge key</p>
+        document.body.innerHTML =
+          `<div style="padding:2rem;text-align:center;">
+              <h2 style="color:#b00020;">Access Denied</h2>
+              <p>Unauthorized judge key</p>
           </div>`;
         return;
       }
@@ -177,7 +119,7 @@
         config.submitButton.addEventListener("click", () => this.submit());
       }
 
-      console.log("[JudgeCore] Initialized:", this.judgeType);
+      console.log("[JudgeCore] Init:", this.judgeType);
     },
 
     getEventType() {
@@ -186,6 +128,7 @@
     },
 
     buildBasePayload() {
+
       const remarkInput = document.querySelector('[name="REMARK"]');
       const remarkValue = remarkInput ? remarkInput.value.trim() : "";
 
@@ -204,8 +147,8 @@
     },
 
     async submit() {
-      const { submitButton } = this.config;
 
+      const { submitButton } = this.config;
       if (submitButton.dataset.lock === "1") return;
       submitButton.dataset.lock = "1";
 
@@ -228,12 +171,12 @@
           throw new Error(result.error || "Server error");
 
         this.overlayText.textContent = "Saved ✔";
-
         this.updateCache();
 
         setTimeout(() => this.redirect(), 300);
 
       } catch (err) {
+
         console.error("Submit failed:", err);
         this.overlayText.textContent = "Submit Failed";
 
