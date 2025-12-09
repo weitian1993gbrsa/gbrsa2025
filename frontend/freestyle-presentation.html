@@ -12,96 +12,117 @@
         font-family: system-ui, sans-serif;
     }
 
-    /* ===== REMOVE BUTTON HIGHLIGHT / FOCUS / TAP COLORS ===== */
     * { -webkit-tap-highlight-color: transparent; }
 
-    button, .pres-btn, .miss-btn {
-        outline: none !important;
-        box-shadow: none !important;
-        user-select: none;
+    /* ===== FIXED 650px WRAPPER (MATCH TECHNICAL) ===== */
+    .wrapper {
+        max-width: 650px;
+        margin: 0 auto;
+        background: white;
+        min-height: 100vh;
+        box-shadow: 0 0 12px rgba(0,0,0,0.15);
     }
 
-    button:focus, button:active {
-        outline: none !important;
-        box-shadow: none !important;
-    }
-
-    /* ===== TOP BUTTON BAR ===== */
+    /* ===== TOP BAR (Back + Next) ===== */
     .top-bar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: white;
+        padding: 12px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 20px;
-        background: white;
         border-bottom: 1px solid #ddd;
     }
 
     .top-btn {
-        padding: 10px 22px;
-        border: 1px solid #ccc;
-        border-radius: 0px;
         background: white;
+        border: 1px solid #ccc;
+        padding: 10px 22px;
+        border-radius: 0;
         cursor: pointer;
-        font-weight: 600;
         font-size: 18px;
+        font-weight: 600;
     }
 
     .submit-btn {
-        background: #0d6efd;
+        background: #1e88ff;
         color: white;
         border: none;
         font-weight: bold;
     }
 
-    /* ===== RESET BUTTON ===== */
-    .reset-btn {
+    /* ===== CONTROL ROW (Undo left / Reset right) ===== */
+    .control-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid #ddd;
+        background: white;
+    }
+
+    .btn-undo {
+        background: rgb(233,165,39);
+        border: 1px solid #ccc;
+        padding: 16px 32px;
+        font-size: 18px;
+        border-radius: 0;
+        cursor: pointer;
+        color: white;
+    }
+
+    .btn-reset {
         background: #e53935;
         color: white;
         border: none;
+        padding: 16px 32px;
         font-size: 18px;
-        padding: 12px 26px;
-        border-radius: 0px;
-        font-weight: bold;
+        border-radius: 0;
         cursor: pointer;
     }
 
-    /* ===== GRID LAYOUT ===== */
+    .hidden {
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    /* ===== GRID BUTTONS ===== */
     .pres-grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         grid-auto-rows: 100px;
         gap: 16px;
-        padding: 16px;
-        max-width: 900px;
-        margin: auto;
+        padding: 16px 20px;
+        background: #f5f5f5;
     }
 
     .pres-btn {
         background: #d64545;
         color: white;
-        border-radius: 0px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         font-size: 14px;
-        font-weight: 400;
         cursor: pointer;
     }
 
-    .plus { background: #28c766; }
+    .plus {
+        background: #28c766;
+    }
 
     .miss-btn {
         grid-row: span 3;
         background: #e0b400;
-        color: rgb(255,255,255);
-        border-radius: 0px;
+        color: white;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        flex-direction: column;
         font-size: 26px;
-        font-weight: 400;
         cursor: pointer;
     }
 </style>
@@ -109,40 +130,79 @@
 
 <body>
 
-<!-- ===== TOP BAR BUTTONS ===== -->
-<div class="top-bar">
-    <button class="top-btn" onclick="history.back()">Back</button>
-    <button class="reset-btn" id="resetBtn">Reset</button>
-    <button class="top-btn submit-btn" id="nextBtn">Next</button>
-</div>
+<div class="wrapper">
 
-<!-- ===== BUTTON GRID ===== -->
-<div class="pres-grid">
-    <div class="pres-btn minus" data-type="creativity-minus">Creativity-<br><span id="creMinus">0</span></div>
-    <div></div>
-    <div class="pres-btn plus" data-type="creativity-plus">Creativity+<br><span id="crePlus">0</span></div>
+    <!-- ===== TOP BAR ===== -->
+    <div class="top-bar">
+        <button class="top-btn" onclick="history.back()">Back</button>
+        <button class="top-btn submit-btn" id="nextBtn">Next</button>
+    </div>
 
-    <div class="pres-btn minus" data-type="musicality-minus">Musicality-<br><span id="musMinus">0</span></div>
+    <!-- ===== CONTROL BAR ===== -->
+    <div class="control-row">
+        <button id="undoBtn" class="btn-undo hidden">Undo</button>
+        <button id="resetBtn" class="btn-reset">Reset</button>
+    </div>
 
-    <div class="miss-btn" id="missBtn">Miss<br><span id="missCount">0</span></div>
+    <!-- ===== GRID ===== -->
+    <div class="pres-grid">
 
-    <div class="pres-btn plus" data-type="musicality-plus">Musicality+<br><span id="musPlus">0</span></div>
+        <div class="pres-btn minus" data-type="creativity-minus">
+            Creativity-<br><span id="creMinus">0</span>
+        </div>
 
-    <div class="pres-btn minus" data-type="entertain-minus">Entertainment-<br><span id="entMinus">0</span></div>
-    <div class="pres-btn plus" data-type="entertain-plus">Entertainment+<br><span id="entPlus">0</span></div>
+        <div></div>
 
-    <div class="pres-btn minus" data-type="form-minus">Form-<br><span id="formMinus">0</span></div>
-    <div class="pres-btn plus" data-type="form-plus">Form+<br><span id="formPlus">0</span></div>
+        <div class="pres-btn plus" data-type="creativity-plus">
+            Creativity+<br><span id="crePlus">0</span>
+        </div>
 
-    <div class="pres-btn minus" data-type="variety-minus">Repetitive-<br><span id="varMinus">0</span></div>
-    <div></div>
-    <div class="pres-btn plus" data-type="variety-plus">Variety+<br><span id="varPlus">0</span></div>
+        <div class="pres-btn minus" data-type="musicality-minus">
+            Musicality-<br><span id="musMinus">0</span>
+        </div>
+
+        <div class="miss-btn" id="missBtn">
+            Miss<br><span id="missCount">0</span>
+        </div>
+
+        <div class="pres-btn plus" data-type="musicality-plus">
+            Musicality+<br><span id="musPlus">0</span>
+        </div>
+
+        <div class="pres-btn minus" data-type="entertain-minus">
+            Entertainment-<br><span id="entMinus">0</span>
+        </div>
+
+        <div class="pres-btn plus" data-type="entertain-plus">
+            Entertainment+<br><span id="entPlus">0</span>
+        </div>
+
+        <div class="pres-btn minus" data-type="form-minus">
+            Form-<br><span id="formMinus">0</span>
+        </div>
+
+        <div class="pres-btn plus" data-type="form-plus">
+            Form+<br><span id="formPlus">0</span>
+        </div>
+
+        <div class="pres-btn minus" data-type="variety-minus">
+            Repetitive-<br><span id="varMinus">0</span>
+        </div>
+
+        <div></div>
+
+        <div class="pres-btn plus" data-type="variety-plus">
+            Variety+<br><span id="varPlus">0</span>
+        </div>
+
+    </div>
+
 </div>
 
 <script src="judge-forms.js"></script>
 
 <script>
-// === LOAD PARTICIPANT INFO ===
+/* Load participant info */
 const qs = new URLSearchParams(location.search);
 const entry = {
     ID: qs.get("id"),
@@ -156,42 +216,23 @@ const entry = {
 };
 localStorage.setItem("currentEntry", JSON.stringify(entry));
 
-// === INIT FORM ===
 initJudgeForm("presentation");
 
-// === NEXT BUTTON → SUMMARY PAGE ===
-document.getElementById("nextBtn").addEventListener("click", () => {
-    localStorage.setItem(
-        "presentationPage1",
-        JSON.stringify(JudgeForms.presentation.page1Data)
-    );
-    window.location.href = "freestyle-presentation summary.html" + location.search;
-});
-
-// === PERFECT RESET (MATCH judge-forms.js EXACTLY) ===
+/* RESET BUTTON behavior */
 document.getElementById("resetBtn").addEventListener("click", () => {
+    const d = JudgeForms.presentation.page1Data;
 
-    // Reset visible UI
-    document.getElementById("creMinus").textContent = 0;
-    document.getElementById("crePlus").textContent = 0;
-    document.getElementById("musMinus").textContent = 0;
-    document.getElementById("musPlus").textContent = 0;
-    document.getElementById("entMinus").textContent = 0;
-    document.getElementById("entPlus").textContent = 0;
-    document.getElementById("formMinus").textContent = 0;
-    document.getElementById("formPlus").textContent = 0;
-    document.getElementById("varMinus").textContent = 0;
-    document.getElementById("varPlus").textContent = 0;
-    document.getElementById("missCount").textContent = 0;
+    d.creMinus = d.crePlus = 0;
+    d.musMinus = d.musPlus = 0;
+    d.entMinus = d.entPlus = 0;
+    d.formMinus = d.formPlus = 0;
+    d.varMinus = d.varPlus = 0;
+    d.misses = 0;
 
-    // Reset internal data (THE REAL FIX)
-    let d = JudgeForms.presentation.page1Data;
-    d.creMinus = 0; d.crePlus = 0;
-    d.musMinus = 0; d.musPlus = 0;
-    d.entMinus = 0; d.entPlus = 0;
-    d.formMinus = 0; d.formPlus = 0;
-    d.varMinus = 0; d.varPlus = 0;
-    d.misses = 0;   // <-- IMPORTANT: correct name
+    document.querySelectorAll("span[id]").forEach(s => s.textContent = "0");
+
+    JudgeForms.presentation.lastAction = null;
+    document.getElementById("undoBtn").classList.add("hidden");
 });
 </script>
 

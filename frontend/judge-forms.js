@@ -253,109 +253,140 @@
   };
 
 
-  /* ------------------------------------------------------------
-     PRESENTATION PAGE 1 + PAGE 2
-  ------------------------------------------------------------ */
+ /* ------------------------------------------------------------
+   PRESENTATION PAGE 1 + PAGE 2 — Technical-Style UNDO (FIXED)
+------------------------------------------------------------ */
 
-  JudgeForms.presentation = {
+JudgeForms.presentation = {
 
-    WEIGHTS: {
-      creativity: 0.15,
-      musicality: 0.20,
-      entertainment: 0.25,
-      form: 0.25,
-      variety: 0.15
-    },
+  WEIGHTS: {
+    creativity: 0.15,
+    musicality: 0.20,
+    entertainment: 0.25,
+    form: 0.25,
+    variety: 0.15
+  },
 
-    page1Data: {
-      creMinus: 0, crePlus: 0,
-      musMinus: 0, musPlus: 0,
-      entMinus: 0, entPlus: 0,
-      formMinus: 0, formPlus: 0,
-      varMinus: 0, varPlus: 0,
-      misses: 0
-    },
+  page1Data: {
+    creMinus: 0, crePlus: 0,
+    musMinus: 0, musPlus: 0,
+    entMinus: 0, entPlus: 0,
+    formMinus: 0, formPlus: 0,
+    varMinus: 0, varPlus: 0,
+    misses: 0
+  },
 
-    init() {
-      const isPage2 = document.body.dataset.page === "presentation-summary";
-      if (isPage2) this.initPage2();
-      else this.initPage1();
-    },
+  lastAction: null,
 
-    /* ---------- PAGE 1 ----------- */
-    initPage1() {
+  init() {
+    const isPage2 = document.body.dataset.page === "presentation-summary";
+    if (isPage2) this.initPage2();
+    else this.initPage1();
+  },
 
-      const map = {
-        "creativity-minus": "creMinus",
-        "creativity-plus": "crePlus",
-        "musicality-minus": "musMinus",
-        "musicality-plus": "musPlus",
-        "entertain-minus": "entMinus",
-        "entertain-plus": "entPlus",
-        "form-minus": "formMinus",
-        "form-plus": "formPlus",
-        "variety-minus": "varMinus",
-        "variety-plus": "varPlus"
-      };
+  /* ---------- PAGE 1 ---------- */
+  initPage1() {
 
-      Object.keys(map).forEach(type => {
-        const btn = document.querySelector(`[data-type='${type}']`);
-        if (!btn) return;
+    const undoBtn = document.getElementById("undoBtn");
+    undoBtn.classList.add("hidden");   // <-- FIXED: no display:none
 
-        const key = map[type];
-        const label = document.getElementById(key);
+    const map = {
+      "creativity-minus": "creMinus",
+      "creativity-plus": "crePlus",
+      "musicality-minus": "musMinus",
+      "musicality-plus": "musPlus",
+      "entertain-minus": "entMinus",
+      "entertain-plus": "entPlus",
+      "form-minus": "formMinus",
+      "form-plus": "formPlus",
+      "variety-minus": "varMinus",
+      "variety-plus": "varPlus"
+    };
 
-        btn.addEventListener("pointerdown", () => {
-          this.page1Data[key]++;
-          label.textContent = this.page1Data[key];
-          if (navigator.vibrate) navigator.vibrate(40);
-        });
+    // Handle all +/- buttons
+    Object.keys(map).forEach(type => {
+      const btn = document.querySelector(`[data-type='${type}']`);
+      if (!btn) return;
+
+      const key = map[type];
+      const label = document.getElementById(key);
+
+      btn.addEventListener("pointerdown", () => {
+
+        this.lastAction = { key, prev: this.page1Data[key] };
+
+        undoBtn.classList.remove("hidden");
+
+        this.page1Data[key]++;
+        label.textContent = this.page1Data[key];
+
+        if (navigator.vibrate) navigator.vibrate([40]);
       });
+    });
 
-      const missBtn = document.getElementById("missBtn");
-      const missLabel = document.getElementById("missCount");
+    // MISS BUTTON
+    const missBtn = document.getElementById("missBtn");
+    const missLabel = document.getElementById("missCount");
 
-      missBtn.addEventListener("pointerdown", () => {
-        this.page1Data.misses++;
-        missLabel.textContent = this.page1Data.misses;
-        if (navigator.vibrate) navigator.vibrate(40);
-      });
+    missBtn.addEventListener("pointerdown", () => {
 
-      document.getElementById("nextBtn").addEventListener("click", () => {
-        localStorage.setItem("presentationPage1", JSON.stringify(this.page1Data));
-        window.location.href = "freestyle-presentation summary.html";
-      });
+      this.lastAction = { key: "misses", prev: this.page1Data.misses };
 
-    },
+      undoBtn.classList.remove("hidden");
 
-    /* ---------- PAGE 2 ----------- */
-    initPage2() {
-      console.log("[Presentation] Page 2 Init");
+      this.page1Data.misses++;
+      missLabel.textContent = this.page1Data.misses;
 
-      const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
-      this.page1Data = data;
+      if (navigator.vibrate) navigator.vibrate([40]);
+    });
 
-      this.finalScore = this.computeWeightedScore(data);
-      // No slider updates here — summary page handles UI.
-    },
+    // UNDO BUTTON
+    undoBtn.addEventListener("pointerdown", () => {
+      if (!this.lastAction) return;
 
-    computeWeightedScore(d) {
-      let sum =
-        (12 + d.crePlus - d.creMinus) * this.WEIGHTS.creativity +
-        (12 + d.musPlus - d.musMinus) * this.WEIGHTS.musicality +
-        (12 + d.entPlus - d.entMinus) * this.WEIGHTS.entertainment +
-        (12 + d.formPlus - d.formMinus) * this.WEIGHTS.form +
-        (12 + d.varPlus - d.varMinus) * this.WEIGHTS.variety;
+      const { key, prev } = this.lastAction;
 
-      sum -= d.misses;
-      return Number(sum.toFixed(1));
-    },
+      this.page1Data[key] = prev;
 
-    getScore() {
-      return { PRESENTATION: this.finalScore || 0 };
-    }
-  };
+      const id = key === "misses" ? "missCount" : key;
+      document.getElementById(id).textContent = prev;
 
+      this.lastAction = null;
+      undoBtn.classList.add("hidden");
+
+      if (navigator.vibrate) navigator.vibrate([60]);
+    });
+
+    // NEXT BUTTON
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      localStorage.setItem("presentationPage1", JSON.stringify(this.page1Data));
+      window.location.href = "freestyle-presentation summary.html" + location.search;
+    });
+  },
+
+  /* ---------- PAGE 2 ---------- */
+  initPage2() {
+    const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
+    this.page1Data = data;
+    this.finalScore = this.computeWeightedScore(data);
+  },
+
+  computeWeightedScore(d) {
+    let sum =
+      (12 + d.crePlus - d.creMinus) * this.WEIGHTS.creativity +
+      (12 + d.musPlus - d.musMinus) * this.WEIGHTS.musicality +
+      (12 + d.entPlus - d.entMinus) * this.WEIGHTS.entertainment +
+      (12 + d.formPlus - d.formMinus) * this.WEIGHTS.form +
+      (12 + d.varPlus - d.varMinus) * this.WEIGHTS.variety;
+
+    sum -= d.misses;
+    return Number(sum.toFixed(1));
+  },
+
+  getScore() {
+    return { PRESENTATION: this.finalScore || 0 };
+  }
+};
 
   /* ------------------------------------------------------------
      AUTO INIT WRAPPER
