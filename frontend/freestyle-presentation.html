@@ -6,23 +6,19 @@
 <title>Presentation Judge</title>
 
 <style>
-    body {
+    /* ===== Disable ALL scrolling on the page ===== */
+    html, body {
         margin: 0;
+        padding: 0;
+        overflow: hidden;   /* 🔥 No scrolling at all */
+        height: 100%;       /* Fill screen height */
         background: #f5f5f5;
         font-family: system-ui, sans-serif;
     }
 
-    /* Disable tap highlight */
-    * { -webkit-tap-highlight-color: transparent; }
-
-    /* ⭐ Disable ALL text selection (fix highlight issue) */
-    body, 
-    button, 
-    .pres-btn, 
-    .miss-btn, 
-    .btn-undo, 
-    .btn-reset, 
-    .top-btn {
+    /* Disable text selection everywhere */
+    * { 
+        -webkit-tap-highlight-color: transparent;
         -webkit-user-select: none !important;
         -moz-user-select: none !important;
         -ms-user-select: none !important;
@@ -31,24 +27,24 @@
 
     /* ===== FIXED 650px WRAPPER ===== */
     .wrapper {
+        width: 100%;
         max-width: 650px;
         margin: 0 auto;
         background: white;
-        min-height: 100vh;
-        box-shadow: 0 0 12px rgba(0,0,0,0.15);
+        height: 100%;             /* 🔥 Fill the whole screen */
+        display: flex;
+        flex-direction: column;
     }
 
     /* ===== TOP BAR ===== */
     .top-bar {
-        position: sticky;
-        top: 0;
-        z-index: 10;
         background: white;
         padding: 12px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         border-bottom: 1px solid #ddd;
+        flex-shrink: 0;           /* 🔥 Prevent shrinking */
     }
 
     .top-btn {
@@ -74,11 +70,11 @@
         justify-content: space-between;
         align-items: center;
         padding: 12px 20px;
-        background: white;       /* white container restored */
-        border-bottom: none !important; /* remove underline */
+        background: white;
+        border-bottom: none !important;
+        flex-shrink: 0;           /* 🔥 Prevent moving */
     }
 
-    /* Colored Undo button */
     .btn-undo {
         background: #f2b632;
         color: white;
@@ -90,7 +86,6 @@
         cursor: pointer;
     }
 
-    /* Colored Reset button */
     .btn-reset {
         background: #e53935;
         color: white;
@@ -102,51 +97,44 @@
         cursor: pointer;
     }
 
-    /* Hide Undo without shifting layout */
     .hidden {
         opacity: 0;
         pointer-events: none;
         visibility: hidden;
     }
 
-    /* ===== GRID ===== */
+    /* ===== GRID: Take remaining space, NON-SCROLLABLE ===== */
     .pres-grid {
+        flex: 1;                   /* 🔥 Fill leftover height */
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        grid-auto-rows: 100px;
-        gap: 16px;
+        grid-auto-rows: 1fr;
+        gap: 12px;
         padding: 16px 20px;
         background: #f5f5f5;
     }
 
-    .pres-btn {
-        background: #d64545;
-        color: white;
+    /* Smaller / flexible grid items so all rows fit */
+    .pres-btn, .miss-btn {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        color: white;
+        border-radius: 4px;
         font-size: 14px;
         cursor: pointer;
-        border-radius: 4px;
     }
 
-    .plus {
-        background: #28c766;
-    }
+    .pres-btn { background: #d64545; }
+    .plus { background: #28c766; }
 
     .miss-btn {
-        grid-row: span 3;
         background: #e0b400;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        font-size: 26px;
-        cursor: pointer;
-        border-radius: 4px;
+        font-size: 24px;
+        grid-row: span 3;   /* Still spans 3 rows */
     }
+
 </style>
 </head>
 
@@ -154,13 +142,13 @@
 
 <div class="wrapper">
 
-    <!-- ===== TOP BAR ===== -->
+    <!-- ===== HEADER ===== -->
     <div class="top-bar">
         <button class="top-btn" onclick="history.back()">Back</button>
         <button class="top-btn submit-btn" id="nextBtn">Next</button>
     </div>
 
-    <!-- ===== CONTROL ROW ===== -->
+    <!-- ===== CONTROL BAR ===== -->
     <div class="control-row">
         <button id="undoBtn" class="btn-undo hidden">Undo</button>
         <button id="resetBtn" class="btn-reset">Reset</button>
@@ -224,7 +212,7 @@
 <script src="judge-forms.js"></script>
 
 <script>
-/* Load participant info */
+/* Load entry data */
 const qs = new URLSearchParams(location.search);
 const entry = {
     ID: qs.get("id"),
@@ -240,7 +228,7 @@ localStorage.setItem("currentEntry", JSON.stringify(entry));
 
 initJudgeForm("presentation");
 
-/* RESET handler */
+/* Reset handler */
 document.getElementById("resetBtn").addEventListener("click", () => {
     const d = JudgeForms.presentation.page1Data;
 
