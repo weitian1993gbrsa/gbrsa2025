@@ -12,29 +12,46 @@
         font-family: system-ui, sans-serif;
     }
 
-    .pres-header {
+    /* ===== TOP BUTTON BAR ===== */
+    .top-bar {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 12px 20px;
         background: white;
         border-bottom: 1px solid #ddd;
-        position: sticky;
-        top: 0;
-        z-index: 999;
     }
 
     .top-btn {
         padding: 10px 22px;
         border: 1px solid #ccc;
-        border-radius: 6px;
+        border-radius: 0px;
         background: white;
         cursor: pointer;
         font-weight: 600;
+        font-size: 18px;
     }
-    .submit-btn { background: #0d6efd; color: white; border: none; }
 
-    /* GRID */
+    .submit-btn {
+        background: #0d6efd;
+        color: white;
+        border: none;
+        font-weight: bold;
+    }
+
+    /* ===== RESET BUTTON (MATCH DIFFICULTY) ===== */
+    .reset-btn {
+        background: #e53935;
+        color: white;
+        border: none;
+        font-size: 18px;
+        padding: 12px 26px;
+        border-radius: 0px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    /* ===== GRID LAYOUT ===== */
     .pres-grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -59,7 +76,9 @@
         user-select: none;
     }
 
-    .plus { background: #28c766; }
+    .plus {
+        background: #28c766;
+    }
 
     .miss-btn {
         grid-row: span 3;
@@ -79,39 +98,70 @@
 
 <body>
 
-<div class="pres-header">
+<!-- ===== TOP BAR BUTTONS ===== -->
+<div class="top-bar">
     <button class="top-btn" onclick="history.back()">Back</button>
-    <div style="font-size:20px; font-weight:700;">Presentation Judge</div>
+
+    <button class="reset-btn" id="resetBtn">Reset</button>
+
     <button class="top-btn submit-btn" id="nextBtn">Next</button>
 </div>
 
+<!-- ===== BUTTON GRID ===== -->
 <div class="pres-grid">
-    <div class="pres-btn minus" data-type="creativity-minus">Creativity -<br><span id="creMinus">0</span></div>
+    <div class="pres-btn minus" data-type="creativity-minus">
+        Creativity -<br><span id="creMinus">0</span>
+    </div>
+
     <div></div>
-    <div class="pres-btn plus" data-type="creativity-plus">Creativity +<br><span id="crePlus">0</span></div>
 
-    <div class="pres-btn minus" data-type="musicality-minus">Musicality -<br><span id="musMinus">0</span></div>
+    <div class="pres-btn plus" data-type="creativity-plus">
+        Creativity +<br><span id="crePlus">0</span>
+    </div>
 
-    <div class="miss-btn" id="missBtn">Miss<br><span id="missCount">0</span></div>
+    <div class="pres-btn minus" data-type="musicality-minus">
+        Musicality -<br><span id="musMinus">0</span>
+    </div>
 
-    <div class="pres-btn plus" data-type="musicality-plus">Musicality +<br><span id="musPlus">0</span></div>
+    <div class="miss-btn" id="missBtn">
+        Miss<br><span id="missCount">0</span>
+    </div>
 
-    <div class="pres-btn minus" data-type="entertain-minus">Entertainment -<br><span id="entMinus">0</span></div>
-    <div class="pres-btn plus"  data-type="entertain-plus">Entertainment +<br><span id="entPlus">0</span></div>
+    <div class="pres-btn plus" data-type="musicality-plus">
+        Musicality +<br><span id="musPlus">0</span>
+    </div>
 
-    <div class="pres-btn minus" data-type="form-minus">Form -<br><span id="formMinus">0</span></div>
-    <div class="pres-btn plus"  data-type="form-plus">Form +<br><span id="formPlus">0</span></div>
+    <div class="pres-btn minus" data-type="entertain-minus">
+        Entertainment -<br><span id="entMinus">0</span>
+    </div>
 
-    <div class="pres-btn minus" data-type="variety-minus">Repetitive -<br><span id="varMinus">0</span></div>
+    <div class="pres-btn plus" data-type="entertain-plus">
+        Entertainment +<br><span id="entPlus">0</span>
+    </div>
+
+    <div class="pres-btn minus" data-type="form-minus">
+        Form -<br><span id="formMinus">0</span>
+    </div>
+
+    <div class="pres-btn plus" data-type="form-plus">
+        Form +<br><span id="formPlus">0</span>
+    </div>
+
+    <div class="pres-btn minus" data-type="variety-minus">
+        Repetitive -<br><span id="varMinus">0</span>
+    </div>
+
     <div></div>
-    <div class="pres-btn plus" data-type="variety-plus">Variety +<br><span id="varPlus">0</span></div>
+
+    <div class="pres-btn plus" data-type="variety-plus">
+        Variety +<br><span id="varPlus">0</span>
+    </div>
 </div>
 
-
 <script src="judge-forms.js"></script>
-<script>
 
-// === LOAD PARTICIPANT FROM URL & SAVE FOR SUMMARY ===
+<script>
+// === LOAD PARTICIPANT FROM URL ===
 const qs = new URLSearchParams(location.search);
 
 const entry = {
@@ -125,28 +175,26 @@ const entry = {
     DIVISION: qs.get("division") || ""
 };
 
-// Save in same format as Difficulty
 localStorage.setItem("currentEntry", JSON.stringify(entry));
-
 
 // ==== INIT SCORING ====
 initJudgeForm("presentation");
 
-
-// ==== NEXT BUTTON → GO SUMMARY PAGE ====
+// ==== NEXT BUTTON → SUMMARY PAGE ====
 document.getElementById("nextBtn").addEventListener("click", () => {
-
-    // Save judge values from Page 1
     localStorage.setItem(
         "presentationPage1",
         JSON.stringify(JudgeForms.presentation.page1Data)
     );
 
-    // Go to summary page WITH URL parameters preserved
     window.location.href =
         "freestyle-presentation summary.html" + location.search;
 });
 
+// ==== RESET BUTTON (MATCH DIFFICULTY: FULL PAGE RELOAD) ====
+document.getElementById("resetBtn").addEventListener("click", () => {
+    location.reload();
+});
 </script>
 
 </body>
