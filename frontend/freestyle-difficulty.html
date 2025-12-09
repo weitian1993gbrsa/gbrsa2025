@@ -9,45 +9,61 @@
 
   <style>
     * { -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
-    body { background:#f4f5f7; margin:0; font-family:Arial, sans-serif; }
+
+    /* REMOVE PAGE BACKGROUND — judge-core controls layout */
+    body { margin:0; font-family:Arial, sans-serif; }
+
+    /* HEADER stays the same */
     header {
       display:flex; align-items:center; justify-content:space-between;
       padding:1rem; background:white; border-bottom:1px solid #ddd;
     }
+
     .back-btn {
       background:white; border:1px solid #ccc;
       padding:12px 22px; font-size:18px; border-radius:0px;
     }
+
     .submit-btn {
       background:#1e88ff; color:white; padding:12px 26px;
       border-radius:0px; border:none; font-size:18px; font-weight:bold;
     }
+
+    /* Control row stays SAME */
     .control-row {
       display:flex; justify-content:space-between; align-items:center;
-      padding:1rem 1.2rem; margin:0 auto; max-width:650px;
+      padding:1rem 1.2rem;
+      /* REMOVE max-width — judge-core will center wrapper */
     }
+
     .btn-undo {
       background:rgb(233, 165, 39); border:1px solid #ccc;
       padding:12px 26px; font-size:18px; border-radius:0px;
     }
+
     .btn-reset {
       background:#e53935; color:white; border:none;
       font-size:18px; padding:12px 26px; border-radius:0px;
     }
+
     .total-score { font-size:18px; font-weight:700; }
+
+    /* GRID stays SAME but remove max-width */
     .grid {
       display:grid; grid-template-columns:repeat(3,1fr); gap:18px;
-      margin:1rem auto; max-width:650px; width:100%; padding:0 1rem;
+      margin:1rem; padding:0 1rem;
     }
+
     .skill-btn {
       height:180px; background:#29b765; color:white;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
       font-size:22px; font-weight:600; border:none; user-select:none;
     }
+
     .level7, .level8 { background:#7b1fa2 !important; }
     .count-num { font-size:15px; font-weight:bold; margin-top:6px; }
 
-    /* Overlay */
+    /* Overlay stays SAME */
     .overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.4);
@@ -70,6 +86,8 @@
 </head>
 
 <body>
+
+<!-- ⭐ THIS IS ALL THE PAGE NEEDS — judge-core.js will wrap everything automatically -->
 
 <header>
   <button class="back-btn" onclick="history.back()">Back</button>
