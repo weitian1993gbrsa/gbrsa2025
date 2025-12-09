@@ -12,8 +12,24 @@
         font-family: system-ui, sans-serif;
     }
 
+    /* Disable tap highlight */
     * { -webkit-tap-highlight-color: transparent; }
 
+    /* ⭐ Disable ALL text selection (fix highlight issue) */
+    body, 
+    button, 
+    .pres-btn, 
+    .miss-btn, 
+    .btn-undo, 
+    .btn-reset, 
+    .top-btn {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+    }
+
+    /* ===== FIXED 650px WRAPPER ===== */
     .wrapper {
         max-width: 650px;
         margin: 0 auto;
@@ -52,19 +68,19 @@
         font-weight: bold;
     }
 
-    /* ===== CONTROL ROW WITH BOX & COLORS ===== */
+    /* ===== CONTROL ROW ===== */
     .control-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 12px 20px;
-        background: white;       /* restore the white bar */
-        border-bottom: none;     /* remove underline */
+        background: white;       /* white container restored */
+        border-bottom: none !important; /* remove underline */
     }
 
-    /* Undo box */
+    /* Colored Undo button */
     .btn-undo {
-        background: #f2b632;      /* amber/orange */
+        background: #f2b632;
         color: white;
         font-weight: bold;
         padding: 14px 30px;
@@ -74,9 +90,9 @@
         cursor: pointer;
     }
 
-    /* Reset box */
+    /* Colored Reset button */
     .btn-reset {
-        background: #e53935;      /* red */
+        background: #e53935;
         color: white;
         font-weight: bold;
         padding: 14px 30px;
@@ -86,7 +102,7 @@
         cursor: pointer;
     }
 
-    /* Hide Undo without moving layout */
+    /* Hide Undo without shifting layout */
     .hidden {
         opacity: 0;
         pointer-events: none;
@@ -100,7 +116,7 @@
         grid-auto-rows: 100px;
         gap: 16px;
         padding: 16px 20px;
-        background: white;
+        background: #f5f5f5;
     }
 
     .pres-btn {
@@ -144,7 +160,7 @@
         <button class="top-btn submit-btn" id="nextBtn">Next</button>
     </div>
 
-    <!-- ===== CONTROL ROW (BOX + COLOR) ===== -->
+    <!-- ===== CONTROL ROW ===== -->
     <div class="control-row">
         <button id="undoBtn" class="btn-undo hidden">Undo</button>
         <button id="resetBtn" class="btn-reset">Reset</button>
@@ -208,6 +224,7 @@
 <script src="judge-forms.js"></script>
 
 <script>
+/* Load participant info */
 const qs = new URLSearchParams(location.search);
 const entry = {
     ID: qs.get("id"),
@@ -223,7 +240,7 @@ localStorage.setItem("currentEntry", JSON.stringify(entry));
 
 initJudgeForm("presentation");
 
-/* RESET */
+/* RESET handler */
 document.getElementById("resetBtn").addEventListener("click", () => {
     const d = JudgeForms.presentation.page1Data;
 
