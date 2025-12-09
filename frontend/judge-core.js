@@ -1,6 +1,6 @@
 /* ============================================================
    JUDGE CORE — Universal Submit Handler (Speed + Freestyle)
-   + Fullscreen Wrapper (650px centered, no-scroll, auto-shrink)
+   + IJRU-STYLE RESPONSIVE WRAPPER (SAFE VERSION)
 ============================================================ */
 
 (function () {
@@ -8,93 +8,45 @@
   const $ = (q, el = document) => el.querySelector(q);
 
   /* ============================================================
-     🔥 UNIVERSAL FULLSCREEN LAYOUT ENGINE (OPTION A)
-     - Centers all judge pages in 650px white panel
-     - Removes scrolling
-     - Auto-shrinks UI on small screens
-     - Replaces old "Responsive Wrapper"
+     UNIVERSAL RESPONSIVE LAYOUT (SAFE VERSION)
+     - Does NOT move <script> tags (prevents breakage)
+     - Only wraps visible content
   ============================================================ */
+  function injectResponsiveLayout() {
+    const body = document.body;
 
-  function injectFullscreenLayout() {
+    // Prevent double execution
+    if (body.classList.contains("gbrsa-responsive-ready")) return;
+    body.classList.add("gbrsa-responsive-ready");
 
-    // Prevent multiple runs
-    if (document.querySelector(".judge-wrapper")) return;
-
-    /* ---------- Inject global CSS ---------- */
-    const css = `
-        html, body {
-            margin:0; padding:0;
-            height:100%;
-            overflow:hidden;            /* 🔥 No scroll */
-            background:#e9e9e9;
-            font-family:system-ui,sans-serif;
-            -webkit-user-select:none;
-            user-select:none;
-        }
-
-        * { -webkit-tap-highlight-color: transparent; }
-
-        .judge-wrapper {
-            width:100%;
-            max-width:650px;            /* 🔥 Same as your PIC1 */
-            height:100%;
-            margin:0 auto;
-            background:white;
-            display:flex;
-            flex-direction:column;
-            box-shadow:0 0 14px rgba(0,0,0,0.22);
-            transform-origin: top center;
-        }
-
-        /* Auto-shrink UI on small screens (Option 1) */
-        @media (max-height:700px) {
-            .judge-wrapper { transform: scale(0.92); }
-        }
-        @media (max-height:620px) {
-            .judge-wrapper { transform: scale(0.84); }
-        }
-        @media (max-height:560px) {
-            .judge-wrapper { transform: scale(0.78); }
-        }
-
-        .judge-content {
-            flex:1;
-            overflow:hidden;            /* 🔥 No scrolling inside page */
-            display:block;
-        }
-    `;
-    const style = document.createElement("style");
-    style.textContent = css;
-    document.head.appendChild(style);
-
-    /* ---------- Create wrapper ---------- */
+    // Prepare wrapper
     const wrapper = document.createElement("div");
-    wrapper.className = "judge-wrapper";
+    wrapper.className = "judge-container";
 
-    const content = document.createElement("div");
-    content.className = "judge-content";
-
-    // Move all non-script elements into content
-    [...document.body.children].forEach(child => {
-      if (child.tagName !== "SCRIPT") content.appendChild(child);
+    // Move ONLY non-script elements into wrapper
+    [...body.children].forEach(child => {
+      if (child.tagName !== "SCRIPT") {
+        wrapper.appendChild(child);
+      }
     });
 
-    wrapper.appendChild(content);
-    document.body.prepend(wrapper);
+    // Place wrapper as first element in <body>
+    body.prepend(wrapper);
   }
 
   // Run wrapper AFTER HTML load
-  document.addEventListener("DOMContentLoaded", injectFullscreenLayout);
+  document.addEventListener("DOMContentLoaded", injectResponsiveLayout);
 
 
 
   /* ============================================================
-     ORIGINAL JUDGE-CORE LOGIC (UNTOUCHED)
-     ⭐ Nothing below is changed — SAFE FOR PRODUCTION
+     ORIGINAL JUDGE-CORE LOGIC (UNCHANGED + FULLY FUNCTIONAL)
   ============================================================ */
-
   window.JudgeCore = {
 
+    /* ------------------------------------------------------------
+       INIT
+    ------------------------------------------------------------ */
     init(config) {
       this.config = config;
 
@@ -128,12 +80,20 @@
       console.log("[JudgeCore] Initialized for:", this.judgeType);
     },
 
+    /* ------------------------------------------------------------
+       Determine event type (speed / freestyle)
+    ------------------------------------------------------------ */
     getEventType() {
       const info = window.JUDGE_KEYS[this.key];
       return info?.event || "speed";
     },
 
+    /* ------------------------------------------------------------
+       BUILD BASE PAYLOAD
+    ------------------------------------------------------------ */
     buildBasePayload() {
+
+      // Get REMARK field (if exists)
       const remarkInput = document.querySelector('[name="REMARK"]');
       const remarkValue = remarkInput ? remarkInput.value.trim() : "";
 
@@ -151,37 +111,46 @@
       };
     },
 
+    /* ------------------------------------------------------------
+       SUBMIT HANDLER — FIXED & WORKING AGAIN
+    ------------------------------------------------------------ */
     async submit() {
       const { submitButton } = this.config;
 
+      // Button lock (prevent double press)
       if (submitButton.dataset.lock === "1") return;
       submitButton.dataset.lock = "1";
 
+      /* SHOW OVERLAY */
       try {
         this.overlay.classList.remove("hide");
         this.overlay.style.opacity = "1";
         this.overlayText.textContent = "Submitting…";
       } catch (_) {}
 
+      /* BUILD FINAL PAYLOAD */
       const base = this.buildBasePayload();
-      const scoreFields = this.config.buildScore();
+      const scoreFields = this.config.buildScore();  // IMPORTANT — now works again
       const payload = { ...base, ...scoreFields };
 
       console.log("[JudgeCore] Final Payload:", payload);
 
+      /* SUBMIT TO BACKEND */
       try {
         const result = await apiPost(payload);
 
-        if (!result || !result.ok)
-          throw new Error(result.error || "Server error");
+        if (!result || !result.ok) throw new Error(result.error || "Server error");
 
         this.overlayText.textContent = "Saved ✔";
 
+        /* CACHE UPDATE */
         this.updateCache();
 
+        /* REDIRECT */
         setTimeout(() => this.redirect(), 300);
 
       } catch (err) {
+
         console.error("Submit failed:", err);
         this.overlayText.textContent = "Submit Failed";
 
@@ -192,6 +161,9 @@
       }
     },
 
+    /* ------------------------------------------------------------
+       UPDATE CACHE (turn card blue)
+    ------------------------------------------------------------ */
     updateCache() {
       try {
         const eventType = this.getEventType();
@@ -217,6 +189,9 @@
       }
     },
 
+    /* ------------------------------------------------------------
+       REDIRECT BACK TO STATION LIST
+    ------------------------------------------------------------ */
     redirect() {
       const eventType = this.getEventType();
 
