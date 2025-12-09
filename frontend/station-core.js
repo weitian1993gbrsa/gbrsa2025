@@ -46,12 +46,14 @@
       }
 
       /* ------------------------------------------------------------
-         CACHE KEY
+         ⭐ NEW FIX — SEPARATE CACHE PER JUDGE TYPE
+         Previously: freestyle_cache_<station>
+         Now:        freestyle_cache_<station>_<judgeType>
       ------------------------------------------------------------ */
       const CACHE_KEY =
         mode === "speed"
-          ? ("station_cache_" + station)
-          : ("freestyle_cache_" + station);
+          ? ("station_cache_" + station)                   // Speed unchanged
+          : ("freestyle_cache_" + station + "_" + judgeType); // Freestyle FIXED
 
       function saveCache(data) {
         try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) {}
@@ -153,7 +155,7 @@
 
         const name = document.createElement("div");
         name.className = "name";
-        name.textContent = formatNames(p);   // ⭐ patched
+        name.textContent = formatNames(p);
 
         const team = document.createElement("div");
         team.className = "team";
@@ -178,7 +180,6 @@
         card.appendChild(team);
         card.appendChild(eventRow);
 
-        // CLICK → judge
         card.addEventListener("click", () => {
           location.href = resolveJudgePage(p);
         });
