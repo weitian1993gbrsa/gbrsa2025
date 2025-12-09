@@ -47,7 +47,8 @@
       if (overlay) overlay.classList.remove("hide");
 
       try {
-        const res = await fetch(config.backendURL, {
+        // ⭐ FIXED TO MATCH YOUR CONFIG FILE
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify(payload),
         });
@@ -60,7 +61,8 @@
 
         // Redirect back to station list
         setTimeout(() => {
-          location.href = `freestyle-station.html?station=${station}&key=${key}&judgeType=${judgeType}`;
+          location.href =
+            `freestyle-station.html?station=${station}&key=${key}&judgeType=${judgeType}`;
         }, 350);
 
       } catch (err) {
