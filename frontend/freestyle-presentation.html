@@ -107,19 +107,46 @@
     <div class="pres-btn plus" data-type="variety-plus">Variety +<br><span id="varPlus">0</span></div>
 </div>
 
+
 <script src="judge-forms.js"></script>
 <script>
+
+// === LOAD PARTICIPANT FROM URL & SAVE FOR SUMMARY ===
+const qs = new URLSearchParams(location.search);
+
+const entry = {
+    ID: qs.get("id"),
+    NAME1: qs.get("name1") || "",
+    TEAM: qs.get("team") || "",
+    STATE: qs.get("state") || "",
+    HEAT: qs.get("heat") || "",
+    STATION: qs.get("station") || "",
+    EVENT: qs.get("event") || "",
+    DIVISION: qs.get("division") || ""
+};
+
+// Save in same format as Difficulty
+localStorage.setItem("currentEntry", JSON.stringify(entry));
+
+
+// ==== INIT SCORING ====
 initJudgeForm("presentation");
 
+
+// ==== NEXT BUTTON → GO SUMMARY PAGE ====
 document.getElementById("nextBtn").addEventListener("click", () => {
-    // FIXED: save full page1Data instead of getScore()
+
+    // Save judge values from Page 1
     localStorage.setItem(
         "presentationPage1",
         JSON.stringify(JudgeForms.presentation.page1Data)
     );
 
-    window.location.href = "freestyle-presentation summary.html";
+    // Go to summary page WITH URL parameters preserved
+    window.location.href =
+        "freestyle-presentation summary.html" + location.search;
 });
+
 </script>
 
 </body>
