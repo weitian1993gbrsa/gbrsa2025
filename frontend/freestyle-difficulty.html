@@ -47,7 +47,6 @@
     .level7, .level8 { background:#7b1fa2 !important; }
     .count-num { font-size:15px; font-weight:bold; margin-top:6px; }
 
-    /* Overlay */
     .overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.4);
@@ -107,6 +106,7 @@
 <script>
 window.addEventListener("DOMContentLoaded", () => {
     const logic = initJudgeForm("difficulty");
+
     JudgeCore.init({
         judgeType: "difficulty",
         submitButton: document.getElementById("btnSubmit"),
