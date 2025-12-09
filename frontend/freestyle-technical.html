@@ -8,95 +8,154 @@
   <link rel="stylesheet" href="./styles.css"/>
 
   <style>
-    * { -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
-    body { background:#f4f5f7; margin:0; font-family:Arial, sans-serif; }
+    * { 
+      -webkit-tap-highlight-color: transparent; 
+      touch-action: manipulation; 
+      user-select: none;
+    }
 
-    /* ===== HEADER (Copied from Difficulty) ===== */
+    /* REMOVE page backgrounds — judge-core controls layout */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    /* ===== HEADER ===== */
     header {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:1rem; background:white; border-bottom:1px solid #ddd;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:1rem;
+      background:white;
+      border-bottom:1px solid #ddd;
     }
     .back-btn {
-      background:white; border:1px solid #ccc;
-      padding:12px 22px; font-size:18px; border-radius:0px;
+      background:white; 
+      border:1px solid #ccc;
+      padding:12px 22px; 
+      font-size:18px; 
+      border-radius:0px;
     }
     .submit-btn {
-      background:#1e88ff; color:white; padding:12px 26px;
-      border-radius:0px; border:none; font-size:18px; font-weight:bold;
+      background:#1e88ff; 
+      color:white; 
+      padding:12px 26px;
+      border-radius:0px; 
+      border:none; 
+      font-size:18px; 
+      font-weight:bold;
     }
 
     /* ===== CONTROL BAR ===== */
     .control-row {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:1rem 1.2rem; margin:0 auto; max-width:650px;
-    }
-    .btn-undo {
-      background:rgb(250, 126, 9); border:none; color:white; 
-      padding:28px 46px; font-size:18px; border-radius:0px;
-    }
-    .btn-reset {
-      background:#e53935; color:white; border:none;
-      font-size:18px; padding:28px 46px; border-radius:0px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:1rem 1.2rem;
     }
 
-    /* ===== Hide undo (IJRU style) ===== */
+    .btn-undo {
+      background:rgb(250,126,9);
+      border:none;
+      color:white;
+      padding:18px 36px;
+      font-size:18px;
+      border-radius:0px;
+    }
+
+    .btn-reset {
+      background:#e53935;
+      color:white;
+      border:none;
+      padding:18px 36px;
+      font-size:18px;
+      border-radius:0px;
+    }
+
     .hidden {
       opacity:0;
       pointer-events:none;
       visibility:hidden;
     }
 
-    /* ===== 2 Column Layout ===== */
+    /* ===== 2 Column Grid ===== */
     .grid {
-      display:grid; grid-template-columns:repeat(2,1fr); gap:18px;
-      margin:1rem auto; max-width:650px; width:100%; padding:0 1rem;
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      margin:1rem;
+      padding:0 1rem;
     }
 
     .skill-btn {
-      height:380px;
-      display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      color:white; font-weight:700;
-      user-select:none; border:none;
+      height:360px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      color:white;
+      font-weight:700;
+      border:none;
       border-radius:0px;
       transition:transform .15s ease;
     }
+
     .skill-btn:active { transform:scale(0.95); }
 
     .miss-btn { background:#e53935; }
     .break-btn { background:#fb8c00; }
 
-    /* New font sizes (PATCHED) */
     .block-label {
-      font-size:26px;
+      font-size:28px;
       font-weight:700;
       letter-spacing:1px;
     }
     .block-number {
-      font-size:20px;
+      font-size:22px;
       font-weight:800;
       margin-top:12px;
     }
 
     /* ===== Overlay ===== */
     .overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      position: fixed; 
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: rgba(0,0,0,0.4);
-      display: flex; justify-content: center; align-items: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       z-index: 9999;
     }
-    .overlay.hide { display: none; }
+    .overlay.hide { display:none; }
+
     .overlay-card {
-      background: #fff; padding: 2rem 3rem; border-radius: 16px; text-align: center;
+      background:#fff;
+      padding:2rem 3rem;
+      border-radius:16px;
+      text-align:center;
     }
     .loading .dot {
-      display: inline-block; width: 10px; height: 10px; margin: 0 3px;
-      background: #333; border-radius: 50%; animation: blink 1s infinite;
+      display:inline-block;
+      width:10px; height:10px;
+      margin:0 3px;
+      background:#333;
+      border-radius:50%;
+      animation: blink 1s infinite;
     }
-    .loading .dot:nth-child(2) { animation-delay: 0.2s; }
-    .loading .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes blink { 0%,80%,100% {opacity:0;} 40% {opacity:1;} }
-    .overlay-text { margin-top: 1rem; font-weight: 600; }
+    .loading .dot:nth-child(2) { animation-delay:0.2s; }
+    .loading .dot:nth-child(3) { animation-delay:0.4s; }
+
+    @keyframes blink { 
+      0%,80%,100% {opacity:0;} 
+      40% {opacity:1;} 
+    }
+
+    .overlay-text {
+      margin-top:1rem;
+      font-weight:600;
+    }
+
   </style>
 </head>
 
@@ -135,15 +194,16 @@
 
 <script>
 window.addEventListener("DOMContentLoaded", () => {
-    const logic = initJudgeForm("technical");
-    JudgeCore.init({
-        judgeType: "technical",
-        submitButton: document.getElementById("btnSubmit"),
-        buildScore: () => logic.getScore()
-    });
+  const logic = initJudgeForm("technical");
+  JudgeCore.init({
+    judgeType: "technical",
+    submitButton: document.getElementById("btnSubmit"),
+    buildScore: () => logic.getScore()
+  });
 });
 </script>
 
+<!-- Submit Overlay -->
 <div id="submitOverlay" class="overlay hide">
   <div class="overlay-card">
     <div class="loading">
