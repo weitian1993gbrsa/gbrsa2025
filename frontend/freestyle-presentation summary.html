@@ -47,6 +47,30 @@
     }
 
     .summary-slider { width:100%; accent-color:#008000; }
+
+    /* SUBMIT OVERLAY — SAME AS DIFFICULTY */
+    .overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999;
+    }
+    .overlay.hide { display: none; }
+    .overlay-card {
+      background: #fff; padding: 2rem 3rem;
+      border-radius: 16px; text-align: center;
+    }
+    .loading .dot {
+      display: inline-block; width: 10px; height: 10px;
+      margin: 0 3px; background: #333;
+      border-radius: 50%; animation: blink 1s infinite;
+    }
+    .loading .dot:nth-child(2) { animation-delay: 0.2s; }
+    .loading .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,80%,100% {opacity:0;} 40% {opacity:1;} }
+    .overlay-text { margin-top: 1rem; font-weight: 600; }
+
 </style>
 </head>
 
@@ -59,17 +83,36 @@
 </div>
 
 <div class="score-values">
-    <div id="scoreText">Score (0.0)</div>
+    <div id="scoreText">Score (0.00)</div>
     <div id="missText">Misses (0)</div>
 </div>
 
 <div id="summaryContainer"></div>
 
+<!-- SUBMIT OVERLAY (same as Difficulty) -->
+<div id="submitOverlay" class="overlay hide">
+  <div class="overlay-card">
+    <div class="loading">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div id="overlayText" class="overlay-text">Submitting…</div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+
 <script>
+/* URL PARAMS (same as Difficulty) */
+const qs = new URLSearchParams(location.search);
+const station = qs.get("station");
+const key = qs.get("key");
+
+/* Load Page 1 Data */
 const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
 
 function safe(n){ return isNaN(Number(n)) ? 0 : Number(n); }
 
+/* Weights */
 const WEIGHTS = {
     cre: 0.15,
     mus: 0.20,
@@ -78,6 +121,7 @@ const WEIGHTS = {
     var: 0.15
 };
 
+/* Categories */
 const cats = [
     { key:"cre",  label:"Creativity",   minus:"creMinus",  plus:"crePlus" },
     { key:"mus",  label:"Musicality",   minus:"musMinus",  plus:"musPlus" },
@@ -86,10 +130,10 @@ const cats = [
     { key:"var",  label:"Variety",      minus:"varMinus",  plus:"varPlus" }
 ];
 
+/* Build UI */
 const container = document.getElementById("summaryContainer");
 
 cats.forEach(cat => {
-
     const minus = safe(data[cat.minus]);
     const plus  = safe(data[cat.plus]);
 
@@ -98,7 +142,6 @@ cats.forEach(cat => {
 
     container.innerHTML += `
         <div class="row">
-
             <div class="box-minus" data-key="${cat.key}">
                 ${cat.label} -
             </div>
@@ -114,13 +157,13 @@ cats.forEach(cat => {
             <div class="box-plus" data-key="${cat.key}">
                 ${cat.label} +
             </div>
-
         </div>
     `;
 });
 
 let misses = safe(data.misses);
 
+/* SCORE CALC — 2 DECIMALS */
 function recalcScore(){
     let score = 0;
 
@@ -129,40 +172,100 @@ function recalcScore(){
         score += v * WEIGHTS[cat.key];
     });
 
-    score -= misses;
+    score = score - misses;
 
-    document.getElementById("scoreText").textContent = `Score (${score.toFixed(1)})`;
+    document.getElementById("scoreText").textContent = `Score (${score.toFixed(2)})`;
 }
+
 recalcScore();
 
-document.getElementById("missText").textContent = `Misses (${misses})`;
-
+/* MINUS BUTTON */
 document.querySelectorAll(".box-minus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
         const slider = document.getElementById("slider_"+key);
-        let v = Number(slider.value)-1;
-        if(v<0) v=0;
+
+        let v = Number(slider.value) - 1;
+        if(v < 0) v = 0;
+
         slider.value = v;
         document.getElementById("val_"+key).textContent = v;
+
         recalcScore();
     });
 });
 
+/* PLUS BUTTON */
 document.querySelectorAll(".box-plus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
         const slider = document.getElementById("slider_"+key);
-        let v = Number(slider.value)+1;
-        if(v>24) v=24;
+
+        let v = Number(slider.value) + 1;
+        if(v > 24) v = 24;
+
         slider.value = v;
         document.getElementById("val_"+key).textContent = v;
+
         recalcScore();
     });
 });
 
-document.getElementById("submitBtn").addEventListener("click", ()=>{
-    alert("FINAL SCORE SUBMITTED");
+
+/* SUBMISSION — SAME BEHAVIOR AS DIFFICULTY */
+document.getElementById("submitBtn").addEventListener("click", () => {
+
+    const overlay = document.getElementById("submitOverlay");
+    const overlayText = document.getElementById("overlayText");
+
+    overlay.classList.remove("hide");
+    overlayText.textContent = "Submitting…";
+
+    const scoreText = document.getElementById("scoreText").textContent;
+    const finalScore = Number(scoreText.replace("Score (", "").replace(")", ""));
+
+    const entry = JSON.parse(localStorage.getItem("currentEntry") || "{}");
+
+    const payload = {
+        judgeType: "presentation",
+        TIMESTAMP: Date.now(),
+
+        ID: entry.ID,
+        PRESENTATION: finalScore,
+
+        NAME1: entry.NAME1 || "",
+        TEAM: entry.TEAM || "",
+        STATE: entry.STATE || "",
+        HEAT: entry.HEAT || "",
+        STATION: entry.STATION || "",
+        EVENT: entry.EVENT || "",
+        DIVISION: entry.DIVISION || "",
+        REMARK: ""
+    };
+
+    fetch(CONFIG.APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.ok) {
+            overlayText.textContent = "Submitted!";
+            setTimeout(() => {
+                window.location.href =
+                  `freestyle-station.html?station=${entry.STATION}`
+                  + `&judgeType=presentation`
+                  + `&key=${key}`;
+            }, 900);
+        } else {
+            overlayText.textContent = "Submit Failed!";
+        }
+    })
+    .catch(err => {
+        overlayText.textContent = "Network Error!";
+        console.error(err);
+    });
+
 });
 </script>
 
