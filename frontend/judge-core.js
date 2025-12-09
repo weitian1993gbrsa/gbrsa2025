@@ -1,9 +1,54 @@
 /* ============================================================
    JUDGE CORE — Universal Submit Handler (Speed + Freestyle)
    + Fullscreen Wrapper (Adaptive width, no-scroll, auto-shrink)
+   + GLOBAL NO-ZOOM (added as requested)
 ============================================================ */
 
 (function () {
+
+  /* ============================================================
+       🔥 GLOBAL ZOOM DISABLER (applies to ALL judge pages)
+  ============================================================ */
+  function disableZoom() {
+      let vp = document.querySelector("meta[name='viewport']");
+      if (!vp) {
+          vp = document.createElement("meta");
+          vp.name = "viewport";
+          document.head.appendChild(vp);
+      }
+
+      vp.setAttribute(
+          "content",
+          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+      );
+
+      // Prevent pinch zoom
+      document.addEventListener(
+          "gesturestart",
+          function (e) {
+              e.preventDefault();
+          },
+          { passive: false }
+      );
+
+      // Prevent double-tap zoom
+      let lastTouch = 0;
+      document.addEventListener(
+          "touchend",
+          function (e) {
+              const now = Date.now();
+              if (now - lastTouch <= 300) {
+                  e.preventDefault();
+              }
+              lastTouch = now;
+          },
+          { passive: false }
+      );
+  }
+
+  document.addEventListener("DOMContentLoaded", disableZoom);
+
+
 
   const $ = (q, el = document) => el.querySelector(q);
 
