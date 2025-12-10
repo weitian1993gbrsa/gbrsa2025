@@ -10,13 +10,13 @@
   <!-- IMPORTANT: LOAD ORDER -->
   <script defer src="./config.js"></script>
   <script defer src="./app.js"></script>
-  <script defer src="./speed-station.js"></script>
+  <script defer src="./station-core.js"></script>
 
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-    StationCore.init({ mode:"speed" });
-});
-</script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      StationCore.init({ mode: "speed" });
+    });
+  </script>
 
   <style>
     /* Sticky header fix */
@@ -37,37 +37,31 @@ window.addEventListener("DOMContentLoaded", () => {
     <h1>Speed Station <span id="stationLabel"></span></h1>
   </div>
 
-  <!-- NEW HOME BUTTON -->
   <button id="btnHome" class="btn" style="margin-left:auto;margin-right:.5rem;">
     Home
   </button>
 
-  <!-- REFRESH BUTTON -->
   <button id="btnRefresh" class="btn">Refresh</button>
 </header>
 
 <main class="container">
   <section class="block">
     <h2>Entries for this Station</h2>
-
     <div id="entryList" class="entry-list"></div>
   </section>
 </main>
 
-<!-- HARD BLOCK SWIPE BACK ON iOS + ANDROID -->
+<!-- Block iOS/Android swipe back -->
 <script>
-history.pushState(null, null, location.href);
-
-window.onpopstate = function () {
-  history.go(1);    // block gesture-back
-};
+  history.pushState(null, null, location.href);
+  window.onpopstate = function () { history.go(1); };
 </script>
 
-<!-- HOME BUTTON LOGIC -->
+<!-- HOME -->
 <script>
-document.getElementById("btnHome").addEventListener("click", () => {
-  location.href = "index.html"; // always go clean home
-});
+  document.getElementById("btnHome").addEventListener("click", () => {
+    location.href = "index.html";
+  });
 </script>
 
 </body>
