@@ -64,7 +64,7 @@
     .fs-no { background: #22c55e; }
     .fs-yes { background: #dc2626; }
 
-    /* SCORE SCREEN */
+    /* SCORE DISPLAY */
     .score-screen {
       width: 100%;
       background: #ffffff;
@@ -108,77 +108,7 @@
       font-weight: 700;
     }
 
-    /* -------------------------
-       REMARK POPUP (Style 2)
-    ------------------------- */
-    .remark-modal {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999;
-    }
-
-    .remark-modal.hide { display: none; }
-
-    .remark-backdrop {
-      position: absolute;
-      inset: 0;
-      background: #00000090;
-      backdrop-filter: blur(3px);
-    }
-
-    .remark-box {
-      position: relative;
-      width: 90%;
-      max-width: 420px;
-      background: #fff;
-      padding: 22px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-      z-index: 2;
-    }
-
-    .remark-title {
-      margin: 0 0 12px;
-      font-size: 1.4rem;
-      font-weight: 700;
-    }
-
-    .remark-textarea {
-      width: 100%;
-      height: 110px;
-      resize: none;
-      padding: 10px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-
-    .remark-actions {
-      margin-top: 14px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-    }
-
-    .remark-cancel {
-      background: #e5e7eb;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 6px;
-    }
-
-    .remark-save {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      padding: 10px 22px;
-      border-radius: 6px;
-      font-weight: 700;
-    }
-
+    /* Remark Button */
     .remark-btn {
       width: 100%;
       padding: 14px 0;
@@ -186,7 +116,7 @@
       background: #f3f4f6;
       border: 1px solid #d1d5db;
       border-radius: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -235,11 +165,30 @@
         <button type="button" class="np-enter">Submit</button>
       </div>
 
-      <!-- REMARK BUTTON -->
-      <button type="button" id="remarkBtn" class="remark-btn">Add Remark</button>
+      <!-- REMARK INLINE FIELD (Option C2) -->
+      <div id="remarkContainer">
+        <button type="button" id="remarkBtn" class="remark-btn">Add Remark</button>
 
-      <!-- Hidden field -->
-      <input type="hidden" name="REMARK" id="remarkField">
+        <!-- Appears after clicking Add Remark -->
+        <div id="remarkInputRow" style="display:none; margin-top:12px; align-items:center;">
+          <label for="remarkText" style="font-weight:600; margin-right:8px;">Remark:</label>
+          <input 
+            type="text" 
+            id="remarkText" 
+            placeholder="Enter remark..." 
+            style="
+              flex:1;
+              padding:10px;
+              font-size:1rem;
+              border:1px solid #ccc;
+              border-radius:6px;
+            "
+          >
+        </div>
+
+        <!-- Hidden field for backend -->
+        <input type="hidden" name="REMARK" id="remarkField">
+      </div>
 
       <!-- Backend Hidden Fields -->
       <input type="hidden" name="ID" id="fID">
@@ -285,47 +234,23 @@ window.addEventListener("pageshow", (event) => {
   </div>
 </div>
 
-<!-- REMARK POPUP -->
-<div id="remarkModal" class="remark-modal hide">
-  <div class="remark-backdrop"></div>
-
-  <div class="remark-box">
-    <h3 class="remark-title">Remark</h3>
-
-    <textarea id="remarkInput" class="remark-textarea" placeholder="Type remark here..."></textarea>
-
-    <div class="remark-actions">
-      <button type="button" id="remarkCancel" class="remark-cancel">Cancel</button>
-      <button type="button" id="remarkSave" class="remark-save">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- REMARK POPUP JS -->
+<!-- INLINE REMARK LOGIC (Option C2) -->
 <script>
 const remarkBtn = document.getElementById("remarkBtn");
-const remarkModal = document.getElementById("remarkModal");
-const remarkCancel = document.getElementById("remarkCancel");
-const remarkSave = document.getElementById("remarkSave");
-const remarkInput = document.getElementById("remarkInput");
+const remarkInputRow = document.getElementById("remarkInputRow");
+const remarkText = document.getElementById("remarkText");
 const remarkField = document.getElementById("remarkField");
 
-// Open popup
+// Show inline remark input
 remarkBtn.addEventListener("click", () => {
-  remarkModal.classList.remove("hide");
-  remarkInput.focus();
+  remarkBtn.style.display = "none";
+  remarkInputRow.style.display = "flex";
+  remarkText.focus();
 });
 
-// Cancel popup
-remarkCancel.addEventListener("click", () => {
-  remarkModal.classList.add("hide");
-});
-
-// Save remark
-remarkSave.addEventListener("click", () => {
-  remarkField.value = remarkInput.value.trim();
-  remarkModal.classList.add("hide");
-  if (navigator.vibrate) navigator.vibrate([40]);
+// Sync to hidden field
+remarkText.addEventListener("input", () => {
+  remarkField.value = remarkText.value.trim();
 });
 </script>
 
