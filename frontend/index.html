@@ -1,206 +1,83 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
 <meta name="format-detection" content="telephone=no">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>GBRSA Score • Scoring</title>
 
-<title>GBRSA RopeApp</title>
+<!-- CSS -->
+<link rel="stylesheet" href="./styles.css"/>
 
-<!-- Prefetch -->
+<!-- 🔥 PREFETCH (Speed Boost) -->
 <link rel="prefetch" href="speed-judge.html">
 <link rel="prefetch" href="speed-judge.js">
+<link rel="prefetch" href="styles.css">
 <link rel="prefetch" href="speed-station.html">
 
-<!-- Scripts -->
+<!-- Load config first -->
 <script src="./config.js"></script>
+
+<!-- Other scripts -->
 <script defer src="./app.js"></script>
 <script defer src="./nozoom.js"></script>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1020">
 
-<!-- ============================================================
-     CLEAN INTERNAL CSS (Header → Card → Footer)
-============================================================ -->
 <style>
+  html, body { touch-action: manipulation; }
 
-/* ---------------------------------
-   VARIABLES
------------------------------------ */
-:root {
-  --bg: #f3f5fa;
-  --card: #ffffff;
-  --text: #0b1020;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --accent: #2563eb;
-}
+  /* FIX — Judge Login Card Should Not Glow */
+  .judge-login {
+    cursor: default !important;
+    box-shadow: none !important;
+    border-left: none !important;
+    transition: none !important;
+    outline: none !important;
+  }
 
-/* ---------------------------------
-   GLOBAL RESET
------------------------------------ */
-html, body {
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  font-family: system-ui, Arial, sans-serif;
-  -webkit-tap-highlight-color: transparent;
-}
+  .judge-login:hover {
+    cursor: default !important;
+    transform: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
 
-* {
-  box-sizing: border-box;
-  user-select: none;
-}
-
-input { user-select: text; }
-
-/* ---------------------------------
-   HEADER / TOPBAR
------------------------------------ */
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .75rem 1rem;
-  background: #ffffffd9;
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(6px);
-}
-
-.logo {
-  height: 48px;
-}
-
-.titles h1 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.subtitle {
-  margin: .15rem 0 0;
-  color: var(--muted);
-  font-size: .9rem;
-}
-
-/* ---------------------------------
-   PAGE LAYOUT (Header → Card → Footer)
------------------------------------ */
-.page-wrapper {
-  padding: 1.5rem 1rem 1rem;
-  display: flex;
-  justify-content: center;
-}
-
-.page-inner {
-  width: 100%;
-  max-width: 460px;
-}
-
-/* ---------------------------------
-   LOGIN CARD
------------------------------------ */
-.login-card {
-  width: 100%;
-  background: var(--card);
-  border-radius: 16px;
-  padding: 1.5rem 1.5rem 2rem;
-  box-shadow: 0 10px 30px #00000015;
-  border: 1px solid var(--border);
-}
-
-.login-card h3 {
-  margin-top: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-
-.judge-desc {
-  margin: .35rem 0 1rem;
-  font-size: .95rem;
-  color: var(--muted);
-}
-
-/* ---------------------------------
-   INPUT
------------------------------------ */
-.input {
-  width: 100%;
-  padding: .75rem .9rem;
-  font-size: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  outline: none;
-}
-
-.input:focus {
-  border-color: var(--accent);
-}
-
-/* ---------------------------------
-   BUTTON
------------------------------------ */
-.btn {
-  display: block;
-  width: 100%;
-  margin-top: .85rem;
-  padding: .75rem 1rem;
-  border-radius: 12px;
-  border: none;
-  font-weight: 600;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  background: linear-gradient(180deg, #3b82f6, #2563eb);
-  box-shadow: 0 6px 18px #2563eb44;
-  transition: .15s;
-}
-
-.btn:active {
-  transform: scale(0.97);
-}
-
-/* ---------------------------------
-   ERROR
------------------------------------ */
-.judge-error {
-  display: none;
-  margin-top: .75rem;
-  color: #d00000;
-  font-weight: 600;
-}
-
-/* ---------------------------------
-   FOOTER
------------------------------------ */
-footer {
-  text-align: center;
-  padding: 2rem 0 2.5rem;
-  color: var(--muted);
-  font-size: .85rem;
-}
-
+  .judge-login input:focus,
+  .judge-login button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: var(--border) !important;
+  }
 </style>
 
-<!-- iOS input zoom fix -->
+<!-- API Warm-Up -->
+<script>
+fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
+</script>
+
+<!-- iOS zoom fix -->
 <script>
 (function(){
-  document.addEventListener("focusin", e => {
-    if (["input","textarea","select"].includes(e.target.tagName.toLowerCase())) {
-      e.target.style.fontSize = "16px";
-    }
-  });
+  function ensureSize(el){
+    try{
+      if(!el) return;
+      let t = el.tagName.toLowerCase();
+      if (t==='input' || t==='textarea' || t==='select'){
+        el.style.fontSize='16px';
+        el.style.webkitTextSizeAdjust='100%';
+      }
+    }catch(e){}
+  }
+  document.addEventListener('focusin', e => ensureSize(e.target), true);
 })();
 </script>
 
 </head>
 
-<body>
+<body class="page homepage">
 
-<!-- ============================
-      HEADER
-=============================== -->
 <header class="topbar">
   <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
   <div class="titles">
@@ -209,79 +86,114 @@ footer {
   </div>
 </header>
 
-<!-- ============================
-      CARD SECTION
-=============================== -->
 <main class="page-wrapper">
-  <div class="page-inner">
+  <div class="home-wrapper">
 
-    <div class="login-card">
-      <h3>Judge Access</h3>
-      <p class="judge-desc">Enter your assigned access code to open your duty.</p>
+    <div class="menu-grid">
 
-      <input id="judgeKey" class="input" placeholder="Enter access code" type="password">
-      <button class="btn" id="btnJudgeLogin">Enter</button>
+      <!-- Judge login ONLY -->
+      <div class="card judge-login">
+        <h3>Judge Access</h3>
+        <p class="judge-desc">Enter your assigned access code to open your duty.</p>
 
-      <p id="keyError" class="judge-error">Invalid access code.</p>
+        <div class="login-field">
+          <input id="judgeKey" class="input" placeholder="Enter access code" type="password">
+          <button class="btn primary" id="btnJudgeLogin">Enter</button>
+        </div>
+
+        <p id="keyError" class="judge-error">Invalid access code.</p>
+      </div>
+
     </div>
 
   </div>
 </main>
 
-<!-- ============================
-      FOOTER
-=============================== -->
-<footer>
-  © 2025 GB Rope Skipping Academy
+<footer class="foot" style="text-align:center;">
+  <small>© 2025 GB Rope Skipping Academy</small>
 </footer>
 
-<!-- ============================================================
-     LOGIN LOGIC (clean + preserved functionality)
-============================================================ -->
 <script>
-
+/* ============================================================
+   CLEAR ALL CACHE ON LOGOUT / PAGE OPEN
+   (Speed + Freestyle)
+============================================================ */
 Object.keys(localStorage).forEach(k => {
-  if (k.startsWith("station_cache_") || k.startsWith("freestyle_cache_"))
+  if (k.startsWith("station_cache_")) {
     localStorage.removeItem(k);
+  }
+  if (k.startsWith("freestyle_cache_")) {
+    localStorage.removeItem(k);
+  }
 });
 
-const keyInput = document.getElementById("judgeKey");
-const keyError = document.getElementById("keyError");
-const btnLogin = document.getElementById("btnJudgeLogin");
+const JUDGE_MAP = window.JUDGE_KEYS;
 
-// Click handler
-btnLogin.onclick = function () {
+// UI elements
+const keyInput  = document.getElementById("judgeKey");
+const keyError  = document.getElementById("keyError");
+const btnLogin  = document.getElementById("btnJudgeLogin");
+
+btnLogin.addEventListener("click", () => {
+
   const key = keyInput.value.trim();
   keyError.style.display = "none";
 
+  // Admin
   if (typeof ADMIN_KEY !== "undefined" && key === ADMIN_KEY) {
     btnLogin.disabled = true;
     btnLogin.textContent = "Loading…";
-    location.href = "admin.html";
+    window.location.href = "admin.html";
     return;
   }
 
-  const info = window.JUDGE_KEYS[key];
+  // Judge key info
+  const info = JUDGE_MAP[key];
   if (!info) {
     keyError.style.display = "block";
     return;
   }
 
-  const { station, event, judgeType = "" } = info;
+  const station = info.station;
+  const event = info.event;
+  const judgeType = info.judgeType || "";
 
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
+  // ⭐ SPEED → go to speed-station
   if (event === "speed") {
     location.href = `speed-station.html?station=${station}&key=${key}`;
-  } else {
-    location.href = `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
+    return;
   }
-};
 
-// Press Enter → Submit
+  // ⭐ FREESTYLE → go to freestyle-station
+  if (event === "freestyle") {
+    location.href =
+      `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
+    return;
+  }
+});
+
+// Enter key support
 keyInput.addEventListener("keyup", e => {
   if (e.key === "Enter") btnLogin.click();
+});
+
+// Reset after back
+function resetJudgeLogin() {
+  btnLogin.disabled = false;
+  btnLogin.textContent = "Enter";
+  keyError.style.display = "none";
+  keyInput.value = "";
+}
+
+window.addEventListener("pageshow", resetJudgeLogin);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") resetJudgeLogin();
+});
+window.addEventListener("pagehide", () => {
+  keyInput.value = "";
 });
 </script>
 
