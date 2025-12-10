@@ -64,7 +64,7 @@
     .fs-no { background: #22c55e; }
     .fs-yes { background: #dc2626; }
 
-    /* SCORE SCREEN */
+    /* SCORE DISPLAY */
     .score-screen {
       width: 100%;
       background: #ffffff;
@@ -108,7 +108,7 @@
       font-weight: 700;
     }
 
-    /* Rounded Remark Input */
+    /* ROUNDED REMARK INPUT */
     .remark-rounded {
       width: 100%;
       padding: 14px 16px;
@@ -118,12 +118,17 @@
       background: #fff;
       box-sizing: border-box;
       margin-bottom: 20px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .remark-rounded:focus {
+      border-color: #2563eb;
     }
 
     .remark-rounded::placeholder {
       color: #9ca3af;
     }
-
   </style>
 </head>
 
@@ -139,16 +144,13 @@
     <form id="scoreForm" class="form">
 
       <!-- FALSE START BTN -->
-      <button type="button" id="falseStartBtn" class="fs-btn fs-no">
-        False Start: No
-      </button>
-
+      <button type="button" id="falseStartBtn" class="fs-btn fs-no">False Start: No</button>
       <input type="hidden" id="falseStartVal" name="FALSE START" value="">
 
       <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
-      <!-- NUMPAD -->
+      <!-- Numpad -->
       <div class="numpad-grid">
         <button type="button" data-key="1">1</button>
         <button type="button" data-key="2">2</button>
@@ -168,8 +170,8 @@
         <button type="button" class="np-enter">Submit</button>
       </div>
 
-      <!-- ROUNDED REMARK INPUT (Option A) -->
-      <input
+      <!-- ROUNDED REMARK INPUT -->
+      <input 
         type="text"
         id="remarkText"
         class="remark-rounded"
@@ -223,14 +225,33 @@ window.addEventListener("pageshow", (event) => {
   </div>
 </div>
 
-<!-- REMARK SYNC LOGIC -->
+<!-- REMARK LOGIC (Enter = Save) -->
 <script>
 const remarkText = document.getElementById("remarkText");
 const remarkField = document.getElementById("remarkField");
 
-// Sync the rounded input to the hidden remark field
+// Sync text to hidden field on input
 remarkText.addEventListener("input", () => {
   remarkField.value = remarkText.value.trim();
+});
+
+// ENTER = Save remark only (no submit)
+remarkText.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();  // stop form submit
+    
+    // Save remark
+    remarkField.value = remarkText.value.trim();
+
+    // Optional vibration feedback
+    if (navigator.vibrate) navigator.vibrate([30]);
+
+    // Visual feedback
+    remarkText.style.borderColor = "#2563eb";
+    setTimeout(() => {
+      remarkText.style.borderColor = "#d1d5db";
+    }, 150);
+  }
 });
 </script>
 
