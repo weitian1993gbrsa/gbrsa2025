@@ -37,7 +37,7 @@ window.FREESTYLE_EVENTS = [
 
 // Speed judges
 window.JUDGE_KEYS = {
-  // Speed (unchanged)
+  // Speed
   "abc123": { event:"speed", station:1 },
   "def456": { event:"speed", station:2 },
   "ghi789": { event:"speed", station:3 },
