@@ -110,7 +110,7 @@
         this.counts[this.lastAction.level] = this.lastAction.prev;
         this.lastAction = null;
         this.updateUI();
-        if (navigator.vibrate) navigator.vibrate([40]);
+        if (navigator.vibrate) navigator.vibrate([80]);
       };
 
       this.undoBtn.addEventListener("touchstart", undoHandler, { passive: true });
@@ -120,7 +120,7 @@
         for (let lvl in this.counts) this.counts[lvl] = 0;
         this.lastAction = null;
         this.updateUI();
-        if (navigator.vibrate) navigator.vibrate([120]);
+        if (navigator.vibrate) navigator.vibrate([80]);
       });
 
       this.updateUI();
@@ -206,7 +206,7 @@
         undoBtn.classList.add("hidden");
         this.lastAction = null;
 
-        if (navigator.vibrate) navigator.vibrate([40]);
+        if (navigator.vibrate) navigator.vibrate([80]);
       });
 
       resetBtn.addEventListener("click", () => {
@@ -219,7 +219,7 @@
         undoBtn.classList.add("hidden");
         this.lastAction = null;
 
-        if (navigator.vibrate) navigator.vibrate([120]);
+        if (navigator.vibrate) navigator.vibrate([80]);
       });
     },
 
@@ -338,7 +338,7 @@
           label.textContent = this.page1Data[key];
           this.lastAction = { field: key };
           undoBtn.classList.remove("hidden");
-          if (navigator.vibrate) navigator.vibrate(40);
+          if (navigator.vibrate) navigator.vibrate(80);
         });
       });
 
@@ -351,7 +351,7 @@
         missLabel.textContent = this.page1Data.misses;
         this.lastAction = { field: "misses" };
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate(40);
+        if (navigator.vibrate) navigator.vibrate(80);
       });
 
       /* -------- Undo -------- */
