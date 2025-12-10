@@ -7,9 +7,6 @@
 
   const $ = (q, el = document) => el.querySelector(q);
 
-  /* ------------------------------------------------------------
-     MAIN INIT FUNCTION
-  ------------------------------------------------------------ */
   window.StationCore = {
     init(options = {}) {
       const qs = new URLSearchParams(location.search);
@@ -32,9 +29,6 @@
       if (judgeTypeLabel && judgeType)
         judgeTypeLabel.textContent = judgeType.toUpperCase();
 
-      /* ------------------------------------------------------------
-         SECURITY CHECK
-      ------------------------------------------------------------ */
       const k = window.JUDGE_KEYS[key];
       if (!k || k.event !== mode || String(k.station) !== station) {
         document.body.innerHTML =
@@ -45,15 +39,10 @@
         return;
       }
 
-      /* ------------------------------------------------------------
-         ⭐ NEW FIX — SEPARATE CACHE PER JUDGE TYPE
-         Previously: freestyle_cache_<station>
-         Now:        freestyle_cache_<station>_<judgeType>
-      ------------------------------------------------------------ */
       const CACHE_KEY =
         mode === "speed"
-          ? ("station_cache_" + station)                   // Speed unchanged
-          : ("freestyle_cache_" + station + "_" + judgeType); // Freestyle FIXED
+          ? ("station_cache_" + station)
+          : ("freestyle_cache_" + station + "_" + judgeType);
 
       function saveCache(data) {
         try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) {}
@@ -66,17 +55,11 @@
         } catch { return null; }
       }
 
-      /* ------------------------------------------------------------
-         ESCAPE
-      ------------------------------------------------------------ */
       const esc = s =>
         String(s || "").replace(/[&<>"']/g, c =>
           ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])
         );
 
-      /* ------------------------------------------------------------
-         ⭐ PATCHED NAME FORMATTER (Name1–4 Support)
-      ------------------------------------------------------------ */
       const formatNames = p => {
         const names = [
           p.NAME1,
@@ -88,9 +71,6 @@
         return esc(names.join(", "));
       };
 
-      /* ------------------------------------------------------------
-         JUDGE PAGE RESOLVER
-      ------------------------------------------------------------ */
       function resolveJudgePage(p) {
 
         if (mode === "speed") {
@@ -107,7 +87,6 @@
           );
         }
 
-        // FREESTYLE:
         const type = judgeType;
 
         const page =
@@ -115,7 +94,7 @@
           type === "technical"     ? "freestyle-technical.html" :
           type === "re"            ? "freestyle-re.html" :
           type === "presentation"  ? "freestyle-presentation.html" :
-          "freestyle-difficulty.html"; // fallback
+          "freestyle-difficulty.html";
 
         return (
           `${page}?id=${p.entryId}` +
@@ -131,9 +110,6 @@
         );
       }
 
-      /* ------------------------------------------------------------
-         CARD CREATION
-      ------------------------------------------------------------ */
       function createCard(p) {
         const card = document.createElement("button");
         card.type = "button";
@@ -180,6 +156,7 @@
         card.appendChild(team);
         card.appendChild(eventRow);
 
+        /* CLICK (original behavior you want) */
         card.addEventListener("click", () => {
           location.href = resolveJudgePage(p);
         });
@@ -187,16 +164,10 @@
         return card;
       }
 
-      /* ------------------------------------------------------------
-         SORTING
-      ------------------------------------------------------------ */
       function sortEntries(arr) {
         return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
       }
 
-      /* ------------------------------------------------------------
-         RENDER
-      ------------------------------------------------------------ */
       function render(data) {
         let arr = data.entries || [];
 
@@ -216,9 +187,6 @@
         arr.forEach(p => listEl.appendChild(createCard(p)));
       }
 
-      /* ------------------------------------------------------------
-         LOAD DATA
-      ------------------------------------------------------------ */
       async function load() {
         const cached = loadCache();
         if (cached) render(cached);
@@ -237,9 +205,6 @@
         render(data);
       }
 
-      /* ------------------------------------------------------------
-         REFRESH BUTTON
-      ------------------------------------------------------------ */
       if (btnRefresh) {
         btnRefresh.addEventListener("click", () => {
           localStorage.removeItem(CACHE_KEY);
