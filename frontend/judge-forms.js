@@ -26,6 +26,7 @@
 
       const MAX_DIGITS = 3;
 
+      // FALSE START TOGGLE WITH VIBRATION
       this.falseStartBtn.addEventListener("click", () => {
         if (this.falseStartVal.value === "YES") {
           this.falseStartVal.value = "";
@@ -38,8 +39,10 @@
           this.falseStartBtn.classList.remove("fs-no");
           this.falseStartBtn.classList.add("fs-yes");
         }
+        if (navigator.vibrate) navigator.vibrate([80]);
       });
 
+      // NUMPAD WITH VIBRATION
       this.numpadButtons.forEach(btn => {
         const key = btn.dataset.key;
         if (!key) return;
@@ -48,6 +51,7 @@
 
           if (key === "clear") {
             this.scoreScreen.textContent = "0";
+            if (navigator.vibrate) navigator.vibrate([80]); // ⭐ CLEAR vibration
             return;
           }
 
@@ -57,6 +61,8 @@
           if (current.length >= MAX_DIGITS) return;
 
           this.scoreScreen.textContent = current + key;
+
+          if (navigator.vibrate) navigator.vibrate([40]); // ⭐ keypad vibration
         });
       });
     },
@@ -90,6 +96,7 @@
       this.undoBtn = document.querySelector("#undoBtn");
       this.resetBtn = document.querySelector("#resetBtn");
 
+      // SKILL TAP VIBRATION
       document.querySelectorAll(".skill-btn").forEach(btn => {
         btn.addEventListener("pointerdown", () => {
           const lvl = btn.dataset.level;
@@ -99,28 +106,29 @@
 
           this.updateUI();
 
-          if (navigator.vibrate) navigator.vibrate([80]);
+          if (navigator.vibrate) navigator.vibrate([40]); // ⭐ tap vibration
           btn.classList.add("pressed");
           setTimeout(() => btn.classList.remove("pressed"), 150);
         });
       });
 
+      // UNDO
       const undoHandler = () => {
         if (!this.lastAction) return;
         this.counts[this.lastAction.level] = this.lastAction.prev;
         this.lastAction = null;
         this.updateUI();
-        if (navigator.vibrate) navigator.vibrate([80]);
+        if (navigator.vibrate) navigator.vibrate([60,40]); // ⭐ undo vibration
       };
 
-      this.undoBtn.addEventListener("touchstart", undoHandler, { passive: true });
       this.undoBtn.addEventListener("pointerdown", undoHandler);
 
+      // RESET
       this.resetBtn.addEventListener("click", () => {
         for (let lvl in this.counts) this.counts[lvl] = 0;
         this.lastAction = null;
         this.updateUI();
-        if (navigator.vibrate) navigator.vibrate([80]);
+        if (navigator.vibrate) navigator.vibrate([120]); // ⭐ reset vibration
       });
 
       this.updateUI();
@@ -168,6 +176,7 @@
 
       undoBtn.classList.add("hidden");
 
+      // MISS
       missBtn.addEventListener("pointerdown", () => {
         this.lastAction = {
           prevMiss: window.technicalMisses,
@@ -178,9 +187,10 @@
         missEl.textContent = window.technicalMisses;
 
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate([80]);
+        if (navigator.vibrate) navigator.vibrate([40]); // ⭐ tap vibration
       });
 
+      // BREAK
       breakBtn.addEventListener("pointerdown", () => {
         this.lastAction = {
           prevMiss: window.technicalMisses,
@@ -191,9 +201,10 @@
         breakEl.textContent = window.technicalBreaks;
 
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate([80]);
+        if (navigator.vibrate) navigator.vibrate([40]); // ⭐ tap vibration
       });
 
+      // UNDO
       undoBtn.addEventListener("click", () => {
         if (!this.lastAction) return;
 
@@ -206,9 +217,10 @@
         undoBtn.classList.add("hidden");
         this.lastAction = null;
 
-        if (navigator.vibrate) navigator.vibrate([80]);
+        if (navigator.vibrate) navigator.vibrate([60,40]); // ⭐ undo
       });
 
+      // RESET
       resetBtn.addEventListener("click", () => {
         window.technicalMisses = 0;
         window.technicalBreaks = 0;
@@ -219,7 +231,7 @@
         undoBtn.classList.add("hidden");
         this.lastAction = null;
 
-        if (navigator.vibrate) navigator.vibrate([80]);
+        if (navigator.vibrate) navigator.vibrate([120]); // ⭐ reset
       });
     },
 
@@ -249,7 +261,7 @@
 
 
   /* ------------------------------------------------------------
-     PRESENTATION — FIXED VERSION
+     PRESENTATION — FIXED VERSION + VIBRATION
   ------------------------------------------------------------ */
   JudgeForms.presentation = {
 
@@ -276,13 +288,13 @@
       else this.initPage1();
     },
 
-    /* ---------------------- PAGE 1 (FIXED) ---------------------- */
+    /* ---------------------- PAGE 1 ---------------------- */
     initPage1() {
 
       const undoBtn = document.getElementById("undoBtn");
       undoBtn.classList.add("hidden");
 
-      // ⭐ ALWAYS RESET WHEN OPENING PARTICIPANT
+      // ALWAYS RESET (new participant)
       this.page1Data = {
         creMinus: 0, crePlus: 0,
         musMinus: 0, musPlus: 0,
@@ -292,28 +304,20 @@
         misses: 0
       };
 
-      // Save current entry ID
       const currentEntry = JSON.parse(localStorage.getItem("currentEntry") || "{}");
       localStorage.setItem("lastPresentationEntry", JSON.stringify(currentEntry));
 
-      // Update UI
-      const ids = [
+      /* -------- update UI instantly -------- */
+      [
         "creMinus","crePlus","musMinus","musPlus",
         "entMinus","entPlus","formMinus","formPlus",
         "varMinus","varPlus","missCount"
-      ];
-      const d = this.page1Data;
+      ].forEach((id,i) => {
+        document.getElementById(id).textContent =
+          Object.values(this.page1Data)[i];
+      });
 
-      const values = [
-        d.creMinus, d.crePlus, d.musMinus, d.musPlus,
-        d.entMinus, d.entPlus, d.formMinus, d.formPlus,
-        d.varMinus, d.varPlus, d.misses
-      ];
-
-      ids.forEach((id,i)=>{ document.getElementById(id).textContent = values[i]; });
-
-
-      /* -------- Buttons Map -------- */
+      /* -------- Button mappings -------- */
       const map = {
         "creativity-minus": "creMinus",
         "creativity-plus": "crePlus",
@@ -327,18 +331,22 @@
         "variety-plus": "varPlus"
       };
 
+      // BUTTON taps with vibration
       Object.keys(map).forEach(type => {
         const btn = document.querySelector(`[data-type='${type}']`);
         if (!btn) return;
+
         const key = map[type];
         const label = document.getElementById(key);
 
         btn.addEventListener("pointerdown", () => {
           this.page1Data[key]++;
           label.textContent = this.page1Data[key];
+
           this.lastAction = { field: key };
           undoBtn.classList.remove("hidden");
-          if (navigator.vibrate) navigator.vibrate(80,40);
+
+          if (navigator.vibrate) navigator.vibrate([40]); // ⭐ tap
         });
       });
 
@@ -349,9 +357,11 @@
       missBtn.addEventListener("pointerdown", () => {
         this.page1Data.misses++;
         missLabel.textContent = this.page1Data.misses;
+
         this.lastAction = { field: "misses" };
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate(80,40);
+
+        if (navigator.vibrate) navigator.vibrate([40]);
       });
 
       /* -------- Undo -------- */
@@ -361,7 +371,8 @@
         const field = this.lastAction.field;
         this.page1Data[field]--;
 
-        if (this.page1Data[field] < 0) this.page1Data[field] = 0;
+        if (this.page1Data[field] < 0)
+          this.page1Data[field] = 0;
 
         if (field === "misses")
           missLabel.textContent = this.page1Data.misses;
@@ -370,18 +381,22 @@
 
         this.lastAction = null;
         undoBtn.classList.add("hidden");
+
+        if (navigator.vibrate) navigator.vibrate([60,40]); // ⭐ undo
       });
 
-      /* -------- Next -------- */
+      /* -------- NEXT (save data) -------- */
       document.getElementById("nextBtn").addEventListener("click", () => {
         localStorage.setItem("presentationPage1", JSON.stringify(this.page1Data));
-        window.location.href = "freestyle-presentation summary.html" + location.search;
+        window.location.href =
+          "freestyle-presentation summary.html" + location.search;
       });
     },
 
     /* ---------------------- PAGE 2 ---------------------- */
     initPage2() {
       console.log("[Presentation] Page 2 Init");
+
       const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
       this.page1Data = data;
       this.finalScore = this.computeWeightedScore(data);
@@ -396,6 +411,7 @@
         (12 + d.varPlus - d.varMinus) * this.WEIGHTS.variety;
 
       sum -= d.misses;
+
       return Number(sum.toFixed(1));
     },
 
