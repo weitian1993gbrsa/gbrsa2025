@@ -351,7 +351,7 @@
         missLabel.textContent = this.page1Data.misses;
         this.lastAction = { field: "misses" };
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate(80);
+        if (navigator.vibrate) navigator.vibrate(80,40);
       });
 
       /* -------- Undo -------- */
