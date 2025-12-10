@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>Freestyle Station</title>
+
+  <link rel="stylesheet" href="./styles.css"/>
+
+  <!-- LOAD ORDER -->
+  <script defer src="./config.js"></script>
+  <script defer src="./app.js"></script>
+  <script defer src="./station-core.js"></script>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    StationCore.init({ mode:"freestyle" });
+});
+</script>
+
+  <style>
+    .topbar { position:sticky; top:0; z-index:999; }
+  </style>
+</head>
+
+<body class="page station">
+
+<header class="topbar">
+  <img src="./assets/company-logo.png" class="logo"/>
+
+  <div class="titles">
+    <h1>
+      Station <span id="stationLabel"></span><br>
+      <small id="judgeTypeLabel"></small>
+    </h1>
+  </div>
+
+  <button id="btnHome" class="btn" style="margin-left:auto;margin-right:.5rem;">Home</button>
+  <button id="btnRefresh" class="btn">Refresh</button>
+</header>
+
+<main class="container">
+  <section class="block">
+    <h2>Entries for this Station</h2>
+    <div id="entryList" class="entry-list"></div>
+  </section>
+</main>
+
+<script>
+document.getElementById("btnHome").onclick = () => location.href="index.html";
+</script>
+
+</body>
+</html>

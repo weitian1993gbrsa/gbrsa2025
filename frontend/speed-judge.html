@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>Speed Judge</title>
+
+  <link rel="stylesheet" href="./styles.css"/>
+
+  <!-- Core scripts -->
+  <script defer src="./config.js"></script>
+  <script defer src="./app.js"></script>
+  <script defer src="./judge-core.js"></script>
+  <script defer src="./judge-forms.js"></script>
+
+  <script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const logic = initJudgeForm("speed");
+    JudgeCore.init({
+        judgeType: "speed",
+        submitButton: document.querySelector(".np-enter"),
+        buildScore: () => logic.getScore()
+    });
+});
+</script>
+  
+  <style>
+    .judge-header {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      gap: .75rem;
+      background: #ffffffd9;
+      border-bottom: 1px solid #e5e7eb;
+      backdrop-filter: blur(4px);
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+    }
+
+    .judge-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    /* FALSE START BUTTON */
+    .fs-btn {
+      width: 100%;
+      padding: 16px 0;
+      margin-bottom: 18px;
+      font-size: 20px;
+      border-radius: 0px;
+      font-weight: 700;
+      text-align: center;
+      border: none;
+      color: #fff;
+    }
+
+    .fs-no {
+      background: #22c55e;
+    }
+
+    .fs-yes {
+      background: #dc2626;
+    }
+
+    /* SCORE SCREEN */
+    .score-screen {
+      width: 100%;
+      background: #ffffff;
+      color: #111;
+      font-size: 3.5rem;
+      text-align: center;
+      padding: 22px;
+      border-radius: 14px;
+      margin-bottom: 22px;
+      font-family: monospace;
+      letter-spacing: 2px;
+    }
+
+    /* NUMPAD GRID */
+    .numpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .numpad-grid button {
+      padding: 20px 0;
+      font-size: 1.6rem;
+      border-radius: 0px;
+      background: #fff;
+      border: 1px solid #ddd;
+      font-weight: 600;
+    }
+
+    .np-clear {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+    }
+
+    .np-enter {
+      background: #2563eb !important;
+      color: #fff !important;
+      border: 1px solid #1d4ed8 !important;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body class="page judge">
+
+<header class="judge-header">
+  <button onclick="goBack()" class="btn">Back</button>
+  <div>
+    <div class="judge-title">Unofficial Score</div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="block">
+    <form id="scoreForm" class="form">
+
+      <!-- ❗ FALSE START BUTTON (FULL WIDTH) -->
+      <button type="button" id="falseStartBtn" class="fs-btn fs-no">
+        False Start: No
+      </button>
+
+      <input type="hidden" id="falseStartVal" name="FALSE START" value="">
+
+      <!-- SCORE DISPLAY -->
+      <div id="scoreScreen" class="score-screen">0</div>
+
+      <!-- NUMBER PAD -->
+      <div class="numpad-grid">
+        <button type="button" data-key="1">1</button>
+        <button type="button" data-key="2">2</button>
+        <button type="button" data-key="3">3</button>
+
+        <button type="button" data-key="4">4</button>
+        <button type="button" data-key="5">5</button>
+        <button type="button" data-key="6">6</button>
+
+        <button type="button" data-key="7">7</button>
+        <button type="button" data-key="8">8</button>
+        <button type="button" data-key="9">9</button>
+
+        <button type="button" class="np-clear" data-key="clear">Clear</button>
+        <button type="button" data-key="0">0</button>
+
+        <button type="button" class="np-enter">Submit</button>
+      </div>
+
+      <input type="hidden" name="SCORE" id="hiddenScore"/>
+
+      <!-- REMARK -->
+      <label class="field">
+        <span>REMARK</span>
+        <input type="text" name="REMARK" class="input">
+      </label>
+
+      <!-- Backend Hidden Fields -->
+      <input type="hidden" name="ID" id="fID">
+      <input type="hidden" name="NAME1" id="fNAME1">
+      <input type="hidden" name="NAME2" id="fNAME2">
+      <input type="hidden" name="NAME3" id="fNAME3">
+      <input type="hidden" name="NAME4" id="fNAME4">
+      <input type="hidden" name="TEAM" id="fTEAM">
+      <input type="hidden" name="STATE" id="fSTATE">
+      <input type="hidden" name="HEAT" id="fHEAT">
+      <input type="hidden" name="STATION" id="fSTATION">
+      <input type="hidden" name="EVENT" id="fEVENT">
+      <input type="hidden" name="DIVISION" id="fDIVISION">
+
+    </form>
+  </section>
+</main>
+
+<!-- Submit Overlay -->
+<div id="submitOverlay" class="overlay hide">
+  <div class="overlay-card">
+    <div class="loading">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div id="overlayText" class="overlay-text">Submitting…</div>
+  </div>
+</div>
+
+<!-- BACK HANDLER -->
+<script>
+function goBack() {
+  const params = new URLSearchParams(location.search);
+  const station = params.get("station");
+  const key = params.get("key");
+  location.href = `speed-station.html?station=${station}&key=${key}`;
+}
+
+history.pushState(null, null, location.href);
+window.onpopstate = () => goBack();
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) goBack();
+});
+</script>
+
+</body>
+</html>
