@@ -6,7 +6,7 @@
   <title>Freestyle Station</title>
 
 <!-- ============================================================
-     INTERNAL THEME + LAYOUT (NO external CSS)
+     INTERNAL THEME CSS (NO external styles.css)
 ============================================================ -->
 <style>
 
@@ -178,13 +178,15 @@ input { user-select: text; }
 
 </style>
 
-<!-- Required JS (ONLY station-core.js is needed now) -->
-<script defer src="./config.js"></script>
-<script defer src="./app.js"></script>
-<script defer src="./station-core.js"></script>
+<!-- ============================================================
+     JS (correct load order — apiGet BEFORE StationCore)
+============================================================ -->
+<script src="./config.js"></script>
+<script src="./app.js"></script>
+<script src="./station-core.js"></script>
 
 <script>
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => {
   StationCore.init({ mode: "freestyle" });
 });
 </script>
@@ -221,7 +223,7 @@ window.addEventListener("DOMContentLoaded", () => {
 </main>
 
 <!-- ---------------------------------
-     BACK-SWIPE BLOCK (iOS / Android)
+     BLOCK MOBILE SWIPE-BACK
 ----------------------------------- -->
 <script>
 history.pushState(null, null, location.href);
