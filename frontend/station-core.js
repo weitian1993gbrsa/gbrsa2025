@@ -1,8 +1,10 @@
 /* ============================================================
    STATION CORE — SPEED + FREESTYLE
    Universal station loader for all judge types
-   ⭐ PATCHED VERSION (2025-12-11)
-   - FIX: Save currentEntry on card click
+   ⭐ FINAL VERSION (2025-12-11)
+   - FIX: Correct currentEntry formatting for SPEED & FREESTYLE
+   - FIX: Prevent wrong ID/event/division
+   - FIX: Unified station logic
 ============================================================ */
 
 (function () {
@@ -21,10 +23,10 @@
         options.mode ||
         (judgeType ? "freestyle" : "speed");
 
-      const listEl        = $("#entryList");
-      const stationLabel  = $("#stationLabel");
+      const listEl         = $("#entryList");
+      const stationLabel   = $("#stationLabel");
       const judgeTypeLabel = $("#judgeTypeLabel");
-      const btnRefresh    = $("#btnRefresh");
+      const btnRefresh     = $("#btnRefresh");
 
       stationLabel.textContent = station;
 
@@ -105,8 +107,8 @@
         const page =
           type === "difficulty"    ? "freestyle-difficulty.html" :
           type === "technical"     ? "freestyle-technical.html" :
-          type === "re"            ? "freestyle-re.html" :
           type === "presentation"  ? "freestyle-presentation.html" :
+          type === "re"            ? "freestyle-re.html" :
           "freestyle-difficulty.html";
 
         return (
@@ -124,7 +126,7 @@
       }
 
       /* -------------------------------------------------------
-         CREATE CARD (PATCHED)
+         CREATE CARD (⭐ FINAL PATCHED VERSION)
       ------------------------------------------------------- */
       function createCard(p) {
         const card = document.createElement("button");
@@ -173,12 +175,27 @@
         card.appendChild(eventRow);
 
         /* -------------------------------------------------------
-           ⭐ CRITICAL PATCH (fix wrong ID/event/division)
-           Save participant info BEFORE navigating to judge page
+           ⭐ MOST IMPORTANT FIX:
+           Save FULL participant info in judge-core format
         ------------------------------------------------------- */
         card.addEventListener("click", () => {
+
+          const entryData = {
+            ID: p.entryId,
+            NAME1: p.NAME1 || "",
+            NAME2: p.NAME2 || "",
+            NAME3: p.NAME3 || "",
+            NAME4: p.NAME4 || "",
+            TEAM: p.team || "",
+            STATE: p.state || "",
+            HEAT: p.heat || "",
+            STATION: station,
+            EVENT: p.event || "",
+            DIVISION: p.division || ""
+          };
+
           try {
-            localStorage.setItem("currentEntry", JSON.stringify(p));
+            localStorage.setItem("currentEntry", JSON.stringify(entryData));
           } catch (err) {
             console.warn("Failed to store currentEntry:", err);
           }
