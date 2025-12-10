@@ -107,6 +107,87 @@
       border: 1px solid #1d4ed8 !important;
       font-weight: 700;
     }
+
+    /* -------------------------
+       REMARK POPUP (Style 2)
+    ------------------------- */
+    .remark-modal {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+    }
+
+    .remark-modal.hide { display: none; }
+
+    .remark-backdrop {
+      position: absolute;
+      inset: 0;
+      background: #00000090;
+      backdrop-filter: blur(3px);
+    }
+
+    .remark-box {
+      position: relative;
+      width: 90%;
+      max-width: 420px;
+      background: #fff;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      z-index: 2;
+    }
+
+    .remark-title {
+      margin: 0 0 12px;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .remark-textarea {
+      width: 100%;
+      height: 110px;
+      resize: none;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .remark-actions {
+      margin-top: 14px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .remark-cancel {
+      background: #e5e7eb;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+    }
+
+    .remark-save {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    .remark-btn {
+      width: 100%;
+      padding: 14px 0;
+      font-size: 1.1rem;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 
@@ -115,7 +196,6 @@
 <header class="judge-header">
   <button onclick="goBack()" class="btn">Back</button>
 
-  <!-- ORIGINAL TITLE (NO HEAT) -->
   <div>
     <div class="judge-title">Unofficial Score</div>
   </div>
@@ -154,6 +234,12 @@
 
         <button type="button" class="np-enter">Submit</button>
       </div>
+
+      <!-- REMARK BUTTON -->
+      <button type="button" id="remarkBtn" class="remark-btn">Add Remark</button>
+
+      <!-- Hidden field -->
+      <input type="hidden" name="REMARK" id="remarkField">
 
       <!-- Backend Hidden Fields -->
       <input type="hidden" name="ID" id="fID">
@@ -198,6 +284,50 @@ window.addEventListener("pageshow", (event) => {
     <div id="overlayText" class="overlay-text">Submitting…</div>
   </div>
 </div>
+
+<!-- REMARK POPUP -->
+<div id="remarkModal" class="remark-modal hide">
+  <div class="remark-backdrop"></div>
+
+  <div class="remark-box">
+    <h3 class="remark-title">Remark</h3>
+
+    <textarea id="remarkInput" class="remark-textarea" placeholder="Type remark here..."></textarea>
+
+    <div class="remark-actions">
+      <button type="button" id="remarkCancel" class="remark-cancel">Cancel</button>
+      <button type="button" id="remarkSave" class="remark-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMARK POPUP JS -->
+<script>
+const remarkBtn = document.getElementById("remarkBtn");
+const remarkModal = document.getElementById("remarkModal");
+const remarkCancel = document.getElementById("remarkCancel");
+const remarkSave = document.getElementById("remarkSave");
+const remarkInput = document.getElementById("remarkInput");
+const remarkField = document.getElementById("remarkField");
+
+// Open popup
+remarkBtn.addEventListener("click", () => {
+  remarkModal.classList.remove("hide");
+  remarkInput.focus();
+});
+
+// Cancel popup
+remarkCancel.addEventListener("click", () => {
+  remarkModal.classList.add("hide");
+});
+
+// Save remark
+remarkSave.addEventListener("click", () => {
+  remarkField.value = remarkInput.value.trim();
+  remarkModal.classList.add("hide");
+  if (navigator.vibrate) navigator.vibrate([40]);
+});
+</script>
 
 </body>
 </html>
