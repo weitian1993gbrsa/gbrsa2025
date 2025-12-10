@@ -225,28 +225,31 @@ window.addEventListener("pageshow", (event) => {
   </div>
 </div>
 
-<!-- REMARK LOGIC (Enter = Save) -->
+<!-- REMARK LOGIC (Enter = Save + Close Keyboard) -->
 <script>
 const remarkText = document.getElementById("remarkText");
 const remarkField = document.getElementById("remarkField");
 
-// Sync text to hidden field on input
+// Sync on input
 remarkText.addEventListener("input", () => {
   remarkField.value = remarkText.value.trim();
 });
 
-// ENTER = Save remark only (no submit)
+// ENTER = Save + Close Keyboard
 remarkText.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
-    e.preventDefault();  // stop form submit
-    
+    e.preventDefault(); // Stop form submit
+
     // Save remark
     remarkField.value = remarkText.value.trim();
 
-    // Optional vibration feedback
+    // Close keyboard
+    remarkText.blur();
+
+    // Optional vibration
     if (navigator.vibrate) navigator.vibrate([30]);
 
-    // Visual feedback
+    // Feedback flash
     remarkText.style.borderColor = "#2563eb";
     setTimeout(() => {
       remarkText.style.borderColor = "#d1d5db";
