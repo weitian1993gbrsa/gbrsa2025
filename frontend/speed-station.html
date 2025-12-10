@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>Speed Station</title>
 
   <link rel="stylesheet" href="./styles.css"/>
@@ -12,11 +13,14 @@
   <script defer src="./app.js"></script>
   <script defer src="./station-core.js"></script>
 
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-    StationCore.init({ mode:"speed" });
-});
-</script>
+  <!-- ⭐ FIX: Missing file (This was the CAUSE of cards not loading) -->
+  <script defer src="./speed-station.js"></script>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      StationCore.init({ mode: "speed" });
+    });
+  </script>
 
   <style>
     /* Sticky header fix */
@@ -37,7 +41,7 @@ window.addEventListener("DOMContentLoaded", () => {
     <h1>Speed Station <span id="stationLabel"></span></h1>
   </div>
 
-  <!-- NEW HOME BUTTON -->
+  <!-- HOME BUTTON -->
   <button id="btnHome" class="btn" style="margin-left:auto;margin-right:.5rem;">
     Home
   </button>
@@ -54,20 +58,19 @@ window.addEventListener("DOMContentLoaded", () => {
   </section>
 </main>
 
-<!-- HARD BLOCK SWIPE BACK ON iOS + ANDROID -->
+<!-- BLOCK SWIPE-BACK -->
 <script>
-history.pushState(null, null, location.href);
-
-window.onpopstate = function () {
-  history.go(1);    // block gesture-back
-};
+  history.pushState(null, null, location.href);
+  window.onpopstate = function () {
+    history.go(1);
+  };
 </script>
 
 <!-- HOME BUTTON LOGIC -->
 <script>
-document.getElementById("btnHome").addEventListener("click", () => {
-  location.href = "index.html"; // always go clean home
-});
+  document.getElementById("btnHome").addEventListener("click", () => {
+    location.href = "index.html";
+  });
 </script>
 
 </body>
