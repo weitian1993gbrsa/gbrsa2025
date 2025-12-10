@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>Freestyle Station</title>
 
 <!-- ============================================================
-     INTERNAL CSS — MATCHES SPEED-STATION THEME
+     INTERNAL THEME + LAYOUT (NO external CSS)
 ============================================================ -->
 <style>
 
@@ -97,7 +97,7 @@ input { user-select: text; }
 }
 
 /* ---------------------------------
-   PAGE CONTAINER
+   MAIN CONTENT CONTAINER
 ----------------------------------- */
 .container {
   padding: 1rem;
@@ -178,10 +178,16 @@ input { user-select: text; }
 
 </style>
 
-<!-- Required JS (preserve load order) -->
+<!-- Required JS (ONLY station-core.js is needed now) -->
 <script defer src="./config.js"></script>
 <script defer src="./app.js"></script>
-<script defer src="./freestyle-station.js"></script>
+<script defer src="./station-core.js"></script>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  StationCore.init({ mode: "freestyle" });
+});
+</script>
 
 </head>
 
@@ -214,13 +220,17 @@ input { user-select: text; }
   </section>
 </main>
 
-<!-- iOS/Android Back Swipe Block -->
+<!-- ---------------------------------
+     BACK-SWIPE BLOCK (iOS / Android)
+----------------------------------- -->
 <script>
 history.pushState(null, null, location.href);
 window.onpopstate = () => history.go(1);
 </script>
 
-<!-- HOME BUTTON -->
+<!-- ---------------------------------
+     HOME BUTTON
+----------------------------------- -->
 <script>
 document.getElementById("btnHome").onclick = () => {
   location.href = "index.html";
