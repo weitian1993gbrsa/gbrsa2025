@@ -1,6 +1,9 @@
 /** ============================================================
- *  GBRSA BACKEND 2025 — SPEED + FREESTYLE (PATCHED VERSION)
- *  Fix: judgeType-specific caching for correct card status
+ *  GBRSA BACKEND 2025 — SPEED + FREESTYLE (FINAL PATCHED VERSION)
+ *  Supports:
+ *   - Multi-judge concurrency (LockService)
+ *   - Correct station caching per judgeType
+ *   - Technical: SPACE field support
  * ============================================================ **/
 
 /* ------------------------------------------------------------
@@ -82,12 +85,12 @@ function doPost(e) {
 
     // Freestyle
     if (["difficulty","technical","re","presentation"].includes(jt)) {
-      clearStationCache(p.STATION + "_" + jt);  // PATCHED
+      clearStationCache(p.STATION + "_" + jt);
       return json(writeFreestyle(p));
     }
 
     // Speed
-    clearStationCache(p.STATION + "_speed");     // PATCHED
+    clearStationCache(p.STATION + "_speed");
     return json(writeSpeed(p));
 
   } catch (err) {
@@ -137,30 +140,27 @@ function getParticipant(e) {
 }
 
 /* ------------------------------------------------------------
- * ⭐⭐⭐ CACHE HELPERS — PATCHED FOR judgeType isolation
+ * CACHE HELPERS
  * ------------------------------------------------------------ */
 function getCacheObject() {
   return CacheService.getScriptCache();
 }
 
 function getCachedStation(key) {
-  const cache = getCacheObject();
-  const raw = cache.get("station_" + key);
+  const raw = getCacheObject().get("station_" + key);
   return raw ? JSON.parse(raw) : null;
 }
 
 function saveCachedStation(key, data) {
-  const cache = getCacheObject();
-  cache.put("station_" + key, JSON.stringify(data), 10); // 10 secs
+  getCacheObject().put("station_" + key, JSON.stringify(data), 10);
 }
 
 function clearStationCache(key) {
-  const cache = getCacheObject();
-  cache.remove("station_" + key);
+  getCacheObject().remove("station_" + key);
 }
 
 /* ------------------------------------------------------------
- * ⭐⭐⭐ STATION LIST (CORRECT PER-JUDGETYPE VERSION)
+ * STATION LIST (PER judgeType)
  * ------------------------------------------------------------ */
 function getStationList(e) {
   const { SHEET_ID, DATA_SHEET,
@@ -170,9 +170,8 @@ function getStationList(e) {
   const station = normalize(e.parameter.station);
   const judgeType = normalize(e.parameter.judgeType || "speed");
 
-  const CACHE_KEY = station + "_" + judgeType;  // PATCHED
+  const CACHE_KEY = station + "_" + judgeType;
 
-  // Cache first
   const cached = getCachedStation(CACHE_KEY);
   if (cached) return json(cached);
 
@@ -209,11 +208,11 @@ function getStationList(e) {
     });
   }
 
-  // Pick correct freestyle sheet
+  // Pick correct sheet
   const resultSheet =
       judgeType === "difficulty" ? FS_DIFF :
       judgeType === "technical" ? FS_TECH :
-      judgeType === "re" ? FS_RE :
+      judgeType === "re"        ? FS_RE :
       judgeType === "presentation" ? FS_PRESENT :
       RESULT_SHEET_SPEED;
 
@@ -252,136 +251,144 @@ function getStationList(e) {
 }
 
 /* ------------------------------------------------------------
- * SPEED WRITER (UNCHANGED)
+ * SPEED WRITER (NOW WITH LockService)
  * ------------------------------------------------------------ */
 function writeSpeed(p) {
-  const { SHEET_ID, RESULT_SHEET_SPEED } = getConfig();
 
-  const ss = SpreadsheetApp.openById(SHEET_ID);
-  const sh = ss.getSheetByName(RESULT_SHEET_SPEED) || ss.insertSheet(RESULT_SHEET_SPEED);
+  const lock = LockService.getScriptLock();
+  lock.tryLock(30000);
 
-  const REQUIRED = [
-    "TIMESTAMP","ID","SCORE","FALSE START","REMARK",
-    "NAME1","NAME2","NAME3","NAME4",
-    "TEAM","STATE","HEAT","STATION","EVENT","DIVISION"
-  ];
+  try {
+    const { SHEET_ID, RESULT_SHEET_SPEED } = getConfig();
 
-  if (sh.getLastRow() === 0) {
-    sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const sh = ss.getSheetByName(RESULT_SHEET_SPEED) || ss.insertSheet(RESULT_SHEET_SPEED);
+
+    const REQUIRED = [
+      "TIMESTAMP","ID","SCORE","FALSE START","REMARK",
+      "NAME1","NAME2","NAME3","NAME4",
+      "TEAM","STATE","HEAT","STATION","EVENT","DIVISION"
+    ];
+
+    if (sh.getLastRow() === 0) {
+      sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
+    }
+
+    const header = sh.getRange(1,1,1,REQUIRED.length).getValues()[0]
+      .map(h => String(h).trim().toUpperCase());
+
+    const COL = {};
+    REQUIRED.forEach(h => COL[h] = header.indexOf(h) + 1);
+
+    const row = sh.getLastRow() + 1;
+
+    sh.getRange(row, COL["TIMESTAMP"]).setValue(new Date());
+    sh.getRange(row, COL["ID"]).setValue(p.ID);
+    sh.getRange(row, COL["SCORE"]).setValue(p.SCORE);
+    sh.getRange(row, COL["FALSE START"]).setValue(p["FALSE START"]);
+    sh.getRange(row, COL["REMARK"]).setValue(p.REMARK);
+
+    sh.getRange(row, COL["NAME1"]).setValue(p.NAME1);
+    sh.getRange(row, COL["NAME2"]).setValue(p.NAME2);
+    sh.getRange(row, COL["NAME3"]).setValue(p.NAME3);
+    sh.getRange(row, COL["NAME4"]).setValue(p.NAME4);
+    sh.getRange(row, COL["TEAM"]).setValue(p.TEAM);
+    sh.getRange(row, COL["STATE"]).setValue(p.STATE);
+    sh.getRange(row, COL["HEAT"]).setValue(p.HEAT);
+    sh.getRange(row, COL["STATION"]).setValue(p.STATION);
+    sh.getRange(row, COL["EVENT"]).setValue(p.EVENT);
+    sh.getRange(row, COL["DIVISION"]).setValue(p.DIVISION);
+
+    return { ok:true };
+
+  } catch (err) {
+    return { ok:false, error:String(err) };
+
+  } finally {
+    lock.releaseLock();
   }
-
-  const header = sh.getRange(1,1,1,REQUIRED.length).getValues()[0]
-    .map(h => String(h).trim().toUpperCase());
-
-  const COL = {};
-  REQUIRED.forEach(h => COL[h] = header.indexOf(h) + 1);
-
-  const row = sh.getLastRow() + 1;
-
-  sh.getRange(row, COL["TIMESTAMP"]).setValue(new Date());
-  sh.getRange(row, COL["ID"]).setValue(p.ID);
-  sh.getRange(row, COL["SCORE"]).setValue(p.SCORE);
-  sh.getRange(row, COL["FALSE START"]).setValue(p["FALSE START"]);
-  sh.getRange(row, COL["REMARK"]).setValue(p.REMARK);
-
-  sh.getRange(row, COL["NAME1"]).setValue(p.NAME1);
-  sh.getRange(row, COL["NAME2"]).setValue(p.NAME2);
-  sh.getRange(row, COL["NAME3"]).setValue(p.NAME3);
-  sh.getRange(row, COL["NAME4"]).setValue(p.NAME4);
-  sh.getRange(row, COL["TEAM"]).setValue(p.TEAM);
-  sh.getRange(row, COL["STATE"]).setValue(p.STATE);
-  sh.getRange(row, COL["HEAT"]).setValue(p.HEAT);
-  sh.getRange(row, COL["STATION"]).setValue(p.STATION);
-  sh.getRange(row, COL["EVENT"]).setValue(p.EVENT);
-  sh.getRange(row, COL["DIVISION"]).setValue(p.DIVISION);
-
-  return { ok:true };
 }
 
 /* ------------------------------------------------------------
- * FREESTYLE WRITER — UNCHANGED
+ * FREESTYLE WRITER (NOW WITH LockService)
  * ------------------------------------------------------------ */
 function writeFreestyle(p) {
-  const { SHEET_ID, FS_DIFF, FS_TECH, FS_RE, FS_PRESENT } = getConfig();
 
-  const jt = (p.judgeType || "").toLowerCase();
+  const lock = LockService.getScriptLock();
+  lock.tryLock(30000);
 
-  let sheetName = null;
-  let REQUIRED = null;
+  try {
+    const { SHEET_ID, FS_DIFF, FS_TECH, FS_RE, FS_PRESENT } = getConfig();
+    const jt = (p.judgeType || "").toLowerCase();
 
-  // DIFFICULTY
-  if (jt === "difficulty") {
-    sheetName = FS_DIFF;
-    REQUIRED = ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+    let sheetName = null;
+    let REQUIRED = null;
+
+    if (jt === "difficulty") {
+      sheetName = FS_DIFF;
+      REQUIRED = ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+    }
+    else if (jt === "technical") {
+      sheetName = FS_TECH;
+      REQUIRED = ["TIMESTAMP","ID","MISSES","BREAKS","SPACE","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+    }
+    else if (jt === "re") {
+      sheetName = FS_RE;
+      REQUIRED = ["TIMESTAMP","ID","MISSRE","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+    }
+    else if (jt === "presentation") {
+      sheetName = FS_PRESENT;
+      REQUIRED = ["TIMESTAMP","ID","PRESENTATION","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+    }
+    else {
+      return { ok:false, error:"Invalid judgeType" };
+    }
+
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const sh = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
+
+    if (sh.getLastRow() === 0) {
+      sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
+    }
+
+    const header = sh.getRange(1,1,1,REQUIRED.length).getValues()[0]
+      .map(h => String(h).trim().toUpperCase());
+
+    const COL = {};
+    REQUIRED.forEach(h => COL[h] = header.indexOf(h) + 1);
+
+    const row = sh.getLastRow() + 1;
+    const fullTS = p.TIMESTAMP ? new Date(p.TIMESTAMP) : new Date();
+
+    sh.getRange(row, COL["TIMESTAMP"]).setValue(fullTS);
+    sh.getRange(row, COL["ID"]).setValue(p.ID);
+
+    if (jt === "difficulty") sh.getRange(row, COL["DIFF"]).setValue(p.DIFF);
+
+    if (jt === "technical") {
+      sh.getRange(row, COL["MISSES"]).setValue(p.MISSES);
+      sh.getRange(row, COL["BREAKS"]).setValue(p.BREAKS);
+      sh.getRange(row, COL["SPACE"]).setValue(p.SPACE);
+    }
+
+    if (jt === "re") sh.getRange(row, COL["MISSRE"]).setValue(p.MISSRE);
+    if (jt === "presentation") sh.getRange(row, COL["PRESENTATION"]).setValue(p.PRESENTATION);
+
+    sh.getRange(row, COL["NAME1"]).setValue(p.NAME1);
+    sh.getRange(row, COL["TEAM"]).setValue(p.TEAM);
+    sh.getRange(row, COL["STATE"]).setValue(p.STATE);
+    sh.getRange(row, COL["HEAT"]).setValue(p.HEAT);
+    sh.getRange(row, COL["STATION"]).setValue(p.STATION);
+    sh.getRange(row, COL["EVENT"]).setValue(p.EVENT);
+    sh.getRange(row, COL["DIVISION"]).setValue(p.DIVISION);
+    sh.getRange(row, COL["REMARK"]).setValue(p.REMARK || "");
+
+    return { ok:true };
+
+  } catch (err) {
+    return { ok:false, error:String(err) };
+
+  } finally {
+    lock.releaseLock();
   }
-
-  // TECHNICAL
-  else if (jt === "technical") {
-    sheetName = FS_TECH;
-    REQUIRED = ["TIMESTAMP","ID","MISSES","BREAKS","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
-  }
-
-  // RE
-  else if (jt === "re") {
-    sheetName = FS_RE;
-    REQUIRED = ["TIMESTAMP","ID","MISSRE","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
-  }
-
-  // PRESENTATION
-  else if (jt === "presentation") {
-    sheetName = FS_PRESENT;
-    REQUIRED = ["TIMESTAMP","ID","PRESENTATION","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
-  }
-
-  else {
-    return { ok:false, error:"Invalid judgeType" };
-  }
-
-  const ss = SpreadsheetApp.openById(SHEET_ID);
-  const sh = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
-
-  if (sh.getLastRow() === 0) {
-    sh.getRange(1,1,1,REQUIRED.length).setValues([REQUIRED]);
-  }
-
-  const header = sh.getRange(1,1,1,REQUIRED.length).getValues()[0]
-    .map(h => String(h).trim().toUpperCase());
-
-  const COL = {};
-  REQUIRED.forEach(h => COL[h] = header.indexOf(h) + 1);
-
-  const row = sh.getLastRow() + 1;
-  const fullTS = p.TIMESTAMP ? new Date(p.TIMESTAMP) : new Date();
-
-  sh.getRange(row, COL["TIMESTAMP"]).setValue(fullTS);
-  sh.getRange(row, COL["ID"]).setValue(p.ID);
-
-  if (jt === "difficulty") {
-    sh.getRange(row, COL["DIFF"]).setValue(p.DIFF);
-  }
-
-  if (jt === "technical") {
-    sh.getRange(row, COL["MISSES"]).setValue(p.MISSES);
-    sh.getRange(row, COL["BREAKS"]).setValue(p.BREAKS);
-  }
-
-  if (jt === "re") {
-    sh.getRange(row, COL["MISSRE"]).setValue(p.MISSRE);
-  }
-
-  if (jt === "presentation") {
-    sh.getRange(row, COL["PRESENTATION"]).setValue(p.PRESENTATION);
-  }
-
-  sh.getRange(row, COL["NAME1"]).setValue(p.NAME1);
-  sh.getRange(row, COL["TEAM"]).setValue(p.TEAM);
-  sh.getRange(row, COL["STATE"]).setValue(p.STATE);
-  sh.getRange(row, COL["HEAT"]).setValue(p.HEAT);
-  sh.getRange(row, COL["STATION"]).setValue(p.STATION);
-  sh.getRange(row, COL["EVENT"]).setValue(p.EVENT);
-  sh.getRange(row, COL["DIVISION"]).setValue(p.DIVISION);
-
-  sh.getRange(row, COL["REMARK"]).setValue(p.REMARK || "");
-
-  return { ok:true };
 }
