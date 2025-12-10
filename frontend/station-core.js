@@ -1,6 +1,8 @@
 /* ============================================================
    STATION CORE — SPEED + FREESTYLE
    Universal station loader for all judge types
+   ⭐ PATCHED VERSION (2025-12-11)
+   - FIX: Save currentEntry on card click
 ============================================================ */
 
 (function () {
@@ -29,6 +31,9 @@
       if (judgeTypeLabel && judgeType)
         judgeTypeLabel.textContent = judgeType.toUpperCase();
 
+      /* -------------------------------------------------------
+         SECURITY CHECK
+      ------------------------------------------------------- */
       const k = window.JUDGE_KEYS[key];
       if (!k || k.event !== mode || String(k.station) !== station) {
         document.body.innerHTML =
@@ -39,6 +44,9 @@
         return;
       }
 
+      /* -------------------------------------------------------
+         CACHE KEY PER MODE / JUDGETYPE
+      ------------------------------------------------------- */
       const CACHE_KEY =
         mode === "speed"
           ? ("station_cache_" + station)
@@ -55,6 +63,9 @@
         } catch { return null; }
       }
 
+      /* -------------------------------------------------------
+         UTILITIES
+      ------------------------------------------------------- */
       const esc = s =>
         String(s || "").replace(/[&<>"']/g, c =>
           ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])
@@ -67,10 +78,12 @@
           p.NAME3,
           p.NAME4
         ].filter(n => n && String(n).trim() !== "");
-
         return esc(names.join(", "));
       };
 
+      /* -------------------------------------------------------
+         BUILD JUDGE PAGE URL
+      ------------------------------------------------------- */
       function resolveJudgePage(p) {
 
         if (mode === "speed") {
@@ -110,6 +123,9 @@
         );
       }
 
+      /* -------------------------------------------------------
+         CREATE CARD (PATCHED)
+      ------------------------------------------------------- */
       function createCard(p) {
         const card = document.createElement("button");
         card.type = "button";
@@ -156,14 +172,26 @@
         card.appendChild(team);
         card.appendChild(eventRow);
 
-        /* CLICK (original behavior you want) */
+        /* -------------------------------------------------------
+           ⭐ CRITICAL PATCH (fix wrong ID/event/division)
+           Save participant info BEFORE navigating to judge page
+        ------------------------------------------------------- */
         card.addEventListener("click", () => {
+          try {
+            localStorage.setItem("currentEntry", JSON.stringify(p));
+          } catch (err) {
+            console.warn("Failed to store currentEntry:", err);
+          }
+
           location.href = resolveJudgePage(p);
         });
 
         return card;
       }
 
+      /* -------------------------------------------------------
+         SORT + RENDER
+      ------------------------------------------------------- */
       function sortEntries(arr) {
         return arr.sort((a, b) => Number(a.heat) - Number(b.heat));
       }
@@ -187,6 +215,9 @@
         arr.forEach(p => listEl.appendChild(createCard(p)));
       }
 
+      /* -------------------------------------------------------
+         LOAD + CACHE
+      ------------------------------------------------------- */
       async function load() {
         const cached = loadCache();
         if (cached) render(cached);
@@ -205,6 +236,9 @@
         render(data);
       }
 
+      /* -------------------------------------------------------
+         REFRESH
+      ------------------------------------------------------- */
       if (btnRefresh) {
         btnRefresh.addEventListener("click", () => {
           localStorage.removeItem(CACHE_KEY);
