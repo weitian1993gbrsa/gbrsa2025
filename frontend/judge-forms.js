@@ -15,9 +15,7 @@
   /* ------------------------------------------------------------
      SPEED JUDGE
   ------------------------------------------------------------ */
-
   JudgeForms.speed = {
-
     init() {
       console.log("[JudgeForms] SPEED init");
 
@@ -75,7 +73,6 @@
   /* ------------------------------------------------------------
      DIFFICULTY
   ------------------------------------------------------------ */
-
   JudgeForms.difficulty = {
 
     POINTS: {
@@ -150,7 +147,6 @@
   /* ------------------------------------------------------------
      TECHNICAL
   ------------------------------------------------------------ */
-
   JudgeForms.technical = {
 
     lastAction: null,
@@ -239,7 +235,6 @@
   /* ------------------------------------------------------------
      RE
   ------------------------------------------------------------ */
-
   JudgeForms.re = {
 
     init() {
@@ -254,9 +249,8 @@
 
 
   /* ------------------------------------------------------------
-     PRESENTATION — PAGE 1 + PAGE 2
+     PRESENTATION — FIXED VERSION
   ------------------------------------------------------------ */
-
   JudgeForms.presentation = {
 
     WEIGHTS: {
@@ -282,53 +276,44 @@
       else this.initPage1();
     },
 
-    /* ---------------------- PAGE 1 ---------------------- */
-
+    /* ---------------------- PAGE 1 (FIXED) ---------------------- */
     initPage1() {
 
       const undoBtn = document.getElementById("undoBtn");
       undoBtn.classList.add("hidden");
 
-      /* Detect participant change */
+      // ⭐ ALWAYS RESET WHEN OPENING PARTICIPANT
+      this.page1Data = {
+        creMinus: 0, crePlus: 0,
+        musMinus: 0, musPlus: 0,
+        entMinus: 0, entPlus: 0,
+        formMinus: 0, formPlus: 0,
+        varMinus: 0, varPlus: 0,
+        misses: 0
+      };
+
+      // Save current entry ID
       const currentEntry = JSON.parse(localStorage.getItem("currentEntry") || "{}");
-      const lastEntry = JSON.parse(localStorage.getItem("lastPresentationEntry") || "{}");
+      localStorage.setItem("lastPresentationEntry", JSON.stringify(currentEntry));
 
-      const isNewParticipant = currentEntry.ID !== lastEntry.ID;
-
-      if (isNewParticipant) {
-        // Reset everything
-        this.page1Data = {
-          creMinus: 0, crePlus: 0,
-          musMinus: 0, musPlus: 0,
-          entMinus: 0, entPlus: 0,
-          formMinus: 0, formPlus: 0,
-          varMinus: 0, varPlus: 0,
-          misses: 0
-        };
-      } else {
-        // Returning from Page 2 → restore stored values
-        const saved = localStorage.getItem("presentationPage1");
-        if (saved) this.page1Data = JSON.parse(saved);
-      }
-
-      /* Update UI with loaded or reset data */
-      const d = this.page1Data;
+      // Update UI
       const ids = [
         "creMinus","crePlus","musMinus","musPlus",
         "entMinus","entPlus","formMinus","formPlus",
         "varMinus","varPlus","missCount"
       ];
-      const fields = [
+      const d = this.page1Data;
+
+      const values = [
         d.creMinus, d.crePlus, d.musMinus, d.musPlus,
         d.entMinus, d.entPlus, d.formMinus, d.formPlus,
         d.varMinus, d.varPlus, d.misses
       ];
-      ids.forEach((id,i)=>{ document.getElementById(id).textContent = fields[i]; });
 
-      /* Save last entry */
-      localStorage.setItem("lastPresentationEntry", JSON.stringify(currentEntry));
+      ids.forEach((id,i)=>{ document.getElementById(id).textContent = values[i]; });
 
-      /* Button map */
+
+      /* -------- Buttons Map -------- */
       const map = {
         "creativity-minus": "creMinus",
         "creativity-plus": "crePlus",
@@ -357,7 +342,7 @@
         });
       });
 
-      /* Miss button */
+      /* -------- Miss Button -------- */
       const missBtn = document.getElementById("missBtn");
       const missLabel = document.getElementById("missCount");
 
@@ -369,21 +354,25 @@
         if (navigator.vibrate) navigator.vibrate(40);
       });
 
-      /* Undo */
+      /* -------- Undo -------- */
       undoBtn.addEventListener("click", () => {
         if (!this.lastAction) return;
+
         const field = this.lastAction.field;
         this.page1Data[field]--;
+
         if (this.page1Data[field] < 0) this.page1Data[field] = 0;
+
         if (field === "misses")
-          document.getElementById("missCount").textContent = this.page1Data.misses;
+          missLabel.textContent = this.page1Data.misses;
         else
           document.getElementById(field).textContent = this.page1Data[field];
+
         this.lastAction = null;
         undoBtn.classList.add("hidden");
       });
 
-      /* Next */
+      /* -------- Next -------- */
       document.getElementById("nextBtn").addEventListener("click", () => {
         localStorage.setItem("presentationPage1", JSON.stringify(this.page1Data));
         window.location.href = "freestyle-presentation summary.html" + location.search;
@@ -391,7 +380,6 @@
     },
 
     /* ---------------------- PAGE 2 ---------------------- */
-
     initPage2() {
       console.log("[Presentation] Page 2 Init");
       const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
@@ -420,7 +408,6 @@
   /* ------------------------------------------------------------
      AUTO INIT
   ------------------------------------------------------------ */
-
   window.initJudgeForm = function (judgeType) {
     const block = JudgeForms[judgeType];
     if (!block) return null;
