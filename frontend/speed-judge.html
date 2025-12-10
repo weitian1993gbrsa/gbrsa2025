@@ -20,21 +20,44 @@
 
   <script>
   window.addEventListener("DOMContentLoaded", () => {
+
+    /* ============================================================
+       INIT SPEED FORM
+    ============================================================ */
     const logic = initJudgeForm("speed");
     JudgeCore.init({
         judgeType: "speed",
         submitButton: document.querySelector(".np-enter"),
         buildScore: () => logic.getScore()
     });
-});
-</script>
+
+    /* ============================================================
+       DYNAMIC HEAT DISPLAY (LocalStorage + URL fallback)
+    ============================================================ */
+    let entry = {};
+    try {
+        entry = JSON.parse(localStorage.getItem("currentEntry") || "{}");
+    } catch(e) {}
+
+    const qs = new URLSearchParams(location.search);
+    const heatFromURL = qs.get("heat");
+
+    const heat = entry.HEAT || heatFromURL || "";
+    const titleEl = document.querySelector(".judge-title");
+
+    if (heat) titleEl.textContent = "Heat " + heat;
+    else titleEl.textContent = "Heat";
+  });
+  </script>
   
   <style>
+    /* ---------------- Original Styles (Untouched) ---------------- */
+
     .judge-header {
       display: flex;
       align-items: center;
+      justify-content: center;   /* CENTER TITLE */
       padding: 1rem;
-      gap: .75rem;
       background: #ffffffd9;
       border-bottom: 1px solid #e5e7eb;
       backdrop-filter: blur(4px);
@@ -43,33 +66,34 @@
       z-index: 9999;
     }
 
+    /* Position Back button on the left */
+    .judge-header .btn {
+      position: absolute;
+      left: 16px;
+    }
+
     .judge-title {
       font-size: 1.4rem;
       font-weight: 700;
+      text-align: center;
+      width: 100%;
     }
 
-    /* FALSE START BUTTON */
     .fs-btn {
       width: 100%;
       padding: 16px 0;
       margin-bottom: 18px;
       font-size: 20px;
-      border-radius: 0px;
+      border-radius: 0;
       font-weight: 700;
       text-align: center;
       border: none;
       color: #fff;
     }
 
-    .fs-no {
-      background: #22c55e;
-    }
+    .fs-no { background: #22c55e; }
+    .fs-yes { background: #dc2626; }
 
-    .fs-yes {
-      background: #dc2626;
-    }
-
-    /* SCORE SCREEN */
     .score-screen {
       width: 100%;
       background: #ffffff;
@@ -83,7 +107,6 @@
       letter-spacing: 2px;
     }
 
-    /* NUMPAD GRID */
     .numpad-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -94,7 +117,7 @@
     .numpad-grid button {
       padding: 20px 0;
       font-size: 1.6rem;
-      border-radius: 0px;
+      border-radius: 0;
       background: #fff;
       border: 1px solid #ddd;
       font-weight: 600;
@@ -112,6 +135,37 @@
       border: 1px solid #1d4ed8 !important;
       font-weight: 700;
     }
+
+
+    /* ---------------- Responsive Engine ---------------- */
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #f5f5f5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 650px;
+      margin: 0 auto;
+      padding: 20px;
+      box-sizing: border-box;
+      height: calc(100% - 70px);
+      overflow-y: auto;
+    }
+
+    .block {
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .numpad-grid {
+      width: 100%;
+    }
+
   </style>
 </head>
 
@@ -119,16 +173,16 @@
 
 <header class="judge-header">
   <button onclick="goBack()" class="btn">Back</button>
-  <div>
-    <div class="judge-title">Unofficial Score</div>
-  </div>
+
+  <!-- Centered HEAT title -->
+  <div class="judge-title">Heat</div>
 </header>
 
 <main class="container">
   <section class="block">
     <form id="scoreForm" class="form">
 
-      <!-- ❗ FALSE START BUTTON (FULL WIDTH) -->
+      <!-- FALSE START BTN -->
       <button type="button" id="falseStartBtn" class="fs-btn fs-no">
         False Start: No
       </button>
@@ -138,7 +192,7 @@
       <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
-      <!-- NUMBER PAD -->
+      <!-- NUMPAD -->
       <div class="numpad-grid">
         <button type="button" data-key="1">1</button>
         <button type="button" data-key="2">2</button>
@@ -166,7 +220,7 @@
         <input type="text" name="REMARK" class="input">
       </label>
 
-      <!-- Backend Hidden Fields -->
+      <!-- Hidden backend fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
