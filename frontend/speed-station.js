@@ -148,11 +148,11 @@
   }
 
   /* ============================================================
-     ⭐ REFRESH BUTTON FIX — CLEAR CACHE FIRST
+     ⭐ REFRESH BUTTON (clear cache)
   ============================================================ */
   btnRefresh.addEventListener("click", () => {
-    localStorage.removeItem("station_cache_" + station); // clear cache
-    location.reload(); // force reload
+    localStorage.removeItem("station_cache_" + station); 
+    location.reload();
   });
 
   window.addEventListener("load", load);
