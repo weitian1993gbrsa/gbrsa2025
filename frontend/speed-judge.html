@@ -26,9 +26,9 @@
         submitButton: document.querySelector(".np-enter"),
         buildScore: () => logic.getScore()
     });
-});
-</script>
-  
+  });
+  </script>
+
   <style>
     .judge-header {
       display: flex;
@@ -61,13 +61,8 @@
       color: #fff;
     }
 
-    .fs-no {
-      background: #22c55e;
-    }
-
-    .fs-yes {
-      background: #dc2626;
-    }
+    .fs-no { background: #22c55e; }
+    .fs-yes { background: #dc2626; }
 
     /* SCORE SCREEN */
     .score-screen {
@@ -119,6 +114,8 @@
 
 <header class="judge-header">
   <button onclick="goBack()" class="btn">Back</button>
+
+  <!-- ORIGINAL TITLE (NO HEAT) -->
   <div>
     <div class="judge-title">Unofficial Score</div>
   </div>
@@ -128,7 +125,7 @@
   <section class="block">
     <form id="scoreForm" class="form">
 
-      <!-- ❗ FALSE START BUTTON (FULL WIDTH) -->
+      <!-- FALSE START BTN -->
       <button type="button" id="falseStartBtn" class="fs-btn fs-no">
         False Start: No
       </button>
@@ -138,7 +135,7 @@
       <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
-      <!-- NUMBER PAD -->
+      <!-- NUM PAD -->
       <div class="numpad-grid">
         <button type="button" data-key="1">1</button>
         <button type="button" data-key="2">2</button>
@@ -158,14 +155,6 @@
         <button type="button" class="np-enter">Submit</button>
       </div>
 
-      <input type="hidden" name="SCORE" id="hiddenScore"/>
-
-      <!-- REMARK -->
-      <label class="field">
-        <span>REMARK</span>
-        <input type="text" name="REMARK" class="input">
-      </label>
-
       <!-- Backend Hidden Fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
@@ -183,16 +172,6 @@
   </section>
 </main>
 
-<!-- Submit Overlay -->
-<div id="submitOverlay" class="overlay hide">
-  <div class="overlay-card">
-    <div class="loading">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-    </div>
-    <div id="overlayText" class="overlay-text">Submitting…</div>
-  </div>
-</div>
-
 <!-- BACK HANDLER -->
 <script>
 function goBack() {
@@ -209,6 +188,16 @@ window.addEventListener("pageshow", (event) => {
   if (event.persisted) goBack();
 });
 </script>
+
+<!-- Submit Overlay -->
+<div id="submitOverlay" class="overlay hide">
+  <div class="overlay-card">
+    <div class="loading">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div id="overlayText" class="overlay-text">Submitting…</div>
+  </div>
+</div>
 
 </body>
 </html>
