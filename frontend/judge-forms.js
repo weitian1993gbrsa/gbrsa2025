@@ -5,7 +5,7 @@
    - Difficulty
    - Technical
    - RE
-   - Presentation (Page 1 + Page 2)
+   - Presentation
 ============================================================ */
 
 (function () {
@@ -26,8 +26,8 @@
 
       const MAX_DIGITS = 3;
 
-      // FALSE START TOGGLE WITH VIBRATION
-      this.falseStartBtn.addEventListener("pointerdown", () => {
+      // FALSE START TOGGLE
+      this.falseStartBtn.addEventListener("click", () => {
         if (this.falseStartVal.value === "YES") {
           this.falseStartVal.value = "";
           this.falseStartBtn.textContent = "False Start: No";
@@ -42,7 +42,7 @@
         if (navigator.vibrate) navigator.vibrate([80]);
       });
 
-      // NUMPAD WITH VIBRATION
+      // NUMPAD
       this.numpadButtons.forEach(btn => {
         const key = btn.dataset.key;
         if (!key) return;
@@ -51,7 +51,7 @@
 
           if (key === "clear") {
             this.scoreScreen.textContent = "0";
-            if (navigator.vibrate) navigator.vibrate([80]); // ⭐ CLEAR vibration
+            if (navigator.vibrate) navigator.vibrate([80]);
             return;
           }
 
@@ -61,8 +61,7 @@
           if (current.length >= MAX_DIGITS) return;
 
           this.scoreScreen.textContent = current + key;
-
-          if (navigator.vibrate) navigator.vibrate([40]); // ⭐ keypad vibration
+          if (navigator.vibrate) navigator.vibrate([40]);
         });
       });
     },
@@ -96,7 +95,7 @@
       this.undoBtn = document.querySelector("#undoBtn");
       this.resetBtn = document.querySelector("#resetBtn");
 
-      // SKILL TAP VIBRATION
+      // SKILL BUTTONS
       document.querySelectorAll(".skill-btn").forEach(btn => {
         btn.addEventListener("pointerdown", () => {
           const lvl = btn.dataset.level;
@@ -106,7 +105,7 @@
 
           this.updateUI();
 
-          if (navigator.vibrate) navigator.vibrate([40]); // ⭐ tap vibration
+          if (navigator.vibrate) navigator.vibrate([40]);
           btn.classList.add("pressed");
           setTimeout(() => btn.classList.remove("pressed"), 150);
         });
@@ -118,7 +117,7 @@
         this.counts[this.lastAction.level] = this.lastAction.prev;
         this.lastAction = null;
         this.updateUI();
-        if (navigator.vibrate) navigator.vibrate([60,40]); // ⭐ undo vibration
+        if (navigator.vibrate) navigator.vibrate([60,40]);
       };
 
       this.undoBtn.addEventListener("pointerdown", undoHandler);
@@ -128,7 +127,7 @@
         for (let lvl in this.counts) this.counts[lvl] = 0;
         this.lastAction = null;
         this.updateUI();
-        if (navigator.vibrate) navigator.vibrate([120]); // ⭐ reset vibration
+        if (navigator.vibrate) navigator.vibrate([120]);
       });
 
       this.updateUI();
@@ -153,7 +152,7 @@
 
 
   /* ------------------------------------------------------------
-     TECHNICAL
+     TECHNICAL (with SPACE VIOLATION)
   ------------------------------------------------------------ */
   JudgeForms.technical = {
 
@@ -162,14 +161,18 @@
     init() {
       console.log("[JudgeForms] TECH init");
 
+      // Counters
       window.technicalMisses = 0;
       window.technicalBreaks = 0;
+      window.technicalSpace  = 0;   // ⭐ NEW
 
       const missEl  = document.getElementById("missCount");
       const breakEl = document.getElementById("breakCount");
+      const spaceEl = document.getElementById("spaceCount");  // ⭐ NEW
 
       const missBtn  = document.querySelector("[data-type='miss']");
       const breakBtn = document.querySelector("[data-type='break']");
+      const spaceBtn = document.getElementById("spaceBtn");   // ⭐ NEW
 
       const undoBtn  = document.getElementById("undoBtn");
       const resetBtn = document.getElementById("resetBtn");
@@ -180,28 +183,45 @@
       missBtn.addEventListener("pointerdown", () => {
         this.lastAction = {
           prevMiss: window.technicalMisses,
-          prevBreak: window.technicalBreaks
+          prevBreak: window.technicalBreaks,
+          prevSpace: window.technicalSpace
         };
 
         window.technicalMisses++;
         missEl.textContent = window.technicalMisses;
 
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate([40]); // ⭐ tap vibration
+        if (navigator.vibrate) navigator.vibrate([40]);
       });
 
       // BREAK
       breakBtn.addEventListener("pointerdown", () => {
         this.lastAction = {
           prevMiss: window.technicalMisses,
-          prevBreak: window.technicalBreaks
+          prevBreak: window.technicalBreaks,
+          prevSpace: window.technicalSpace
         };
 
         window.technicalBreaks++;
         breakEl.textContent = window.technicalBreaks;
 
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate([40]); // ⭐ tap vibration
+        if (navigator.vibrate) navigator.vibrate([40]);
+      });
+
+      // ⭐ SPACE VIOLATION
+      spaceBtn.addEventListener("pointerdown", () => {
+        this.lastAction = {
+          prevMiss: window.technicalMisses,
+          prevBreak: window.technicalBreaks,
+          prevSpace: window.technicalSpace
+        };
+
+        window.technicalSpace++;
+        spaceEl.textContent = window.technicalSpace;
+
+        undoBtn.classList.remove("hidden");
+        if (navigator.vibrate) navigator.vibrate([40]);
       });
 
       // UNDO
@@ -210,35 +230,40 @@
 
         window.technicalMisses = this.lastAction.prevMiss;
         window.technicalBreaks = this.lastAction.prevBreak;
+        window.technicalSpace  = this.lastAction.prevSpace;
 
         missEl.textContent  = window.technicalMisses;
         breakEl.textContent = window.technicalBreaks;
+        spaceEl.textContent = window.technicalSpace;
 
         undoBtn.classList.add("hidden");
         this.lastAction = null;
 
-        if (navigator.vibrate) navigator.vibrate([60,40]); // ⭐ undo
+        if (navigator.vibrate) navigator.vibrate([60,40]);
       });
 
       // RESET
       resetBtn.addEventListener("click", () => {
         window.technicalMisses = 0;
         window.technicalBreaks = 0;
+        window.technicalSpace  = 0;
 
-        missEl.textContent = 0;
+        missEl.textContent  = 0;
         breakEl.textContent = 0;
+        spaceEl.textContent = 0;
 
         undoBtn.classList.add("hidden");
         this.lastAction = null;
 
-        if (navigator.vibrate) navigator.vibrate([120]); // ⭐ reset
+        if (navigator.vibrate) navigator.vibrate([120]);
       });
     },
 
     getScore() {
       return {
         MISSES: window.technicalMisses,
-        BREAKS: window.technicalBreaks
+        BREAKS: window.technicalBreaks,
+        SPACE:  window.technicalSpace    // ⭐ NEW
       };
     }
   };
@@ -261,7 +286,7 @@
 
 
   /* ------------------------------------------------------------
-     PRESENTATION — FIXED VERSION + VIBRATION
+     PRESENTATION — Page 1 + Page 2
   ------------------------------------------------------------ */
   JudgeForms.presentation = {
 
@@ -294,7 +319,7 @@
       const undoBtn = document.getElementById("undoBtn");
       undoBtn.classList.add("hidden");
 
-      // ALWAYS RESET (new participant)
+      // ALWAYS RESET
       this.page1Data = {
         creMinus: 0, crePlus: 0,
         musMinus: 0, musPlus: 0,
@@ -307,17 +332,22 @@
       const currentEntry = JSON.parse(localStorage.getItem("currentEntry") || "{}");
       localStorage.setItem("lastPresentationEntry", JSON.stringify(currentEntry));
 
-      /* -------- update UI instantly -------- */
-      [
+      const ids = [
         "creMinus","crePlus","musMinus","musPlus",
         "entMinus","entPlus","formMinus","formPlus",
         "varMinus","varPlus","missCount"
-      ].forEach((id,i) => {
-        document.getElementById(id).textContent =
-          Object.values(this.page1Data)[i];
-      });
+      ];
 
-      /* -------- Button mappings -------- */
+      const d = this.page1Data;
+      const vals = [
+        d.creMinus, d.crePlus, d.musMinus, d.musPlus,
+        d.entMinus, d.entPlus, d.formMinus, d.formPlus,
+        d.varMinus, d.varPlus, d.misses
+      ];
+
+      ids.forEach((id,i)=>{ document.getElementById(id).textContent = vals[i]; });
+
+      /* BUTTON MAPPING */
       const map = {
         "creativity-minus": "creMinus",
         "creativity-plus": "crePlus",
@@ -331,78 +361,67 @@
         "variety-plus": "varPlus"
       };
 
-      // BUTTON taps with vibration
       Object.keys(map).forEach(type => {
         const btn = document.querySelector(`[data-type='${type}']`);
         if (!btn) return;
-
         const key = map[type];
-        const label = document.getElementById(key);
+        const lbl = document.getElementById(key);
 
         btn.addEventListener("pointerdown", () => {
           this.page1Data[key]++;
-          label.textContent = this.page1Data[key];
+          lbl.textContent = this.page1Data[key];
 
           this.lastAction = { field: key };
           undoBtn.classList.remove("hidden");
-
-          if (navigator.vibrate) navigator.vibrate([40]); // ⭐ tap
+          if (navigator.vibrate) navigator.vibrate([40]);
         });
       });
 
-      /* -------- Miss Button -------- */
+      /* MISSES */
       const missBtn = document.getElementById("missBtn");
-      const missLabel = document.getElementById("missCount");
+      const missLbl = document.getElementById("missCount");
 
       missBtn.addEventListener("pointerdown", () => {
         this.page1Data.misses++;
-        missLabel.textContent = this.page1Data.misses;
-
+        missLbl.textContent = this.page1Data.misses;
         this.lastAction = { field: "misses" };
         undoBtn.classList.remove("hidden");
-
         if (navigator.vibrate) navigator.vibrate([40]);
       });
 
-      /* -------- Undo -------- */
+      /* UNDO */
       undoBtn.addEventListener("click", () => {
         if (!this.lastAction) return;
 
-        const field = this.lastAction.field;
-        this.page1Data[field]--;
+        const f = this.lastAction.field;
+        this.page1Data[f]--;
+        if (this.page1Data[f] < 0) this.page1Data[f] = 0;
 
-        if (this.page1Data[field] < 0)
-          this.page1Data[field] = 0;
-
-        if (field === "misses")
-          missLabel.textContent = this.page1Data.misses;
-        else
-          document.getElementById(field).textContent = this.page1Data[field];
+        if (f === "misses") missLbl.textContent = this.page1Data.misses;
+        else document.getElementById(f).textContent = this.page1Data[f];
 
         this.lastAction = null;
         undoBtn.classList.add("hidden");
-
-        if (navigator.vibrate) navigator.vibrate([60,40]); // ⭐ undo
+        if (navigator.vibrate) navigator.vibrate([60,40]);
       });
 
-      /* -------- NEXT (save data) -------- */
+      /* NEXT → Summary page */
       document.getElementById("nextBtn").addEventListener("click", () => {
         localStorage.setItem("presentationPage1", JSON.stringify(this.page1Data));
-        window.location.href =
-          "freestyle-presentation summary.html" + location.search;
+        window.location.href = "freestyle-presentation summary.html" + location.search;
       });
     },
 
     /* ---------------------- PAGE 2 ---------------------- */
     initPage2() {
       console.log("[Presentation] Page 2 Init");
-
-      const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
-      this.page1Data = data;
-      this.finalScore = this.computeWeightedScore(data);
+      const d = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
+      this.page1Data = d;
+      this.finalScore = this.computeWeightedScore(d);
     },
 
     computeWeightedScore(d) {
+
       let sum =
         (12 + d.crePlus - d.creMinus) * this.WEIGHTS.creativity +
         (12 + d.musPlus - d.musMinus) * this.WEIGHTS.musicality +
@@ -411,7 +430,6 @@
         (12 + d.varPlus - d.varMinus) * this.WEIGHTS.variety;
 
       sum -= d.misses;
-
       return Number(sum.toFixed(1));
     },
 
@@ -422,7 +440,7 @@
 
 
   /* ------------------------------------------------------------
-     AUTO INIT
+     AUTO INIT WRAPPER
   ------------------------------------------------------------ */
   window.initJudgeForm = function (judgeType) {
     const block = JudgeForms[judgeType];
