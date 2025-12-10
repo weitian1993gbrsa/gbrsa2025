@@ -180,7 +180,7 @@
         card.appendChild(team);
         card.appendChild(eventRow);
 
-        card.addEventListener("click", () => {
+        card.addEventListener("touch", () => {
           location.href = resolveJudgePage(p);
         });
 
