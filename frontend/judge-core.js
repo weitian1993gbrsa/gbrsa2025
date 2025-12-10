@@ -27,7 +27,6 @@
       const station = qs.get("station");
       const key = qs.get("key");
       const entryId = qs.get("id");
-
       const judgeType = this.judgeType;
 
       // Build score payload
@@ -47,7 +46,7 @@
       if (overlay) overlay.classList.remove("hide");
 
       try {
-        // ⭐ FIXED TO MATCH YOUR CONFIG FILE
+        // Submit to Google Apps Script backend
         const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify(payload),
@@ -56,13 +55,21 @@
         const json = await res.json();
         if (!json.ok) throw new Error("Submit failed");
 
-        // ⭐⭐⭐ NEW: Mark card as DONE instantly (local cache update)
+        // ⭐ Mark card as DONE instantly (local cache update)
         this.updateLocalStationCache(entryId, station, judgeType);
 
-        // Redirect back to station list
+        // ⭐ Redirect depending on judge type (Fix: Speed should NOT use freestyle page)
         setTimeout(() => {
-          location.href =
-            `freestyle-station.html?station=${station}&key=${key}&judgeType=${judgeType}`;
+
+          if (judgeType === "speed") {
+            // SPEED → Correct redirect
+            location.href = `speed-station.html?station=${station}&key=${key}`;
+          } else {
+            // FREESTYLE → Includes judgeType
+            location.href =
+              `freestyle-station.html?station=${station}&key=${key}&judgeType=${judgeType}`;
+          }
+
         }, 350);
 
       } catch (err) {
@@ -94,12 +101,15 @@
     },
 
     /* ------------------------------------------------------------
-       ⭐⭐⭐ NEW FUNCTION — INSTANT BLUE CARD
-       Updates local station list cache so card becomes DONE
+       ⭐⭐⭐ INSTANT BLUE CARD — Local cache update
     ------------------------------------------------------------ */
     updateLocalStationCache(entryId, station, judgeType) {
       try {
-        const cacheKey = `freestyle_cache_${station}_${judgeType}`;
+        const cacheKey = 
+          judgeType === "speed"
+            ? `station_cache_${station}`          // speed mode cache
+            : `freestyle_cache_${station}_${judgeType}`; // freestyle cache
+
         const raw = localStorage.getItem(cacheKey);
         if (!raw) return;
 
@@ -108,7 +118,7 @@
         if (Array.isArray(data.entries)) {
           data.entries.forEach(e => {
             if (String(e.entryId) === String(entryId)) {
-              e.status = "done";        // ⭐ turn card BLUE instantly
+              e.status = "done";  // ⭐ Set card to blue instantly
             }
           });
 
