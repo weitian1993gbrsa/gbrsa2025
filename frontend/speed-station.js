@@ -31,14 +31,18 @@
   const CACHE_KEY = "station_cache_" + station;
 
   function saveCache(data) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) {}
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    } catch (_) {}
   }
 
   function loadCache() {
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }
 
   function esc(s) {
@@ -47,7 +51,7 @@
     );
   }
 
-  const formatNames = (p) => esc(p.NAME1 || "");
+  const formatNames = p => esc(p.NAME1 || "");
 
   /* ============================================================
      CARD CREATION
@@ -57,6 +61,7 @@
     card.type = "button";
     card.className = p.status === "done" ? "station-card done" : "station-card pending";
 
+    /* ROW: HEAT + ID */
     const top = document.createElement("div");
     top.className = "top-row";
 
@@ -69,14 +74,17 @@
     top.appendChild(heat);
     top.appendChild(id);
 
+    /* NAME */
     const name = document.createElement("div");
     name.className = "name";
     name.textContent = formatNames(p);
 
+    /* TEAM */
     const team = document.createElement("div");
     team.className = "team";
     team.textContent = p.team || "";
 
+    /* EVENT + STATUS */
     const eventRow = document.createElement("div");
     eventRow.className = "event-row";
 
@@ -96,17 +104,31 @@
     card.appendChild(team);
     card.appendChild(eventRow);
 
+    /* ============================================================
+       ⭐ FIX: MUST SAVE FULL ENTRY FOR JUDGECORE
+       So EVENT + DIVISION + NAME + TEAM go into Google Sheet correctly
+    ============================================================ */
     card.addEventListener("click", () => {
+
+      // Save full participant data EXACTLY as received from backend
+      localStorage.setItem("currentEntry", JSON.stringify({
+        NAME1: p.NAME1 || "",
+        NAME2: p.NAME2 || "",
+        NAME3: p.NAME3 || "",
+        NAME4: p.NAME4 || "",
+        TEAM: p.team || "",
+        STATE: p.state || "",
+        HEAT: p.heat || "",
+        EVENT: p.event || "",
+        DIVISION: p.division || "",
+        ID: p.entryId || ""
+      }));
+
+      // Redirect to speed judge
       location.href =
         `speed-judge.html?id=${p.entryId}`
-        + `&name1=${encodeURIComponent(p.NAME1 || "")}`
-        + `&team=${encodeURIComponent(p.team || "")}`
-        + `&state=${encodeURIComponent(p.state || "")}`
-        + `&heat=${encodeURIComponent(p.heat || "")}`
         + `&station=${station}`
-        + `&key=${key}`
-        + `&event=${encodeURIComponent(p.event || "")}`
-        + `&division=${encodeURIComponent(p.division || "")}`;
+        + `&key=${key}`;
     });
 
     return card;
@@ -128,7 +150,7 @@
   }
 
   /* ============================================================
-     LOAD
+     LOAD FROM SERVER OR CACHE
   ============================================================ */
   async function load() {
     const cached = loadCache();
@@ -148,11 +170,11 @@
   }
 
   /* ============================================================
-     ⭐ REFRESH BUTTON FIX — CLEAR CACHE FIRST
+     REFRESH BUTTON (Clear cache + hard reload)
   ============================================================ */
   btnRefresh.addEventListener("click", () => {
-    localStorage.removeItem("station_cache_" + station); // clear cache
-    location.reload(); // force reload
+    localStorage.removeItem(CACHE_KEY);
+    location.reload();
   });
 
   window.addEventListener("load", load);
