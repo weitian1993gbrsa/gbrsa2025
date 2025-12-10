@@ -27,7 +27,7 @@
       const MAX_DIGITS = 3;
 
       // FALSE START TOGGLE WITH VIBRATION
-      this.falseStartBtn.addEventListener("click", () => {
+      this.falseStartBtn.addEventListener("pointerdown", () => {
         if (this.falseStartVal.value === "YES") {
           this.falseStartVal.value = "";
           this.falseStartBtn.textContent = "False Start: No";
@@ -47,7 +47,7 @@
         const key = btn.dataset.key;
         if (!key) return;
 
-        btn.addEventListener("click", () => {
+        btn.addEventListener("pointerdown", () => {
 
           if (key === "clear") {
             this.scoreScreen.textContent = "0";
