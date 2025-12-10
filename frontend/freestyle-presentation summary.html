@@ -44,7 +44,7 @@
         padding: 12px 16px;
         background: white;
         border-bottom: 1px solid #ddd;
-        flex-shrink: 0; /* Prevent collapse */
+        flex-shrink: 0;
     }
 
     .top-btn {
@@ -69,10 +69,10 @@
         border-bottom: 1px solid #ddd;
     }
 
-    /* ===== CONTENT AREA (fills remaining space) ===== */
+    /* ===== CONTENT AREA ===== */
     #summaryContainer {
-        flex: 1; /* Takes remaining space */
-        overflow-y: auto; /* Internal scroll ONLY if needed */
+        flex: 1;
+        overflow-y: auto;
         padding-bottom: 20px;
         background: #f5f5f5;
     }
@@ -258,7 +258,7 @@ function recalcScore(){
 
 recalcScore();
 
-/* Minus button */
+/* ===== MINUS BUTTON WITH VIBRATION ===== */
 document.querySelectorAll(".box-minus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
@@ -270,10 +270,12 @@ document.querySelectorAll(".box-minus").forEach(box=>{
         slider.value = v;
         document.getElementById("val_"+key).textContent = v;
         recalcScore();
+
+        if (navigator.vibrate) navigator.vibrate([40]);
     });
 });
 
-/* Plus button */
+/* ===== PLUS BUTTON WITH VIBRATION ===== */
 document.querySelectorAll(".box-plus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
@@ -285,6 +287,8 @@ document.querySelectorAll(".box-plus").forEach(box=>{
         slider.value = v;
         document.getElementById("val_"+key).textContent = v;
         recalcScore();
+
+        if (navigator.vibrate) navigator.vibrate([40]);
     });
 });
 
