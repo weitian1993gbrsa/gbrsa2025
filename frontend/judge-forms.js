@@ -338,7 +338,7 @@
           label.textContent = this.page1Data[key];
           this.lastAction = { field: key };
           undoBtn.classList.remove("hidden");
-          if (navigator.vibrate) navigator.vibrate(80);
+          if (navigator.vibrate) navigator.vibrate(80,40);
         });
       });
 
