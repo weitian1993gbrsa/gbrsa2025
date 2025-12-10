@@ -472,3 +472,50 @@ button:active,
   transform: none !important;
   filter: none !important;
 }
+
+/* ============================================================
+   JUDGE PAGE RESPONSIVE ENGINE (SAFE PATCH)
+   - Does NOT modify homepage
+   - Does NOT override your existing CSS
+   - Only activates when <body class="judge-page">
+============================================================ */
+
+body.judge-page {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Internal scroll only inside judge page content */
+.judge-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Auto-resizing grid like RopeScore */
+.judge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(90px, 1fr);
+  gap: 14px;
+  width: 100%;
+  padding: 0 1rem;
+  margin-top: 1rem;
+  flex: 1;
+}
+
+/* Auto-scaling buttons, no change to your original style */
+.judge-grid button {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  max-height: 32vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
