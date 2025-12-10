@@ -182,7 +182,7 @@ body.station .topbar {
   text-align: left;
   padding: 18px 20px;
   margin: 12px 0;
-  border-radius: 0px;
+  border-radius: 20px;
   border: none;
   cursor: pointer;
   transition: none;
