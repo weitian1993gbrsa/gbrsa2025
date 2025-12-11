@@ -1,31 +1,179 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-  <title>Freestyle Station</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Freestyle Station</title>
 
-  <!-- Use the SAME styles as Speed Station -->
-  <link rel="stylesheet" href="./styles.css"/>
+<!-- CORE SCRIPTS -->
+<script defer src="./config.js"></script>
+<script defer src="./app.js"></script>
+<script defer src="./station-core.js"></script>
 
-  <!-- LOAD ORDER -->
-  <script defer src="./config.js"></script>
-  <script defer src="./app.js"></script>
-  <script defer src="./station-core.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  StationCore.init({ mode: "freestyle" });
+});
+</script>
 
-  <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      StationCore.init({ mode: "freestyle" });
-    });
-  </script>
+<style>
+/* ============================================================
+   EXTRACTED — SAME LOOK AS SPEED-STATION (NO styles.css)
+============================================================ */
 
-  <style>
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 999;
-    }
-  </style>
+/* GLOBAL RESET */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+html, body {
+  margin:0;
+  padding:0;
+  background:#f5f7fb;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  touch-action: manipulation;
+}
+.page { display:flex; flex-direction:column; }
+
+body.station {
+  overflow-y:auto;
+  overscroll-behavior:none;
+}
+
+/* TOPBAR */
+.topbar {
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  padding:.75rem 1rem;
+  background:#ffffffd9;
+  border-bottom:1px solid #e5e7eb;
+  backdrop-filter:saturate(1.2) blur(4px);
+}
+body.station .topbar {
+  position:sticky;
+  top:0;
+  z-index:9999;
+  background:#ffffffee;
+  border-bottom:1px solid #e5e7eb;
+  backdrop-filter: blur(6px) saturate(1.2);
+}
+
+/* LOGO */
+.logo {
+  height:48px;
+  max-width:220px;
+  object-fit:contain;
+}
+
+/* TITLES */
+.titles h1 {
+  margin:0;
+  font-size:1.15rem;
+  line-height:1.35;
+}
+.titles small {
+  font-size:.85rem;
+  color:#4b5563;
+}
+
+/* BUTTON */
+.btn {
+  appearance:none;
+  border:1px solid #e5e7eb;
+  background:#fff;
+  color:#0b1020;
+  padding:.75rem 1rem;
+  border-radius:12px;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 4px 12px #0000000a;
+}
+
+/* CONTAINER */
+.container {
+  padding:1rem;
+  max-width:900px;
+  width:100%;
+  margin:0 auto;
+}
+.block {
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:1.2rem 1rem;
+  margin:1rem 0;
+  box-shadow:0 6px 18px #0000000d;
+}
+
+/* STATION CARD */
+.station-card {
+  display:block;
+  width:100%;
+  padding:18px 20px;
+  margin:12px 0;
+  border-radius:14px;
+  border:none;
+  cursor:pointer;
+  transition:.2s ease;
+  box-shadow:0px 2px 6px rgba(0,0,0,0.08);
+  color:#fff;
+  appearance:none;
+  text-align:left;
+}
+body.station .station-card {
+  transform:none !important;
+}
+
+.station-card.pending { background:#24c36b; }
+.station-card.done    { background:#1e64e0; }
+
+/* CARD CONTENT TEXT */
+.station-card .top-row {
+  display:flex;
+  justify-content:space-between;
+  font-size:13px;
+  font-weight:600;
+  opacity:.9;
+  margin-bottom:6px;
+}
+.station-card .name {
+  font-size:16px;
+  font-weight:600;
+  margin-bottom:6px;
+}
+.station-card .team {
+  font-size:13px;
+  opacity:.95;
+  margin-bottom:6px;
+}
+.station-card .event-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:4px;
+}
+.station-card .status {
+  font-size:13px;
+  font-weight:700;
+}
+.station-card .event {
+  font-size:13px;
+  opacity:.95;
+  font-weight:600;
+  text-align:right;
+}
+
+/* Active state fix */
+button:active,
+.btn:active,
+.station-card:active {
+  transform:none !important;
+  filter:none !important;
+}
+</style>
+
 </head>
 
 <body class="page station">
@@ -50,21 +198,21 @@
 <main class="container">
   <section class="block">
     <h2>Entries for this Station</h2>
-    <div id="entryList" class="entry-list"></div>
+    <div id="entryList"></div>
   </section>
 </main>
 
-<!-- Block iOS/Android Back Swipe -->
+<!-- SWIPE-BACK BLOCK (iOS/Android) -->
 <script>
-  history.pushState(null, null, location.href);
-  window.onpopstate = () => history.go(1);
+history.pushState(null, null, location.href);
+window.onpopstate = () => history.go(1);
 </script>
 
-<!-- Home Button -->
+<!-- HOME BUTTON -->
 <script>
-  document.getElementById("btnHome").onclick = () => {
-    location.href = "index.html";
-  };
+document.getElementById("btnHome").onclick = () => {
+  location.href = "index.html";
+};
 </script>
 
 </body>
