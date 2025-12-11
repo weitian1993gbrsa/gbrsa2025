@@ -69,4 +69,59 @@
 
   window.$=$;
   window.$$=$$;
+
 })();
+
+/* ===========================================================
+   ⭐ iOS FIX PACK (Global Patch for ALL Pages)
+   Prevents scroll jumping, bounce, and body scroll on iPhones
+   =========================================================== */
+
+// Detect iOS device
+const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+// Apply global iOS rules
+if (iOS) {
+
+  // ⭐ Prevent double-tap zoom (important for judges tapping fast)
+  document.addEventListener('touchstart', function (e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
+  // ⭐ Prevent body scrolling — only allow scrollable containers to scroll
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.documentElement.style.position = 'fixed';
+
+  // ⭐ Allow natural scrolling INSIDE any element marked .scroll-area
+  document.addEventListener('touchmove', function (e) {
+
+    const scrollable = e.target.closest('.scroll-area');
+
+    if (!scrollable) {
+      // block page scrolling completely
+      e.preventDefault();
+      return;
+    }
+
+    // allow scroll inside
+    const atTop = scrollable.scrollTop <= 0;
+    const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight;
+
+    if ((atTop && e.touches[0].clientY > 0) ||
+        (atBottom && e.touches[0].clientY < 0)) {
+
+      // prevent rubber band overscroll
+      e.preventDefault();
+    }
+
+  }, { passive:false });
+}
+
+/* ===========================================================
+   HOW TO USE:
+   Add class="scroll-area" to any scrollable div:
+   Example:
+   <div id="reContainer" class="scroll-area">
+   =========================================================== */
