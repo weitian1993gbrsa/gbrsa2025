@@ -6,7 +6,7 @@
 <title>Presentation Summary</title>
 
 <style>
-/* ===== GLOBAL LAYOUT ===== */
+/* GLOBAL */
 html, body {
     margin: 0;
     padding: 0;
@@ -22,7 +22,18 @@ html, body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* ===== TOP BAR ===== */
+/* WRAPPER — same as RE */
+.wrapper {
+    height: 100%;
+    width: 100%;
+    max-width: 650px;      /* ⭐ Center like RE */
+    margin: 0 auto;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
 .top-bar {
     display: flex;
     justify-content: space-between;
@@ -30,93 +41,83 @@ html, body {
     padding: 12px 16px;
     background: white;
     border-bottom: 1px solid #ddd;
-    flex-shrink: 0;
 }
-
 .top-btn {
     padding: 10px 20px;
     border: 1px solid #ccc;
     background: white;
+    border-radius: 6px;
     font-size: 16px;
-    border-radius: 0;
+    cursor: pointer;
 }
-
 .submit-btn {
     background: #007bff;
     color: white;
     border: none;
 }
 
-/* ===== SCORE BAR ===== */
+/* SCORE BAR */
 .score-values {
     display: flex;
     justify-content: center;
     gap: 60px;
     padding: 12px 0;
-    font-size: 15px;
     background: white;
     border-bottom: 1px solid #ddd;
+    font-size: 15px;
     flex-shrink: 0;
 }
 
-/* ===== MAIN CONTAINER ===== */
+/* MAIN CONTAINER */
 #summaryContainer {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    box-sizing: border-box;
+    padding: 20px 16px;
+    background: #f5f5f5;
 }
-
 #summaryContainer::-webkit-scrollbar {
     width: 0;
 }
 
-/* ===== RESPONSIVE ROW ===== */
+/* ROW — Hybrid of Difficulty + RE */
 .row {
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
-    gap: 16px;
+    gap: 14px;
     align-items: stretch;
-    width: 100%;
+    margin-bottom: 20px;
 }
 
-/* Desktop only: center layout + prevent oversizing */
-@media (min-width: 1000px) {
-    .row {
-        max-width: 900px;
-        margin: 0 auto;
-    }
-}
-
-/* Big screens: limit button height */
-@media (min-width: 1200px) {
-    .box-minus, .box-plus {
-        max-height: 240px;
-    }
-}
-
-/* ===== SQUARE RESPONSIVE BUTTONS ===== */
+/* BUTTONS — Difficulty height + RE style */
 .box-minus, .box-plus {
-    aspect-ratio: 2 / 1.15;
-    width: 100%;
-    border-radius: 6px;
+    background: #d64545;
+    color: white;
+    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #d64545;
-    color: white;
-    font-size: 14px;
-    font-weight: 700;
+    border-radius: 8px;
+
+    /* ⭐ Hybrid height: like Difficulty but not too tall */
+    min-height: 90px;
+    max-height: 140px;
+
+    /* ⭐ Responsive height on mobile */
+    height: 22vw;              /* auto scales on phone */
+    max-height: 150px;
+    font-size: 15px;
+    text-align: center;
+}
+.box-plus { background: #28c766; }
+
+/* Ultra-small phones: slightly taller */
+@media (max-width: 400px) {
+    .box-minus, .box-plus {
+        height: 26vw;
+    }
 }
 
-.box-plus {
-    background: #28c766;
-}
-
-/* ===== SLIDER COLUMN ===== */
+/* SLIDER COLUMN */
 .row > div:nth-child(2) {
     display: flex;
     flex-direction: column;
@@ -137,44 +138,25 @@ html, body {
     accent-color: #008000;
 }
 
-/* ===== SUBMIT OVERLAY ===== */
+/* SUBMIT OVERLAY */
 .overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4);
+    inset: 0;
+    background: rgba(0,0,0,0.35);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    z-index: 99999;
 }
-
 .overlay.hide { display: none; }
 
 .overlay-card {
-    background: #fff;
-    padding: 2rem 3rem;
-    border-radius: 16px;
-    text-align: center;
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-weight: 700;
+    border: 1px solid #ccc;
 }
-
-.loading .dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin: 0 3px;
-    background: #333;
-    border-radius: 50%;
-    animation: blink 1s infinite;
-}
-
-.loading .dot:nth-child(2) { animation-delay: 0.2s; }
-.loading .dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes blink { 0%,80%,100% {opacity:0;} 40% {opacity:1;} }
-
-.overlay-text { margin-top: 1rem; font-weight: 600; }
-
 </style>
 </head>
 
@@ -195,19 +177,14 @@ html, body {
         <div id="missText">Misses (0)</div>
     </div>
 
-    <!-- CONTENT -->
+    <!-- SUMMARY CONTENT -->
     <div id="summaryContainer"></div>
 
 </div>
 
 <!-- OVERLAY -->
 <div id="submitOverlay" class="overlay hide">
-  <div class="overlay-card">
-    <div class="loading">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-    </div>
-    <div id="overlayText" class="overlay-text">Submitting…</div>
-  </div>
+    <div class="overlay-card">Submitting...</div>
 </div>
 
 <!-- SCRIPTS -->
@@ -242,7 +219,7 @@ const cats = [
 
 const container = document.getElementById("summaryContainer");
 
-/* BUILD SUMMARY ROWS */
+/* BUILD UI ROWS */
 cats.forEach(cat => {
     const minus = safe(data[cat.minus]);
     const plus  = safe(data[cat.plus]);
@@ -275,7 +252,7 @@ cats.forEach(cat => {
 let misses = safe(data.misses);
 document.getElementById("missText").textContent = `Misses (${misses})`;
 
-/* SCORE UPDATE */
+/* SCORE FUNCTION */
 function recalcScore(){
     let score = 0;
     cats.forEach(cat=>{
@@ -288,7 +265,7 @@ function recalcScore(){
 }
 recalcScore();
 
-/* BUTTON LOGIC */
+/* BUTTON ACTIONS */
 document.querySelectorAll(".box-minus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
@@ -296,7 +273,6 @@ document.querySelectorAll(".box-minus").forEach(box=>{
         slider.value = Math.max(0, Number(slider.value) - 1);
         document.getElementById("val_"+key).textContent = slider.value;
         recalcScore();
-        navigator.vibrate?.([40]);
     });
 });
 
@@ -307,11 +283,15 @@ document.querySelectorAll(".box-plus").forEach(box=>{
         slider.value = Math.min(24, Number(slider.value) + 1);
         document.getElementById("val_"+key).textContent = slider.value;
         recalcScore();
-        navigator.vibrate?.([40]);
     });
 });
 
-/* SUBMISSION ENGINE */
+/* SUBMIT OVERLAY */
+document.getElementById("submitBtn").addEventListener("click",()=>{
+    document.getElementById("submitOverlay").classList.remove("hide");
+});
+
+/* JudgeCore submission */
 window.addEventListener("DOMContentLoaded", () => {
     JudgeForms.presentation.initPage2 = () => {};
     JudgeCore.init({
@@ -319,8 +299,7 @@ window.addEventListener("DOMContentLoaded", () => {
         submitButton: document.getElementById("submitBtn"),
         buildScore() {
             const raw = document.getElementById("scoreText").textContent;
-            const score = Number(raw.replace("Score (","").replace(")",""));
-            return { PRESENTATION: score };
+            return { PRESENTATION:Number(raw.replace("Score (","").replace(")","")) };
         }
     });
 });
