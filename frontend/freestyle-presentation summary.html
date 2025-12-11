@@ -203,9 +203,10 @@ const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
 
 function safe(n){ return isNaN(Number(n)) ? 0 : Number(n); }
 
-/* ⭐ SHOW MISS VALUE FROM PAGE 1 */
+/* ⭐ SHOW MISS COUNT */
 document.getElementById("missText").textContent = `Misses (${data.misses || 0})`;
 
+/* WEIGHTS */
 const WEIGHTS = {
     cre: 0.15,
     mus: 0.20,
@@ -263,17 +264,17 @@ cats.forEach(cat => {
     `;
 });
 
-/* ⭐ SCORE CALCULATION — NOW SUBTRACT MISSES */
+/* ⭐ SCORE CALCULATION — includes MISS deduction */
 function recalcScore(){
     let score = 0;
 
-    // Weighted sliders
+    // weighted slider contributions
     cats.forEach(cat => {
         const v = Number(document.getElementById("slider_" + cat.key).value);
         score += v * WEIGHTS[cat.key];
     });
 
-    // ⭐ SUBTRACT MISSES (correct final score)
+    // ⭐ SUBTRACT MISSES (final score)
     score -= safe(data.misses || 0);
 
     document.getElementById("scoreText").textContent =
@@ -282,7 +283,7 @@ function recalcScore(){
 
 recalcScore();
 
-/* Undo logic stays the same */
+/* UNDO TRACKING */
 let lastAction = null;
 
 function showUndo(){
@@ -293,30 +294,41 @@ function hideUndo(){
     document.getElementById("undoBtn").style.display = "none";
 }
 
+/* ⭐ MINUS BUTTON (+ vibrate) */
 document.querySelectorAll(".box-minus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
         lastAction = { key, delta: -1 };
         const slider = document.getElementById("slider_" + key);
+
         slider.value = Math.max(0, Number(slider.value) - 1);
         document.getElementById("val_" + key).textContent = slider.value;
+
         recalcScore();
         showUndo();
+
+        if (navigator.vibrate) navigator.vibrate([40]);
     });
 });
 
+/* ⭐ PLUS BUTTON (+ vibrate) */
 document.querySelectorAll(".box-plus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
         lastAction = { key, delta: +1 };
         const slider = document.getElementById("slider_" + key);
+
         slider.value = Math.min(24, Number(slider.value) + 1);
         document.getElementById("val_" + key).textContent = slider.value;
+
         recalcScore();
         showUndo();
+
+        if (navigator.vibrate) navigator.vibrate([40]);
     });
 });
 
+/* ⭐ UNDO BUTTON (+ stronger vibrate) */
 document.getElementById("undoBtn").addEventListener("click", ()=>{
     if (!lastAction) return;
 
@@ -326,14 +338,19 @@ document.getElementById("undoBtn").addEventListener("click", ()=>{
     ));
 
     document.getElementById("val_" + lastAction.key).textContent = slider.value;
-    recalcScore();
 
+    recalcScore();
     lastAction = null;
     hideUndo();
+
+    if (navigator.vibrate) navigator.vibrate([60, 40]);
 });
 
+/* ⭐ SUBMIT BUTTON (+ vibrate) */
 document.getElementById("submitBtn").addEventListener("click", ()=>{
     document.getElementById("submitOverlay").classList.remove("hide");
+
+    if (navigator.vibrate) navigator.vibrate([80]);
 });
 
 /* JudgeCore */
