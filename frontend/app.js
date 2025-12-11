@@ -77,38 +77,54 @@
 })();
 
 /* ===========================================================
-   ⭐ UNIVERSAL iOS FIX — AUTO WRAP ALL MAIN CONTENT
-   Works for ALL judge pages, ALL station pages, NO HTML editing
+   ⭐ PAGE TYPE DETECTION (STATION vs JUDGE)
+   This allows different scroll behavior per page.
+   =========================================================== */
+
+(function detectPageType() {
+    const url = window.location.pathname;
+
+    if (
+        url.includes("speed-station") ||
+        url.includes("freestyle-station")
+    ) {
+        document.body.classList.add("station-page");
+    } else {
+        document.body.classList.add("judge-page");
+    }
+})();
+
+/* ===========================================================
+   ⭐ UNIVERSAL iOS FIX — AUTO WRAP CONTENT BELOW HEADER
+   Applies to ALL pages (zero HTML modification needed)
    =========================================================== */
 
 (function() {
     const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-    if (!isiOS) return; // Only apply fix on iOS
+    if (!isiOS) return;
 
     document.addEventListener("DOMContentLoaded", () => {
 
         console.log("iOS detected — applying scroll wrapper fix");
 
-        // Find the FIRST <header>
+        // Find first header
         const header = document.querySelector("header");
 
-        // Find all content below header
+        // Collect all elements below header
         let contentElements = [];
 
         if (header) {
             let el = header.nextElementSibling;
-
             while (el) {
                 contentElements.push(el);
                 el = el.nextElementSibling;
             }
         } else {
-            // If no header exists, wrap entire body content
+            // If no header, wrap entire body
             contentElements = Array.from(document.body.children);
         }
 
-        // If nothing to wrap, exit
         if (contentElements.length === 0) {
             console.warn("iOS FIX WARNING: No content found after <header>");
             return;
@@ -116,20 +132,25 @@
 
         // Create the scroll wrapper
         const wrap = document.createElement("div");
-        wrap.className = "ios-scroll-wrapper";
 
-        // Move each element into the wrapper
+        // Station pages use full screen height
+        if (document.body.classList.contains("station-page")) {
+            wrap.className = "ios-scroll-wrapper station-height";
+        } else {
+            wrap.className = "ios-scroll-wrapper judge-height";
+        }
+
+        // Move content elements inside the wrapper
         contentElements.forEach(el => wrap.appendChild(el));
 
-        // Insert wrapper back to the BODY
+        // Append wrapper to document
         document.body.appendChild(wrap);
-
     });
 })();
 
 /* ===========================================================
-   ⭐ REMINDER: ADD THIS CSS IN styles.css (GLOBAL)
-   -----------------------------------------------------------
+   ⭐ REQUIRED CSS (place in styles.css or each HTML <style>)
+   ----------------------------------------------------------
    html, body {
        overflow: hidden !important;
        position: fixed !important;
@@ -141,8 +162,16 @@
 
    .ios-scroll-wrapper {
        overflow-y: auto;
-       height: calc(100vh - 80px);   // adjust if header is taller
        -webkit-overflow-scrolling: touch;
        position: relative;
+       width: 100%;
+   }
+
+   .judge-height {
+       height: calc(100vh - 80px);  // judge pages
+   }
+
+   .station-height {
+       height: calc(100vh - 60px);  // station pages (more space)
    }
    =========================================================== */
