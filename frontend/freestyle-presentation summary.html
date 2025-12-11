@@ -22,11 +22,11 @@ html, body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* WRAPPER — same as RE */
+/* WRAPPER — centered like RE */
 .wrapper {
     height: 100%;
     width: 100%;
-    max-width: 650px;      /* ⭐ Center like RE */
+    max-width: 650px;
     margin: 0 auto;
     background: white;
     display: flex;
@@ -88,7 +88,7 @@ html, body {
     margin-bottom: 20px;
 }
 
-/* BUTTONS — Difficulty height + RE style */
+/* BUTTONS — Auto-shrink text fix */
 .box-minus, .box-plus {
     background: #d64545;
     color: white;
@@ -98,19 +98,23 @@ html, body {
     align-items: center;
     border-radius: 8px;
 
-    /* ⭐ Hybrid height: like Difficulty but not too tall */
-    min-height: 90px;
-    max-height: 140px;
+    /* ⭐ prevent wrapping */
+    white-space: nowrap;
 
-    /* ⭐ Responsive height on mobile */
-    height: 22vw;              /* auto scales on phone */
+    /* ⭐ Uniform responsive height */
+    min-height: 90px;
+    height: 22vw;
     max-height: 150px;
-    font-size: 15px;
+
+    /* ⭐ Auto-shrink text so Entertainment matches others */
+    font-size: clamp(11px, 3.2vw, 15px);
+
     text-align: center;
 }
+
 .box-plus { background: #28c766; }
 
-/* Ultra-small phones: slightly taller */
+/* Ultra-small phones: make taller */
 @media (max-width: 400px) {
     .box-minus, .box-plus {
         height: 26vw;
@@ -275,7 +279,6 @@ document.querySelectorAll(".box-minus").forEach(box=>{
         recalcScore();
     });
 });
-
 document.querySelectorAll(".box-plus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
