@@ -32,18 +32,11 @@
       // Build score payload
       const score = this.buildScore() || {};
 
-      // ⭐ GET REMARK ONLY IF FIELD EXISTS (Speed Judge)
-      const remarkValue =
-        document.getElementById("remarkField")
-          ? document.getElementById("remarkField").value.trim()
-          : "";
-
       // Build request payload
       const payload = {
         ID: entryId,
         STATION: station,
         judgeType: judgeType,
-        REMARK: remarkValue,           // ⭐⭐⭐ PATCHED HERE
         ...score,
         ...this.getParticipantInfo()
       };
@@ -65,14 +58,14 @@
         // ⭐ Mark card as DONE instantly (local cache update)
         this.updateLocalStationCache(entryId, station, judgeType);
 
-        // ⭐ Redirect depending on judge type
+        // ⭐ Redirect depending on judge type (Fix: Speed should NOT use freestyle page)
         setTimeout(() => {
 
           if (judgeType === "speed") {
-            // SPEED ONLY
+            // SPEED → Correct redirect
             location.href = `speed-station.html?station=${station}&key=${key}`;
           } else {
-            // FREESTYLE
+            // FREESTYLE → Includes judgeType
             location.href =
               `freestyle-station.html?station=${station}&key=${key}&judgeType=${judgeType}`;
           }
@@ -112,7 +105,7 @@
     ------------------------------------------------------------ */
     updateLocalStationCache(entryId, station, judgeType) {
       try {
-        const cacheKey =
+        const cacheKey = 
           judgeType === "speed"
             ? `station_cache_${station}`          // speed mode cache
             : `freestyle_cache_${station}_${judgeType}`; // freestyle cache
