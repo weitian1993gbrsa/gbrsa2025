@@ -42,18 +42,26 @@ html, body {
     background: white;
     border-bottom: 1px solid #ddd;
 }
+
 .top-btn {
     padding: 10px 20px;
     border: 1px solid #ccc;
     background: white;
     border-radius: 6px;
     font-size: 16px;
-    cursor: pointer;
 }
+
 .submit-btn {
     background: #007bff;
     color: white;
     border: none;
+}
+
+.undo-btn {
+    background: #f4b942;
+    border: none;
+    font-weight: 600;
+    display: none; /* hidden until action */
 }
 
 /* SCORE BAR */
@@ -75,9 +83,7 @@ html, body {
     padding: 20px 16px;
     background: #f5f5f5;
 }
-#summaryContainer::-webkit-scrollbar {
-    width: 0;
-}
+#summaryContainer::-webkit-scrollbar { width: 0; }
 
 /* ROW */
 .row {
@@ -90,29 +96,25 @@ html, body {
 
 /* BUTTONS */
 .box-minus, .box-plus {
-    background: #d64545;
     color: white;
     padding: 0;
     display: flex;
-    flex-direction: column; /* Text above, symbol below */
+    flex-direction: column; /* label above, symbol below */
     justify-content: center;
     align-items: center;
     border-radius: 8px;
 
-    white-space: nowrap;
-
-    /* Responsive heights */
     min-height: 90px;
     height: 22vw;
     max-height: 150px;
 
-    /* Auto shrink text so Entertainment fits */
-    font-size: clamp(11px, 3.2vw, 15px);
+    white-space: nowrap;
 
-    text-align: center;
+    font-size: clamp(11px, 3.2vw, 15px);
 }
 
-.box-plus { background: #28c766; }
+.box-minus { background: #d64545; }
+.box-plus  { background: #28c766; }
 
 /* Label text */
 .label-text {
@@ -120,18 +122,11 @@ html, body {
     margin-bottom: 4px;
 }
 
-/* Symbol below text */
+/* +/- symbol */
 .symbol {
     font-size: clamp(24px, 6vw, 32px);
     font-weight: 700;
     line-height: 1;
-}
-
-/* Extra height on small phones */
-@media (max-width: 400px) {
-    .box-minus, .box-plus {
-        height: 26vw;
-    }
 }
 
 /* SLIDER COLUMN */
@@ -174,6 +169,7 @@ html, body {
     font-weight: 700;
     border: 1px solid #ccc;
 }
+
 </style>
 </head>
 
@@ -181,10 +177,10 @@ html, body {
 
 <div class="wrapper">
 
-    <!-- HEADER -->
+    <!-- HEADER WITH UNDO -->
     <div class="top-bar">
         <button class="top-btn" onclick="history.back()">Back</button>
-        <h3>Final</h3>
+        <button class="top-btn undo-btn" id="undoBtn">Undo</button>
         <button class="top-btn submit-btn" id="submitBtn">Submit</button>
     </div>
 
@@ -194,12 +190,12 @@ html, body {
         <div id="missText">Misses (0)</div>
     </div>
 
-    <!-- SUMMARY CONTENT -->
+    <!-- CONTENT -->
     <div id="summaryContainer"></div>
 
 </div>
 
-<!-- OVERLAY -->
+<!-- SUBMIT OVERLAY -->
 <div id="submitOverlay" class="overlay hide">
     <div class="overlay-card">Submitting...</div>
 </div>
@@ -212,12 +208,12 @@ html, body {
 <script defer src="judge-forms.js"></script>
 
 <script>
+
 /* LOAD PAGE 1 DATA */
 const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
 
 function safe(n){ return isNaN(Number(n)) ? 0 : Number(n); }
 
-/* WEIGHTS */
 const WEIGHTS = {
     cre: 0.15,
     mus: 0.20,
@@ -226,21 +222,20 @@ const WEIGHTS = {
     var: 0.15
 };
 
-/* CATEGORIES */
 const cats = [
-    { key:"cre",  label:"Creativity",   minus:"creMinus",  plus:"crePlus" },
-    { key:"mus",  label:"Musicality",   minus:"musMinus",  plus:"musPlus" },
-    { key:"ent",  label:"Entertainment",minus:"entMinus",  plus:"entPlus" },
-    { key:"form", label:"Form",         minus:"formMinus", plus:"formPlus"},
-    { key:"var",  label:"Variety",      minus:"varMinus",  plus:"varPlus" }
+    { key:"cre",  label:"Creativity" },
+    { key:"mus",  label:"Musicality" },
+    { key:"ent",  label:"Entertainment" },
+    { key:"form", label:"Form" },
+    { key:"var",  label:"Variety" }
 ];
 
 const container = document.getElementById("summaryContainer");
 
-/* BUILD UI ROWS */
+/* BUILD UI */
 cats.forEach(cat => {
-    const minus = safe(data[cat.minus]);
-    const plus  = safe(data[cat.plus]);
+    const minus = safe(data[cat.key + "Minus"]);
+    const plus  = safe(data[cat.key + "Plus"]);
 
     let v = 12 + plus - minus;
     v = Math.max(0, Math.min(24, v));
@@ -248,7 +243,7 @@ cats.forEach(cat => {
     container.innerHTML += `
         <div class="row">
 
-            <!-- MINUS BUTTON (Red) -->
+            <!-- MINUS -->
             <div class="box-minus" data-key="${cat.key}">
                 <div class="label-text">
                     ${cat.key === "var" ? "Repetitive" : cat.label}
@@ -263,17 +258,11 @@ cats.forEach(cat => {
                     <div id="val_${cat.key}">${v}</div>
                     <div>24</div>
                 </div>
-
-                <input id="slider_${cat.key}"
-                       type="range"
-                       min="0"
-                       max="24"
-                       value="${v}"
-                       disabled
-                       class="summary-slider">
+                <input id="slider_${cat.key}" class="summary-slider"
+                       type="range" min="0" max="24" value="${v}" disabled>
             </div>
 
-            <!-- PLUS BUTTON (Green) -->
+            <!-- PLUS -->
             <div class="box-plus" data-key="${cat.key}">
                 <div class="label-text">
                     ${cat.key === "var" ? "Variety" : cat.label}
@@ -285,61 +274,91 @@ cats.forEach(cat => {
     `;
 });
 
-/* MISSES */
-let misses = safe(data.misses);
-document.getElementById("missText").textContent = `Misses (${misses})`;
-
-/* SCORE FUNCTION */
+/* SCORE CALCULATION */
 function recalcScore(){
     let score = 0;
-    cats.forEach(cat=>{
-        const v = Number(document.getElementById("slider_"+cat.key).value);
+    cats.forEach(cat => {
+        const v = Number(document.getElementById("slider_" + cat.key).value);
         score += v * WEIGHTS[cat.key];
     });
-    score -= misses;
     document.getElementById("scoreText").textContent =
         `Score (${score.toFixed(2)})`;
 }
+
+/* INITIAL CALC */
 recalcScore();
 
-/* BUTTON ACTIONS */
+/* UNDO LOGIC */
+let lastAction = null;
+
+function showUndo(){
+    document.getElementById("undoBtn").style.display = "inline-block";
+}
+
+function hideUndo(){
+    document.getElementById("undoBtn").style.display = "none";
+}
+
+/* Minus click tracking */
 document.querySelectorAll(".box-minus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
-        const slider = document.getElementById("slider_"+key);
+        lastAction = { key, delta: -1 };
+        const slider = document.getElementById("slider_" + key);
         slider.value = Math.max(0, Number(slider.value) - 1);
-        document.getElementById("val_"+key).textContent = slider.value;
+        document.getElementById("val_" + key).textContent = slider.value;
         recalcScore();
+        showUndo();
     });
 });
 
+/* Plus click tracking */
 document.querySelectorAll(".box-plus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
-        const slider = document.getElementById("slider_"+key);
+        lastAction = { key, delta: +1 };
+        const slider = document.getElementById("slider_" + key);
         slider.value = Math.min(24, Number(slider.value) + 1);
-        document.getElementById("val_"+key).textContent = slider.value;
+        document.getElementById("val_" + key).textContent = slider.value;
         recalcScore();
+        showUndo();
     });
 });
 
+/* Undo button */
+document.getElementById("undoBtn").addEventListener("click", ()=>{
+    if (!lastAction) return;
+
+    const slider = document.getElementById("slider_" + lastAction.key);
+
+    slider.value = Math.max(0, Math.min(24,
+        Number(slider.value) - lastAction.delta
+    ));
+
+    document.getElementById("val_" + lastAction.key).textContent = slider.value;
+    recalcScore();
+
+    lastAction = null;
+    hideUndo();
+});
+
 /* SUBMIT OVERLAY */
-document.getElementById("submitBtn").addEventListener("click",()=>{
+document.getElementById("submitBtn").addEventListener("click", ()=>{
     document.getElementById("submitOverlay").classList.remove("hide");
 });
 
 /* JudgeCore */
 window.addEventListener("DOMContentLoaded", () => {
-    JudgeForms.presentation.initPage2 = () => {};
     JudgeCore.init({
         judgeType: "presentation",
         submitButton: document.getElementById("submitBtn"),
         buildScore() {
             const raw = document.getElementById("scoreText").textContent;
-            return { PRESENTATION:Number(raw.replace("Score (","").replace(")","")) };
+            return { PRESENTATION: Number(raw.replace("Score (","").replace(")","")) };
         }
     });
 });
+
 </script>
 
 </body>
