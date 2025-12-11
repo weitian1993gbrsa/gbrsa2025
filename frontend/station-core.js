@@ -1,11 +1,10 @@
 /* ============================================================
    STATION CORE — SPEED + FREESTYLE
    Universal station loader for all judge types
-   ⭐ FINAL VERSION (2025-12-11) — PATCHED WITH HEADER LOGIC
+   ⭐ FINAL VERSION (2025-12-11)
    - FIX: Correct currentEntry formatting for SPEED & FREESTYLE
    - FIX: Prevent wrong ID/event/division
    - FIX: Unified station logic
-   - ⭐ ADDED: stationNumber + judgeTypeLabel for header UI
 ============================================================ */
 
 (function () {
@@ -16,13 +15,9 @@
     init(options = {}) {
       const qs = new URLSearchParams(location.search);
 
-      const station   = qs.get("station");
-      const key       = qs.get("key") || "";
+      const station = qs.get("station");
+      const key = qs.get("key") || "";
       const judgeType = qs.get("judgeType") || ""; // freestyle only
-
-      // ⭐ PATCH: Add globally accessible header labels
-      window.StationCore.stationNumber = station;
-      window.StationCore.judgeTypeLabel = judgeType ? judgeType.toUpperCase() : "";
 
       const mode =
         options.mode ||
@@ -33,8 +28,7 @@
       const judgeTypeLabel = $("#judgeTypeLabel");
       const btnRefresh     = $("#btnRefresh");
 
-      // Apply basic labels
-      if (stationLabel) stationLabel.textContent = station;
+      stationLabel.textContent = station;
 
       if (judgeTypeLabel && judgeType)
         judgeTypeLabel.textContent = judgeType.toUpperCase();
@@ -115,7 +109,7 @@
           type === "technical"     ? "freestyle-technical.html" :
           type === "presentation"  ? "freestyle-presentation.html" :
           type === "re"            ? "freestyle-re.html" :
-                                     "freestyle-difficulty.html";
+          "freestyle-difficulty.html";
 
         return (
           `${page}?id=${p.entryId}` +
@@ -180,7 +174,10 @@
         card.appendChild(team);
         card.appendChild(eventRow);
 
-        /* ⭐ Save full participant info for judge pages */
+        /* -------------------------------------------------------
+           ⭐ MOST IMPORTANT FIX:
+           Save FULL participant info in judge-core format
+        ------------------------------------------------------- */
         card.addEventListener("click", () => {
 
           const entryData = {

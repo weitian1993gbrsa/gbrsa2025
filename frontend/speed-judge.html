@@ -12,7 +12,7 @@
 
   <link rel="stylesheet" href="./styles.css"/>
 
-  <!-- CORE SCRIPTS -->
+  <!-- Core scripts -->
   <script defer src="./config.js"></script>
   <script defer src="./app.js"></script>
   <script defer src="./judge-core.js"></script>
@@ -30,26 +30,17 @@
   </script>
 
   <style>
-    body {
-      background: #f3f4f6;
-      margin: 0;
-      font-family: system-ui, Arial;
-    }
-
-    /* HEADER */
     .judge-header {
       display: flex;
       align-items: center;
-      gap: .75rem;
       padding: 1rem;
+      gap: .75rem;
       background: #ffffffd9;
       border-bottom: 1px solid #e5e7eb;
       backdrop-filter: blur(4px);
       position: sticky;
       top: 0;
       z-index: 9999;
-      width: 100%;
-      box-sizing: border-box;
     }
 
     .judge-title {
@@ -57,80 +48,49 @@
       font-weight: 700;
     }
 
-    /* BUTTON STYLE */
-    .btn {
-      appearance: none;
-      border: 1px solid #e5e7eb;
-      background: #fff;
-      color: #0b1020;
-      padding: .6rem .9rem;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 12px #0000000a;
-      transition: transform .1s ease;
-    }
-    .btn:active { transform: scale(.97); }
-
-    /* CENTER CONTAINER */
-    .judge-container {
-      width: 100%;
-      max-width: 580px;
-      margin: 0 auto;
-      padding: 16px;
-      box-sizing: border-box;
-    }
-
-    /* CARD */
-    .card {
-      background: white;
-      padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-      box-sizing: border-box;
-    }
-
-    /* FALSE START */
+    /* FALSE START BUTTON */
     .fs-btn {
       width: 100%;
-      padding: 18px 0;
-      margin-bottom: 22px;
-      font-size: 18px;
-      border-radius: 10px;
+      padding: 16px 0;
+      margin-bottom: 18px;
+      font-size: 20px;
+      border-radius: 0;
       font-weight: 700;
-      color: white;
+      text-align: center;
       border: none;
+      color: #fff;
     }
+
     .fs-no { background: #22c55e; }
     .fs-yes { background: #dc2626; }
 
-    /* SCORE */
+    /* SCORE DISPLAY */
     .score-screen {
       width: 100%;
-      background: #fff;
-      font-size: 4rem;
+      background: #ffffff;
+      color: #111;
+      font-size: 3.5rem;
       text-align: center;
-      padding: 28px 0;
+      padding: 22px;
       border-radius: 14px;
-      margin-bottom: 24px;
-      border: 1px solid #e5e7eb;
+      margin-bottom: 22px;
       font-family: monospace;
-      color: #000;
-      box-sizing: border-box;
+      letter-spacing: 2px;
     }
 
-    /* NUMPAD */
+    /* NUMPAD GRID */
     .numpad-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      gap: 14px;
       margin-bottom: 20px;
     }
+
     .numpad-grid button {
-      padding: 18px 0;
+      padding: 20px 0;
       font-size: 1.6rem;
-      border-radius: 10px;
-      background: white;
+      border-radius: 0;
+      background: #fff;
       border: 1px solid #ddd;
       font-weight: 600;
     }
@@ -140,92 +100,34 @@
       border-color: #fca5a5;
       color: #b91c1c;
     }
+
     .np-enter {
       background: #2563eb !important;
+      color: #fff !important;
       border: 1px solid #1d4ed8 !important;
-      color: white !important;
       font-weight: 700;
     }
 
-    /* REMARK */
-    .remark-wrapper {
-      width: 100%;
-      margin-top: 12px;
-      box-sizing: border-box;
-    }
-
+    /* ROUNDED REMARK INPUT */
     .remark-rounded {
       width: 100%;
       padding: 14px 16px;
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
       font-size: 1rem;
-      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      background: #fff;
       box-sizing: border-box;
+      margin-bottom: 20px;
+      outline: none;
+      transition: border-color 0.2s ease;
     }
+
     .remark-rounded:focus {
       border-color: #2563eb;
     }
 
-    /* ---------------------------------
-       SUBMIT OVERLAY
-    ----------------------------------- */
-    #submitOverlay {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: rgba(255,255,255,0.85);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      will-change: opacity, transform;
-      transform: translateZ(0);
-    }
-
-    #submitOverlay.hide {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-
-    .overlay-card {
-      background: #fff;
-      padding: 1.25rem 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px #0002;
-      border: 1px solid #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: .75rem;
-    }
-
-    .overlay-text {
-      font-weight: 700;
-      color: #111827;
-    }
-
-    .loading {
-      display: inline-flex;
-      align-items: center;
-      gap: .5rem;
-    }
-
-    .loading .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #9ca3af;
-      animation: blink 1s infinite ease-in-out;
-    }
-
-    .loading .dot:nth-child(2) { animation-delay:.15s }
-    .loading .dot:nth-child(3) { animation-delay:.3s }
-
-    @keyframes blink {
-      0%,80%,100%{ transform:scale(0); opacity:.3 }
-      40%{ transform:scale(1); opacity:1 }
+    .remark-rounded::placeholder {
+      color: #9ca3af;
     }
   </style>
 </head>
@@ -234,19 +136,21 @@
 
 <header class="judge-header">
   <button onclick="goBack()" class="btn">Back</button>
-  <div class="judge-title">Unofficial</div>
+  <div><div class="judge-title">Unofficial Score</div></div>
 </header>
 
-<div class="judge-container">
+<main class="container">
+  <section class="block">
+    <form id="scoreForm" class="form">
 
-  <div class="card">
-    <form id="scoreForm">
-
+      <!-- FALSE START BTN -->
       <button type="button" id="falseStartBtn" class="fs-btn fs-no">False Start: No</button>
-      <input type="hidden" id="falseStartVal" name="FALSE START">
+      <input type="hidden" id="falseStartVal" name="FALSE START" value="">
 
+      <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
+      <!-- Numpad -->
       <div class="numpad-grid">
         <button type="button" data-key="1">1</button>
         <button type="button" data-key="2">2</button>
@@ -266,81 +170,91 @@
         <button type="button" class="np-enter">Submit</button>
       </div>
 
-      <!-- REMARK -->
-      <div class="remark-wrapper">
-        <input id="remarkText" class="remark-rounded" type="text" placeholder="Enter remark…">
-        <input type="hidden" name="REMARK" id="remarkField">
-      </div>
+      <!-- ROUNDED REMARK INPUT -->
+      <input 
+        type="text"
+        id="remarkText"
+        class="remark-rounded"
+        placeholder="Enter remark…"
+      >
 
-      <!-- BACKEND FIELDS -->
-      <input type="hidden" id="fID" name="ID">
-      <input type="hidden" id="fNAME1" name="NAME1">
-      <input type="hidden" id="fNAME2" name="NAME2">
-      <input type="hidden" id="fNAME3" name="NAME3">
-      <input type="hidden" id="fNAME4" name="NAME4">
-      <input type="hidden" id="fTEAM" name="TEAM">
-      <input type="hidden" id="fSTATE" name="STATE">
-      <input type="hidden" id="fHEAT" name="HEAT">
-      <input type="hidden" id="fSTATION" name="STATION">
-      <input type="hidden" id="fEVENT" name="EVENT">
-      <input type="hidden" id="fDIVISION" name="DIVISION">
+      <!-- Hidden field for backend -->
+      <input type="hidden" name="REMARK" id="remarkField">
+
+      <!-- Backend Hidden Fields -->
+      <input type="hidden" name="ID" id="fID">
+      <input type="hidden" name="NAME1" id="fNAME1">
+      <input type="hidden" name="NAME2" id="fNAME2">
+      <input type="hidden" name="NAME3" id="fNAME3">
+      <input type="hidden" name="NAME4" id="fNAME4">
+      <input type="hidden" name="TEAM" id="fTEAM">
+      <input type="hidden" name="STATE" id="fSTATE">
+      <input type="hidden" name="HEAT" id="fHEAT">
+      <input type="hidden" name="STATION" id="fSTATION">
+      <input type="hidden" name="EVENT" id="fEVENT">
+      <input type="hidden" name="DIVISION" id="fDIVISION">
 
     </form>
-  </div>
+  </section>
+</main>
 
-</div>
+<!-- BACK HANDLER -->
+<script>
+function goBack() {
+  const params = new URLSearchParams(location.search);
+  const station = params.get("station");
+  const key = params.get("key");
+  location.href = `speed-station.html?station=${station}&key=${key}`;
+}
 
-<!-- SUBMIT OVERLAY -->
-<div id="submitOverlay" class="hide">
+history.pushState(null, null, location.href);
+window.onpopstate = () => goBack();
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) goBack();
+});
+</script>
+
+<!-- Submit Overlay -->
+<div id="submitOverlay" class="overlay hide">
   <div class="overlay-card">
     <div class="loading">
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
     </div>
     <div id="overlayText" class="overlay-text">Submitting…</div>
   </div>
 </div>
 
-<script>
-function goBack() {
-  const params = new URLSearchParams(location.search);
-  location.href = `speed-station.html?station=${params.get("station")}&key=${params.get("key")}`;
-}
-
-history.pushState(null, null, location.href);
-window.onpopstate = () => goBack();
-</script>
-
+<!-- REMARK LOGIC (Enter = Save + Close Keyboard) -->
 <script>
 const remarkText = document.getElementById("remarkText");
 const remarkField = document.getElementById("remarkField");
 
-remarkText.addEventListener("input", () => remarkField.value = remarkText.value.trim());
+// Sync on input
+remarkText.addEventListener("input", () => {
+  remarkField.value = remarkText.value.trim();
+});
 
-remarkText.addEventListener("keydown", e => {
+// ENTER = Save + Close Keyboard
+remarkText.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
-    e.preventDefault();
+    e.preventDefault(); // Stop form submit
+
+    // Save remark
     remarkField.value = remarkText.value.trim();
+
+    // Close keyboard
     remarkText.blur();
+
+    // Optional vibration
     if (navigator.vibrate) navigator.vibrate([30]);
+
+    // Feedback flash
+    remarkText.style.borderColor = "#2563eb";
+    setTimeout(() => {
+      remarkText.style.borderColor = "#d1d5db";
+    }, 150);
   }
-});
-</script>
-
-<!-- SUBMIT OVERLAY LOGIC -->
-<script>
-const overlay = document.getElementById("submitOverlay");
-
-// Show overlay when submit clicked
-document.querySelector(".np-enter").addEventListener("click", () => {
-  overlay.classList.remove("hide");
-  document.getElementById("overlayText").textContent = "Submitting…";
-});
-
-// JudgeCore triggers this event after submit
-document.addEventListener("judge:submitted", () => {
-  overlay.classList.add("hide");
 });
 </script>
 
