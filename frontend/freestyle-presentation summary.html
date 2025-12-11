@@ -22,7 +22,7 @@ html, body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* WRAPPER — centered like RE */
+/* WRAPPER */
 .wrapper {
     height: 100%;
     width: 100%;
@@ -79,7 +79,7 @@ html, body {
     width: 0;
 }
 
-/* ROW — Hybrid of Difficulty + RE */
+/* ROW */
 .row {
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
@@ -88,25 +88,25 @@ html, body {
     margin-bottom: 20px;
 }
 
-/* BUTTONS — Auto-shrink text fix */
+/* BUTTONS */
 .box-minus, .box-plus {
     background: #d64545;
     color: white;
     padding: 0;
     display: flex;
+    flex-direction: column; /* Text above, symbol below */
     justify-content: center;
     align-items: center;
     border-radius: 8px;
 
-    /* ⭐ prevent wrapping */
     white-space: nowrap;
 
-    /* ⭐ Uniform responsive height */
+    /* Responsive heights */
     min-height: 90px;
     height: 22vw;
     max-height: 150px;
 
-    /* ⭐ Auto-shrink text so Entertainment matches others */
+    /* Auto shrink text so Entertainment fits */
     font-size: clamp(11px, 3.2vw, 15px);
 
     text-align: center;
@@ -114,7 +114,20 @@ html, body {
 
 .box-plus { background: #28c766; }
 
-/* Ultra-small phones: make taller */
+/* Label text */
+.label-text {
+    font-size: clamp(11px, 3.2vw, 15px);
+    margin-bottom: 4px;
+}
+
+/* Symbol below text */
+.symbol {
+    font-size: clamp(24px, 6vw, 32px);
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Extra height on small phones */
 @media (max-width: 400px) {
     .box-minus, .box-plus {
         height: 26vw;
@@ -213,6 +226,7 @@ const WEIGHTS = {
     var: 0.15
 };
 
+/* CATEGORIES */
 const cats = [
     { key:"cre",  label:"Creativity",   minus:"creMinus",  plus:"crePlus" },
     { key:"mus",  label:"Musicality",   minus:"musMinus",  plus:"musPlus" },
@@ -233,21 +247,40 @@ cats.forEach(cat => {
 
     container.innerHTML += `
         <div class="row">
+
+            <!-- MINUS BUTTON (Red) -->
             <div class="box-minus" data-key="${cat.key}">
-                ${cat.label} -
+                <div class="label-text">
+                    ${cat.key === "var" ? "Repetitive" : cat.label}
+                </div>
+                <div class="symbol">-</div>
             </div>
 
+            <!-- SLIDER -->
             <div>
                 <div class="level-labels">
-                    <div>0</div><div id="val_${cat.key}">${v}</div><div>24</div>
+                    <div>0</div>
+                    <div id="val_${cat.key}">${v}</div>
+                    <div>24</div>
                 </div>
-                <input id="slider_${cat.key}" type="range" min="0" max="24"
-                       value="${v}" disabled class="summary-slider">
+
+                <input id="slider_${cat.key}"
+                       type="range"
+                       min="0"
+                       max="24"
+                       value="${v}"
+                       disabled
+                       class="summary-slider">
             </div>
 
+            <!-- PLUS BUTTON (Green) -->
             <div class="box-plus" data-key="${cat.key}">
-                ${cat.label} +
+                <div class="label-text">
+                    ${cat.key === "var" ? "Variety" : cat.label}
+                </div>
+                <div class="symbol">+</div>
             </div>
+
         </div>
     `;
 });
@@ -273,16 +306,17 @@ recalcScore();
 document.querySelectorAll(".box-minus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
-        let slider = document.getElementById("slider_"+key);
+        const slider = document.getElementById("slider_"+key);
         slider.value = Math.max(0, Number(slider.value) - 1);
         document.getElementById("val_"+key).textContent = slider.value;
         recalcScore();
     });
 });
+
 document.querySelectorAll(".box-plus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
-        let slider = document.getElementById("slider_"+key);
+        const slider = document.getElementById("slider_"+key);
         slider.value = Math.min(24, Number(slider.value) + 1);
         document.getElementById("val_"+key).textContent = slider.value;
         recalcScore();
@@ -294,7 +328,7 @@ document.getElementById("submitBtn").addEventListener("click",()=>{
     document.getElementById("submitOverlay").classList.remove("hide");
 });
 
-/* JudgeCore submission */
+/* JudgeCore */
 window.addEventListener("DOMContentLoaded", () => {
     JudgeForms.presentation.initPage2 = () => {};
     JudgeCore.init({
