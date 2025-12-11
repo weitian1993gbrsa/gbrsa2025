@@ -61,7 +61,7 @@ html, body {
     background: #f4b942;
     border: none;
     font-weight: 600;
-    display: none; /* hidden until action */
+    display: none;
 }
 
 /* SCORE BAR */
@@ -94,12 +94,11 @@ html, body {
     margin-bottom: 20px;
 }
 
-/* BUTTONS */
 .box-minus, .box-plus {
     color: white;
     padding: 0;
     display: flex;
-    flex-direction: column; /* label above, symbol below */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     border-radius: 8px;
@@ -114,22 +113,19 @@ html, body {
 }
 
 .box-minus { background: #d64545; }
-.box-plus  { background: #28c766; }
+.box-plus { background: #28c766; }
 
-/* Label text */
 .label-text {
     font-size: clamp(11px, 3.2vw, 15px);
     margin-bottom: 4px;
 }
 
-/* +/- symbol */
 .symbol {
     font-size: clamp(24px, 6vw, 32px);
     font-weight: 700;
     line-height: 1;
 }
 
-/* SLIDER COLUMN */
 .row > div:nth-child(2) {
     display: flex;
     flex-direction: column;
@@ -150,7 +146,6 @@ html, body {
     accent-color: #008000;
 }
 
-/* SUBMIT OVERLAY */
 .overlay {
     position: fixed;
     inset: 0;
@@ -177,30 +172,25 @@ html, body {
 
 <div class="wrapper">
 
-    <!-- HEADER WITH UNDO -->
     <div class="top-bar">
         <button class="top-btn" onclick="history.back()">Back</button>
         <button class="top-btn undo-btn" id="undoBtn">Undo</button>
         <button class="top-btn submit-btn" id="submitBtn">Submit</button>
     </div>
 
-    <!-- SCORE BAR -->
     <div class="score-values">
         <div id="scoreText">Score (0.00)</div>
         <div id="missText">Misses (0)</div>
     </div>
 
-    <!-- CONTENT -->
     <div id="summaryContainer"></div>
 
 </div>
 
-<!-- SUBMIT OVERLAY -->
 <div id="submitOverlay" class="overlay hide">
     <div class="overlay-card">Submitting...</div>
 </div>
 
-<!-- SCRIPTS -->
 <script defer src="app.js"></script>
 <script defer src="config.js"></script>
 <script defer src="nozoom.js"></script>
@@ -208,11 +198,13 @@ html, body {
 <script defer src="judge-forms.js"></script>
 
 <script>
-
 /* LOAD PAGE 1 DATA */
 const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
 
 function safe(n){ return isNaN(Number(n)) ? 0 : Number(n); }
+
+/* ⭐ FIX: Display Miss Count from Page 1 */
+document.getElementById("missText").textContent = `Misses (${data.misses || 0})`;
 
 const WEIGHTS = {
     cre: 0.15,
@@ -243,7 +235,6 @@ cats.forEach(cat => {
     container.innerHTML += `
         <div class="row">
 
-            <!-- MINUS -->
             <div class="box-minus" data-key="${cat.key}">
                 <div class="label-text">
                     ${cat.key === "var" ? "Repetitive" : cat.label}
@@ -251,7 +242,6 @@ cats.forEach(cat => {
                 <div class="symbol">-</div>
             </div>
 
-            <!-- SLIDER -->
             <div>
                 <div class="level-labels">
                     <div>0</div>
@@ -262,7 +252,6 @@ cats.forEach(cat => {
                        type="range" min="0" max="24" value="${v}" disabled>
             </div>
 
-            <!-- PLUS -->
             <div class="box-plus" data-key="${cat.key}">
                 <div class="label-text">
                     ${cat.key === "var" ? "Variety" : cat.label}
@@ -277,18 +266,19 @@ cats.forEach(cat => {
 /* SCORE CALCULATION */
 function recalcScore(){
     let score = 0;
+
     cats.forEach(cat => {
         const v = Number(document.getElementById("slider_" + cat.key).value);
         score += v * WEIGHTS[cat.key];
     });
+
     document.getElementById("scoreText").textContent =
         `Score (${score.toFixed(2)})`;
 }
 
-/* INITIAL CALC */
 recalcScore();
 
-/* UNDO LOGIC */
+/* Undo stays untouched — original logic */
 let lastAction = null;
 
 function showUndo(){
@@ -299,7 +289,6 @@ function hideUndo(){
     document.getElementById("undoBtn").style.display = "none";
 }
 
-/* Minus click tracking */
 document.querySelectorAll(".box-minus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
@@ -312,7 +301,6 @@ document.querySelectorAll(".box-minus").forEach(box=>{
     });
 });
 
-/* Plus click tracking */
 document.querySelectorAll(".box-plus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
@@ -325,12 +313,10 @@ document.querySelectorAll(".box-plus").forEach(box=>{
     });
 });
 
-/* Undo button */
 document.getElementById("undoBtn").addEventListener("click", ()=>{
     if (!lastAction) return;
 
     const slider = document.getElementById("slider_" + lastAction.key);
-
     slider.value = Math.max(0, Math.min(24,
         Number(slider.value) - lastAction.delta
     ));
@@ -342,12 +328,11 @@ document.getElementById("undoBtn").addEventListener("click", ()=>{
     hideUndo();
 });
 
-/* SUBMIT OVERLAY */
 document.getElementById("submitBtn").addEventListener("click", ()=>{
     document.getElementById("submitOverlay").classList.remove("hide");
 });
 
-/* JudgeCore */
+/* JudgeCore setup */
 window.addEventListener("DOMContentLoaded", () => {
     JudgeCore.init({
         judgeType: "presentation",

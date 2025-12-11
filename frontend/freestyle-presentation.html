@@ -6,7 +6,6 @@
 <title>Presentation Judge</title>
 
 <style>
-    /* ===== Disable ALL scrolling on the page ===== */
     html, body {
         margin: 0;
         padding: 0;
@@ -230,6 +229,11 @@ document.getElementById("resetBtn").addEventListener("click", () => {
 
     JudgeForms.presentation.lastAction = null;
     document.getElementById("undoBtn").classList.add("hidden");
+});
+
+document.getElementById("nextBtn").addEventListener("click", () => {
+    localStorage.setItem("presentationPage1", JSON.stringify(JudgeForms.presentation.page1Data));
+    window.location.href = "freestyle-presentation summary.html" + location.search;
 });
 </script>
 
