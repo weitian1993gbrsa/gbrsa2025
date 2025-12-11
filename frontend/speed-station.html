@@ -5,32 +5,225 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>Speed Station</title>
 
-  <link rel="stylesheet" href="./styles.css"/>
+<!-- ============================================================
+     INTERNAL THEME + LAYOUT CSS (NO external styles.css)
+============================================================ -->
+<style>
 
-  <!-- IMPORTANT: LOAD ORDER -->
-  <script defer src="./config.js"></script>
-  <script defer src="./app.js"></script>
-  <script defer src="./station-core.js"></script>
+/* ---------------------------------
+   THEME VARIABLES
+----------------------------------- */
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --muted: #4b5563;
+  --text: #0b1020;
+  --accent: #2563eb;
+  --border: #e5e7eb;
+  --soft: #eef2f7;
+}
 
-  <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      StationCore.init({ mode: "speed" });
-    });
-  </script>
+/* ---------------------------------
+   GLOBAL RESET
+----------------------------------- */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  font-family: system-ui, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  <style>
-    /* Sticky header fix */
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 999;
-    }
-    
-  </style>
+* {
+  box-sizing: border-box;
+  user-select: none;
+}
+
+input { user-select: text; }
+
+/* ---------------------------------
+   TOP BAR
+----------------------------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .75rem 1rem;
+  background: #ffffffd9;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: saturate(1.2) blur(4px);
+}
+
+/* Sticky version for station pages */
+body.station .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: #ffffffee;
+  backdrop-filter: blur(6px) saturate(1.2);
+}
+
+.logo {
+  height: 48px;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+.titles h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin-top: .125rem;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+/* ---------------------------------
+   BUTTONS
+----------------------------------- */
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  padding: .6rem .9rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px #0000000a;
+  transition: transform .1s ease;
+}
+
+.btn:active {
+  transform: scale(.97);
+}
+
+.btn.primary {
+  background: linear-gradient(180deg,#3b82f6,#2563eb);
+  border-color:#1d4ed8;
+  color:#fff;
+  box-shadow:0 10px 20px #2563eb33;
+}
+
+/* ---------------------------------
+   PAGE CONTAINERS
+----------------------------------- */
+.container {
+  padding: 1rem;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 6px 18px #0000000d;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: .9rem;
+  margin-top: .5rem;
+}
+
+/* ---------------------------------
+   STATION ENTRY CARDS
+----------------------------------- */
+.station-card {
+  display: block;
+  width: 100%;
+  padding: 18px 20px;
+  margin: 12px 0;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  appearance: none;
+  color: #fff;
+  text-align: left;
+  transition: .2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+}
+
+body.station .station-card {
+  transform: none !important;
+}
+
+.station-card.pending {
+  background: #24c36b;
+}
+
+.station-card.done {
+  background: #1e64e0;
+}
+
+.station-card .top-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: .9;
+  margin-bottom: 6px;
+}
+
+.station-card .name {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+.station-card .team {
+  font-size: 13px;
+  opacity: .95;
+  margin-bottom: 6px;
+}
+
+.station-card .event-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.station-card .status {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: .9;
+}
+
+.station-card .event {
+  font-size: 13px;
+  opacity: .95;
+  font-weight: 600;
+  text-align: right;
+}
+
+</style>
+
+<!-- Scripts (load order required) -->
+<script defer src="./config.js"></script>
+<script defer src="./app.js"></script>
+<script defer src="./station-core.js"></script>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    StationCore.init({ mode: "speed" });
+});
+</script>
+
 </head>
 
 <body class="page station">
 
+<!-- ---------------------------------
+     TOP BAR HEADER
+----------------------------------- -->
 <header class="topbar">
   <img src="./assets/company-logo.png" class="logo"/>
 
@@ -42,9 +235,14 @@
     Home
   </button>
 
-  <button id="btnRefresh" class="btn">Refresh</button>
+  <button id="btnRefresh" class="btn">
+    Refresh
+  </button>
 </header>
 
+<!-- ---------------------------------
+     MAIN CONTENT
+----------------------------------- -->
 <main class="container">
   <section class="block">
     <h2>Entries for this Station</h2>
@@ -52,17 +250,21 @@
   </section>
 </main>
 
-<!-- Block iOS/Android swipe back -->
+<!-- ---------------------------------
+     BLOCK MOBILE-SWIPE-BACK
+----------------------------------- -->
 <script>
-  history.pushState(null, null, location.href);
-  window.onpopstate = function () { history.go(1); };
+history.pushState(null, null, location.href);
+window.onpopstate = () => history.go(1);
 </script>
 
-<!-- HOME -->
+<!-- ---------------------------------
+     HOME BUTTON
+----------------------------------- -->
 <script>
-  document.getElementById("btnHome").addEventListener("click", () => {
-    location.href = "index.html";
-  });
+document.getElementById("btnHome").onclick = () => {
+  location.href = "index.html";
+};
 </script>
 
 </body>

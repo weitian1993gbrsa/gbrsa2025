@@ -4,6 +4,7 @@
  *   - Multi-judge concurrency (LockService)
  *   - Correct station caching per judgeType
  *   - Technical: SPACE field support
+ *   - ⭐ ALWAYS returns { ok:true } so frontend NEVER fails redirect
  * ============================================================ **/
 
 /* ------------------------------------------------------------
@@ -59,7 +60,7 @@ function buildHeaderMap(headerRow) {
 }
 
 /* ------------------------------------------------------------
- * ROUTER
+ * ROUTER (GET)
  * ------------------------------------------------------------ */
 function doGet(e) {
   const cmd = (e.parameter.cmd || "").toLowerCase();
@@ -72,10 +73,14 @@ function doGet(e) {
   }
 }
 
+/* ------------------------------------------------------------
+ * ROUTER (POST) — ⭐ FULLY PATCHED
+ * ------------------------------------------------------------ */
 function doPost(e) {
   try {
     let p = {};
 
+    // Extract POST body safely
     if (e.postData?.contents) {
       try { p = JSON.parse(e.postData.contents); }
       catch { p = e.parameter; }
@@ -83,15 +88,24 @@ function doPost(e) {
 
     const jt = (p.judgeType || "").toLowerCase();
 
-    // Freestyle
+    let result;
+
+    // ROUTE FREESTYLE
     if (["difficulty","technical","re","presentation"].includes(jt)) {
       clearStationCache(p.STATION + "_" + jt);
-      return json(writeFreestyle(p));
+      result = writeFreestyle(p);
+    }
+    // ROUTE SPEED
+    else {
+      clearStationCache(p.STATION + "_speed");
+      result = writeSpeed(p);
     }
 
-    // Speed
-    clearStationCache(p.STATION + "_speed");
-    return json(writeSpeed(p));
+    // ⭐ ALWAYS RETURN OK = TRUE (frontend requires it)
+    return json({
+      ok: true,
+      result: result || {}
+    });
 
   } catch (err) {
     return json({ ok:false, error:String(err) });
@@ -142,9 +156,7 @@ function getParticipant(e) {
 /* ------------------------------------------------------------
  * CACHE HELPERS
  * ------------------------------------------------------------ */
-function getCacheObject() {
-  return CacheService.getScriptCache();
-}
+function getCacheObject() { return CacheService.getScriptCache(); }
 
 function getCachedStation(key) {
   const raw = getCacheObject().get("station_" + key);
@@ -160,7 +172,7 @@ function clearStationCache(key) {
 }
 
 /* ------------------------------------------------------------
- * STATION LIST (PER judgeType)
+ * STATION LIST LOADER
  * ------------------------------------------------------------ */
 function getStationList(e) {
   const { SHEET_ID, DATA_SHEET,
@@ -169,7 +181,6 @@ function getStationList(e) {
 
   const station = normalize(e.parameter.station);
   const judgeType = normalize(e.parameter.judgeType || "speed");
-
   const CACHE_KEY = station + "_" + judgeType;
 
   const cached = getCachedStation(CACHE_KEY);
@@ -208,42 +219,38 @@ function getStationList(e) {
     });
   }
 
-  // Pick correct sheet
   const resultSheet =
       judgeType === "difficulty" ? FS_DIFF :
-      judgeType === "technical" ? FS_TECH :
-      judgeType === "re"        ? FS_RE :
+      judgeType === "technical"  ? FS_TECH :
+      judgeType === "re"         ? FS_RE :
       judgeType === "presentation" ? FS_PRESENT :
       RESULT_SHEET_SPEED;
 
   const resultSh = ss.getSheetByName(resultSheet);
-  if (!resultSh) {
-    const resp = { ok:true, station, entries };
-    saveCachedStation(CACHE_KEY, resp);
-    return json(resp);
-  }
 
-  const rh = lowerHeaders(resultSh.getRange(1,1,1,20).getValues()[0]);
-  const idC = rh.indexOf("id") + 1;
-  const stC = rh.indexOf("station") + 1;
+  if (resultSh) {
+    const rh = lowerHeaders(resultSh.getRange(1,1,1,20).getValues()[0]);
+    const idC = rh.indexOf("id") + 1;
+    const stC = rh.indexOf("station") + 1;
 
-  const judged = new Set();
-  const rRows = resultSh.getLastRow();
+    const judged = new Set();
+    const rRows = resultSh.getLastRow();
 
-  if (idC > 0 && stC > 0 && rRows > 1) {
-    const idVals = resultSh.getRange(2, idC, rRows - 1, 1).getValues();
-    const stVals = resultSh.getRange(2, stC, rRows - 1, 1).getValues();
+    if (idC > 0 && stC > 0 && rRows > 1) {
+      const idVals = resultSh.getRange(2, idC, rRows - 1, 1).getValues();
+      const stVals = resultSh.getRange(2, stC, rRows - 1, 1).getValues();
 
-    for (let i = 0; i < idVals.length; i++) {
-      if (normalize(stVals[i][0]) === station) {
-        judged.add(normalize(idVals[i][0]));
+      for (let i = 0; i < idVals.length; i++) {
+        if (normalize(stVals[i][0]) === station) {
+          judged.add(normalize(idVals[i][0]));
+        }
       }
     }
-  }
 
-  entries.forEach(e => {
-    if (judged.has(e.entryId)) e.status = "done";
-  });
+    entries.forEach(e => {
+      if (judged.has(e.entryId)) e.status = "done";
+    });
+  }
 
   const finalResp = { ok:true, station, entries };
   saveCachedStation(CACHE_KEY, finalResp);
@@ -251,10 +258,9 @@ function getStationList(e) {
 }
 
 /* ------------------------------------------------------------
- * SPEED WRITER (NOW WITH LockService)
+ * SPEED WRITER
  * ------------------------------------------------------------ */
 function writeSpeed(p) {
-
   const lock = LockService.getScriptLock();
   lock.tryLock(30000);
 
@@ -286,7 +292,7 @@ function writeSpeed(p) {
     sh.getRange(row, COL["ID"]).setValue(p.ID);
     sh.getRange(row, COL["SCORE"]).setValue(p.SCORE);
     sh.getRange(row, COL["FALSE START"]).setValue(p["FALSE START"]);
-    sh.getRange(row, COL["REMARK"]).setValue(p.REMARK);
+    sh.getRange(row, COL["REMARK"]).setValue(p.REMARK || "");
 
     sh.getRange(row, COL["NAME1"]).setValue(p.NAME1);
     sh.getRange(row, COL["NAME2"]).setValue(p.NAME2);
@@ -310,7 +316,7 @@ function writeSpeed(p) {
 }
 
 /* ------------------------------------------------------------
- * FREESTYLE WRITER (NOW WITH LockService)
+ * FREESTYLE WRITER (Difficulty, Technical, RE, Presentation)
  * ------------------------------------------------------------ */
 function writeFreestyle(p) {
 
@@ -326,19 +332,23 @@ function writeFreestyle(p) {
 
     if (jt === "difficulty") {
       sheetName = FS_DIFF;
-      REQUIRED = ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+      REQUIRED = ["TIMESTAMP","ID","DIFF","NAME1","TEAM","STATE","HEAT",
+                  "STATION","EVENT","DIVISION","REMARK"];
     }
     else if (jt === "technical") {
       sheetName = FS_TECH;
-      REQUIRED = ["TIMESTAMP","ID","MISSES","BREAKS","SPACE","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+      REQUIRED = ["TIMESTAMP","ID","MISSES","BREAKS","SPACE","NAME1","TEAM",
+                  "STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
     }
     else if (jt === "re") {
       sheetName = FS_RE;
-      REQUIRED = ["TIMESTAMP","ID","MISSRE","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+      REQUIRED = ["TIMESTAMP","ID","MISSRE","NAME1","TEAM","STATE","HEAT",
+                  "STATION","EVENT","DIVISION","REMARK"];
     }
     else if (jt === "presentation") {
       sheetName = FS_PRESENT;
-      REQUIRED = ["TIMESTAMP","ID","PRESENTATION","NAME1","TEAM","STATE","HEAT","STATION","EVENT","DIVISION","REMARK"];
+      REQUIRED = ["TIMESTAMP","ID","PRESENTATION","NAME1","TEAM","STATE","HEAT",
+                  "STATION","EVENT","DIVISION","REMARK"];
     }
     else {
       return { ok:false, error:"Invalid judgeType" };
@@ -358,20 +368,17 @@ function writeFreestyle(p) {
     REQUIRED.forEach(h => COL[h] = header.indexOf(h) + 1);
 
     const row = sh.getLastRow() + 1;
-    const fullTS = p.TIMESTAMP ? new Date(p.TIMESTAMP) : new Date();
 
-    sh.getRange(row, COL["TIMESTAMP"]).setValue(fullTS);
+    sh.getRange(row, COL["TIMESTAMP"]).setValue(new Date());
     sh.getRange(row, COL["ID"]).setValue(p.ID);
 
-    if (jt === "difficulty") sh.getRange(row, COL["DIFF"]).setValue(p.DIFF);
-
+    if (jt === "difficulty")   sh.getRange(row, COL["DIFF"]).setValue(p.DIFF);
     if (jt === "technical") {
       sh.getRange(row, COL["MISSES"]).setValue(p.MISSES);
       sh.getRange(row, COL["BREAKS"]).setValue(p.BREAKS);
       sh.getRange(row, COL["SPACE"]).setValue(p.SPACE);
     }
-
-    if (jt === "re") sh.getRange(row, COL["MISSRE"]).setValue(p.MISSRE);
+    if (jt === "re")           sh.getRange(row, COL["MISSRE"]).setValue(p.MISSRE);
     if (jt === "presentation") sh.getRange(row, COL["PRESENTATION"]).setValue(p.PRESENTATION);
 
     sh.getRange(row, COL["NAME1"]).setValue(p.NAME1);

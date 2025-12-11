@@ -6,184 +6,194 @@
 <title>Required Elements (RE)</title>
 
 <style>
+  * {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+  }
 
-    /* ⭐ Prevent text highlight & enable instant taps */
-    * {
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
-        user-select: none;
-    }
+  :root {
+    --bg:#f5f5f5;
+    --border:#ddd;
+  }
 
-    :root {
-        --bg:#f5f5f5;
-        --border:#ddd;
-    }
+  html, body {
+    margin:0;
+    padding:0;
+    height:100%;
+    background:var(--bg);
+    overflow:hidden;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
 
-    html, body {
-        margin:0; padding:0; height:100%;
-        background:var(--bg);
-        overflow:hidden;
-        font-family:system-ui, Arial, sans-serif;
-    }
+  body {
+    display:flex;
+    justify-content:center;
+  }
 
-    body { display:flex; justify-content:center; }
+  .wrapper {
+    width:100%;
+    max-width:650px;
+    background:white;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+  }
 
-    .wrapper {
-        width:100%;
-        max-width:650px;
-        background:white;
-        height:100%;
-        display:flex;
-        flex-direction:column;
-    }
+  .top-bar {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 16px;
+    background:white;
+    border-bottom:1px solid var(--border);
+  }
 
-    /* HEADER */
-    .top-bar {
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        padding:12px 16px;
-        background:white;
-        border-bottom:1px solid var(--border);
-    }
-    .top-btn {
-        padding:10px 20px;
-        border:1px solid #ccc;
-        background:white;
-        cursor:pointer;
-        border-radius:6px;
-    }
-    .submit-btn {
-        background:#007bff;
-        color:white;
-        border:none;
-    }
+  .top-btn {
+    padding:10px 20px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    background:white;
+    cursor:pointer;
+  }
 
-    /* Missing Label */
-    .score-values {
-        text-align:center;
-        padding:12px 0;
-        font-size:16px;
-        font-weight:700;
-        background:white;
-        border-bottom:1px solid var(--border);
-    }
+  .submit-btn {
+    background:#007bff;
+    border:none;
+    color:white;
+    font-weight:600;
+  }
 
-    /* Undo + Reset */
-    .control-row {
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        padding:12px 20px;
-        background:white;
-        border-bottom:1px solid #ddd;
-        flex-shrink:0;
-    }
+  .score-values {
+    text-align:center;
+    padding:12px 0;
+    font-size:16px;
+    font-weight:700;
+    background:white;
+    border-bottom:1px solid var(--border);
+  }
 
-    .btn-undo {
-        background:#f2b632;
-        color:white;
-        font-weight:bold;
-        padding:14px 30px;
-        font-size:18px;
-        border:none;
-        border-radius:4px;
-        cursor:pointer;
-    }
+  .control-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 20px;
+    background:white;
+    border-bottom:1px solid #ddd;
+    flex-shrink:0;
+  }
 
-    .btn-reset {
-        background:#e53935;
-        color:white;
-        font-weight:bold;
-        padding:14px 30px;
-        font-size:18px;
-        border:none;
-        border-radius:4px;
-        cursor:pointer;
-    }
+  .btn-undo,
+  .btn-reset {
+    padding:14px 30px;
+    font-size:18px;
+    font-weight:bold;
+    border-radius:4px;
+    border:none;
+    cursor:pointer;
+    color:white;
+  }
 
-    .hidden {
-        opacity:0;
-        pointer-events:none;
-        visibility:hidden;
-    }
+  .btn-undo { background:#f2b632; }
+  .btn-reset { background:#e53935; }
 
-    /* RE GRID */
-    #reContainer {
-        flex:1;
-        overflow-y:auto;
-        background:#f5f5f5;
-        padding-bottom:40px;
-    }
-    #reContainer::-webkit-scrollbar { width:0; }
+  .hidden {
+    opacity:0;
+    pointer-events:none;
+    visibility:hidden;
+  }
 
-    .re-grid {
-        display:grid;
-        grid-template-columns:1fr 1fr 1fr;
-        gap:20px;
-        align-items:center;
-        margin:22px auto;
-        max-width:600px;
-        padding:0 16px;
-    }
+  #reContainer {
+    flex:1;
+    overflow-y:auto;
+    background:#f5f5f5;
+    padding-bottom:40px;
+  }
 
-    .re-btn-half, .re-btn-full {
-        height:120px;
-        border-radius:10px;
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-        align-items:center;
-        text-align:center;
-        line-height:1.2;
-        color:white;
-        font-size:14px;
-        cursor:pointer;
-    }
+  #reContainer::-webkit-scrollbar { width:0; }
 
-    .re-btn-half { background:#d64545; }
-    .re-btn-full { background:#28c766; }
+  .re-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:20px;
+    align-items:center;
+    margin:22px auto;
+    max-width:600px;
+    padding:0 16px;
+  }
 
-    .disabled {
-        opacity:.35;
-        pointer-events:none;
-    }
+  .re-btn-half,
+  .re-btn-full {
+    height:120px;
+    border-radius:10px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    line-height:1.2;
+    color:white;
+    font-size:14px;
+    cursor:pointer;
+  }
 
-    .re-value-box {
-        text-align:center;
-        font-size:22px;
-        font-weight:700;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        gap:6px;
-    }
+  .re-btn-half { background:#d64545; }
+  .re-btn-full { background:#28c766; }
 
-    .slash {
-        padding:0 1px;
-        font-weight:700;
-    }
+  .disabled {
+    opacity:.35;
+    pointer-events:none;
+  }
 
-    #submitOverlay {
-        position:fixed;
-        inset:0;
-        background:rgba(255,255,255,0.85);
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        z-index:9999;
-    }
-    #submitOverlay.hide { display:none!important; }
+  .re-value-box {
+    text-align:center;
+    font-size:22px;
+    font-weight:700;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:6px;
+  }
 
-    html, body {
-       overflow: hidden !important;
-       position: fixed !important;
-       height: 100%;
-       width: 100%;
-       margin: 0;
-       padding: 0;
-    }
+  .slash { font-weight:700; }
 
+  .overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+  }
+
+  .overlay.hide { display:none; }
+
+  .overlay-card {
+    background:white;
+    padding:2rem 3rem;
+    border-radius:16px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+  }
+
+  .loading .dot {
+    display:inline-block;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    margin:0 3px;
+    background:#333;
+    animation:blink 1s infinite;
+  }
+
+  .loading .dot:nth-child(2) { animation-delay:.2s; }
+  .loading .dot:nth-child(3) { animation-delay:.4s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity:0; }
+    40% { opacity:1; }
+  }
 </style>
 
 <script defer src="config.js"></script>
@@ -192,202 +202,185 @@
 <script defer src="judge-forms.js"></script>
 
 </head>
-
 <body>
 <div class="wrapper">
 
-    <!-- HEADER -->
-    <div class="top-bar">
-        <button class="top-btn" onclick="history.back()">Back</button>
-        <h3>Final</h3>
-        <button class="top-btn submit-btn" id="btnSubmit">Submit</button>
-    </div>
+  <div class="top-bar">
+    <button class="top-btn" onclick="history.back()">Back</button>
+    <h3>Final</h3>
+    <button class="top-btn submit-btn" id="btnSubmit">Submit</button>
+  </div>
 
-    <!-- RE Missing -->
-    <div class="score-values">
-        <span id="reLabel">RE (Missing: 12)</span>
-    </div>
+  <div class="score-values">
+    <span id="reLabel">RE (Missing: 12)</span>
+  </div>
 
-    <!-- Undo + Reset -->
-    <div class="control-row">
-        <button id="undoBtn" class="btn-undo hidden">Undo</button>
-        <button id="resetBtn" class="btn-reset">Reset</button>
-    </div>
+  <div class="control-row">
+    <button id="undoBtn" class="btn-undo hidden">Undo</button>
+    <button id="resetBtn" class="btn-reset">Reset</button>
+  </div>
 
-    <div id="reContainer"></div>
+  <div id="reContainer"></div>
 
 </div>
 
-<!-- Submit overlay -->
-<div id="submitOverlay" class="hide">
-  <div style="background:white; padding:20px 30px; border-radius:12px; border:1px solid #ccc; font-weight:700;">
-    Submitting...
+<div id="submitOverlay" class="overlay hide">
+  <div class="overlay-card">
+    <div class="loading">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div class="overlay-text">Submitting…</div>
   </div>
 </div>
 
 <script>
-/* ==============================
-   CATEGORY DEFINITIONS
-============================== */
 const CATS = [
-  { key:"power",        label:"Power / Gymnastics" },
-  { key:"multiples",    label:"Multiples" },
-  { key:"manipulation", label:"Rope Manipulation" }
+  { key: "power",        label: "Power / Gymnastics" },
+  { key: "multiples",    label: "Multiples" },
+  { key: "manipulation", label: "Rope Manipulation" }
 ];
 
-const values = { power:0, multiples:0, manipulation:0 };
+const values = { power: 0, multiples: 0, manipulation: 0 };
 let lastAction = null;
 
-/* Build UI */
 const container = document.getElementById("reContainer");
 
 CATS.forEach(cat => {
   container.innerHTML += `
     <div class="re-grid">
+      <div class="re-btn-half" data-key="${cat.key}" data-type="half">
+        ${cat.label}<br/>+1/2
+      </div>
 
-        <div class="re-btn-half" data-key="${cat.key}" data-type="half">
-            ${cat.label}<br>+1/2
-        </div>
+      <div class="re-value-box">
+        <span id="val_${cat.key}">0</span>
+        <span class="slash">/</span>
+        <span>4</span>
+      </div>
 
-        <div class="re-value-box">
-            <span id="val_${cat.key}" class="re-val">0</span>
-            <span class="slash">/</span>
-            <span>4</span>
-        </div>
-
-        <div class="re-btn-full" data-key="${cat.key}" data-type="full">
-            ${cat.label}<br>+1
-        </div>
-
+      <div class="re-btn-full" data-key="${cat.key}" data-type="full">
+        ${cat.label}<br/>+1
+      </div>
     </div>
   `;
 });
 
-/* HELPER FUNCTIONS */
-function completed(v){ return Math.floor(v); }
-
-function updateMissing(){
-    const total =
-        completed(values.power) +
-        completed(values.multiples) +
-        completed(values.manipulation);
-
-    document.getElementById("reLabel").textContent =
-        "RE (Missing: " + (12 - total) + ")";
+function completed(v) {
+  return Math.floor(v);
 }
 
-function updateLocks(key){
-    const v = values[key];
-    const half = document.querySelector(`.re-btn-half[data-key="${key}"]`);
-    const full = document.querySelector(`.re-btn-full[data-key="${key}"]`);
+function updateMissing() {
+  const total =
+    completed(values.power) +
+    completed(values.multiples) +
+    completed(values.manipulation);
 
-    if(v >= 4){
-        half.classList.add("disabled");
-        full.classList.add("disabled");
-    } else {
-        half.classList.remove("disabled");
-        full.classList.remove("disabled");
-    }
+  const missing = 12 - total;
+  document.getElementById("reLabel").textContent =
+    "RE (Missing: " + missing + ")";
 }
 
-/* ⭐ HIGH-SENSITIVITY BUTTON HANDLER */
-document.querySelectorAll(".re-btn-half, .re-btn-full").forEach(btn=>{
-    btn.addEventListener("pointerdown", ()=>{
+function updateLocks(key) {
+  const v = values[key];
+  const half = document.querySelector(`.re-btn-half[data-key="${key}"]`);
+  const full = document.querySelector(`.re-btn-full[data-key="${key}"]`);
 
-        const key = btn.dataset.key;
-        const add = (btn.dataset.type === "half" ? 0.5 : 1);
+  if (v >= 4) {
+    half.classList.add("disabled");
+    full.classList.add("disabled");
+  } else {
+    half.classList.remove("disabled");
+    full.classList.remove("disabled");
+  }
+}
 
-        const prev = values[key];
-        const next = Math.min(prev + add, 4);
+const undoBtn = document.getElementById("undoBtn");
+const resetBtn = document.getElementById("resetBtn");
 
-        lastAction = { key, prev };
-        values[key] = next;
+document.querySelectorAll(".re-btn-half, .re-btn-full").forEach(btn => {
+  btn.addEventListener("pointerdown", () => {
+    const key = btn.dataset.key;
+    const add = btn.dataset.type === "half" ? 0.5 : 1;
 
-        document.getElementById(`val_${key}`).textContent =
-            next.toFixed(1).replace(/\.0$/,"");
+    const prev = values[key];
+    const next = Math.min(prev + add, 4);
 
-        updateLocks(key);
-        updateMissing();
+    lastAction = { key, prev };
+    values[key] = next;
 
-        undoBtn.classList.remove("hidden");
-
-        // ⭐ Instant vibration
-        if (navigator.vibrate) navigator.vibrate([35]);
-    }, { passive:true });
-});
-
-/* ⭐ UNDO BUTTON (pointerdown) */
-undoBtn.addEventListener("pointerdown",()=>{
-
-    if(!lastAction) return;
-
-    const { key, prev } = lastAction;
-
-    values[key] = prev;
-
-    document.getElementById(`val_${key}`).textContent =
-        prev.toFixed(1).replace(/\.0$/,"");
+    document.getElementById("val_" + key).textContent =
+      next.toFixed(1).replace(/\.0$/, "");
 
     updateLocks(key);
     updateMissing();
 
-    lastAction = null;
-    undoBtn.classList.add("hidden");
+    undoBtn.classList.remove("hidden");
 
-    if (navigator.vibrate) navigator.vibrate([50,30]);
+    if (navigator.vibrate) navigator.vibrate([35]);
+  }, { passive: true });
 });
 
-/* ⭐ RESET BUTTON (pointerdown) */
-resetBtn.addEventListener("pointerdown",()=>{
+undoBtn.addEventListener("pointerdown", () => {
+  if (!lastAction) return;
 
-    values.power = 0;
-    values.multiples = 0;
-    values.manipulation = 0;
+  const { key, prev } = lastAction;
+  values[key] = prev;
 
-    lastAction = null;
-    undoBtn.classList.add("hidden");
+  document.getElementById("val_" + key).textContent =
+    prev.toFixed(1).replace(/\.0$/, "");
 
-    ["power","multiples","manipulation"].forEach(k=>{
-        document.getElementById(`val_${k}`).textContent = "0";
-        updateLocks(k);
-    });
+  updateLocks(key);
+  updateMissing();
 
-    updateMissing();
+  lastAction = null;
+  undoBtn.classList.add("hidden");
 
-    if (navigator.vibrate) navigator.vibrate([60]);
+  if (navigator.vibrate) navigator.vibrate([50, 30]);
 });
 
-/* ⭐ SUBMIT BUTTON (pointerdown) */
+resetBtn.addEventListener("pointerdown", () => {
+  values.power = 0;
+  values.multiples = 0;
+  values.manipulation = 0;
+
+  ["power", "multiples", "manipulation"].forEach(k => {
+    document.getElementById("val_" + k).textContent = "0";
+    updateLocks(k);
+  });
+
+  document.getElementById("reLabel").textContent = "RE (Missing: 12)";
+  lastAction = null;
+  undoBtn.classList.add("hidden");
+
+  if (navigator.vibrate) navigator.vibrate([60]);
+});
+
 const overlay = document.getElementById("submitOverlay");
+const submitBtn = document.getElementById("btnSubmit");
 
-document.getElementById("btnSubmit").addEventListener("pointerdown",()=>{
-    overlay.classList.remove("hide");
-    if (navigator.vibrate) navigator.vibrate([80]);
+submitBtn.addEventListener("click", () => {
+  overlay.classList.remove("hide");
 });
 
-/* ==============================
-   JudgeCore
-============================== */
 window.addEventListener("DOMContentLoaded", () => {
   JudgeCore.init({
-    judgeType:"re",
-    submitButton:document.getElementById("btnSubmit"),
-
-    buildScore(){
-      const comp =
+    judgeType: "re",
+    submitButton: submitBtn,
+    buildScore() {
+      const total =
         completed(values.power) +
         completed(values.multiples) +
         completed(values.manipulation);
 
       return {
-        MISSRE: 12 - comp
+        MISSRE: 12 - total
       };
     }
   });
 });
 
-document.addEventListener("judge:submitted",()=>{
-    overlay.classList.add("hide");
+document.addEventListener("judge:submitted", () => {
+  overlay.classList.add("hide");
 });
 </script>
 

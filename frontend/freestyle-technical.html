@@ -8,104 +8,200 @@
   <link rel="stylesheet" href="./styles.css"/>
 
   <style>
-    * { -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
-    body { background:#f4f5f7; margin:0; font-family:Arial, sans-serif; }
+    * { 
+      -webkit-tap-highlight-color: transparent; 
+      touch-action: manipulation;
+      -webkit-user-select: none; user-select: none;
+    }
 
-    /* ===== HEADER ===== */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background:#f4f5f7;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    body { flex: 1; }
+
+    /* =============================
+       FULL-SCREEN WRAPPER
+    ============================= */
+    .wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* =============================
+       HEADER
+    ============================= */
     header {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:1rem; background:white; border-bottom:1px solid #ddd;
+      display:flex; 
+      align-items:center; 
+      justify-content:space-between;
+      padding:1rem; 
+      background:white; 
+      border-bottom:1px solid #ddd;
+      flex-shrink: 0;
     }
+
     .back-btn {
-      background:white; border:1px solid #ccc;
-      padding:12px 22px; font-size:18px; border-radius:0px;
+      background:white; 
+      border:1px solid #ccc;
+      padding:12px 22px; 
+      font-size:18px; 
+      border-radius:0px;
     }
+
     .submit-btn {
-      background:#1e88ff; color:white; padding:12px 26px;
-      border-radius:0px; border:none; font-size:18px; font-weight:bold;
+      background:#1e88ff; 
+      color:white; 
+      padding:12px 26px;
+      border-radius:0px; 
+      border:none; 
+      font-size:18px; 
+      font-weight:bold;
     }
 
-    /* ===== CONTROL BAR ===== */
+    /* =============================
+       CONTROL ROW
+    ============================= */
     .control-row {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:1rem 1.2rem; margin:0 auto; max-width:650px;
+      display:flex; 
+      justify-content:space-between; 
+      align-items:center;
+      padding:1rem 1.2rem; 
+      background:white;
+      flex-shrink: 0;
     }
-    .btn-undo {
-      background:rgb(233,165,39); border:1px solid #ccc;
-      padding:28px 46px; font-size:18px; border-radius:0px;
-    }
-    .btn-reset {
-      background:#e53935; color:white; border:none;
-      font-size:18px; padding:28px 46px; border-radius:0px;
-    }
-    .hidden { opacity:0; pointer-events:none; visibility:hidden; }
 
-    /* ===== GRID ===== */
+    .btn-undo {
+      background:rgb(233,165,39); 
+      border:1px solid #ccc;
+      padding:12px 26px; 
+      font-size:18px; 
+      border-radius:0px;
+    }
+
+    .hidden {
+      opacity:0;
+      pointer-events:none;
+      visibility:hidden;
+    }
+
+    .btn-reset {
+      background:#e53935; 
+      color:white; 
+      border:none;
+      font-size:18px; 
+      padding:12px 26px; 
+      border-radius:0px;
+    }
+
+    /* =============================
+       GRID LAYOUT
+    ============================= */
     .grid {
-      display:grid; grid-template-columns:repeat(2,1fr); gap:18px;
-      margin:1rem auto; max-width:650px; width:100%; padding:0 1rem;
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-auto-rows: 1fr;
+      gap: 14px;
+      padding: 16px 20px;
+      width: 100%;
+      overflow-y: auto;
+      box-sizing: border-box;
     }
+
+    .grid::-webkit-scrollbar { width: 0; }
+
+    /* =============================
+       BUTTONS
+    ============================= */
     .skill-btn {
-      height:380px;
-      display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      color:white; user-select:none; border:none;
-      border-radius:0px; transition:transform .15s ease;
+      width: 100%;
+      height: 100%;
+      display:flex; 
+      flex-direction:column; 
+      align-items:center; 
+      justify-content:center;
+      color:white;
+      border:none; 
+      border-radius:6px;
+      transition:transform .15s ease;
+      user-select:none;
     }
+
     .skill-btn:active { transform:scale(0.95); }
+
     .miss-btn { background:#e53935; }
     .break-btn { background:#fb8c00; }
 
-    .block-label {
-      font-size:26px; font-weight:400; letter-spacing:1px;
-    }
-    .block-number {
-      font-size:20px; font-weight:400; margin-top:12px;
+    #spaceBtn {
+      background:#6a1b9a;
+      grid-column: span 2;
+      height: 120px;
     }
 
-    /* ===== OVERLAY ===== */
+    .block-label {
+      font-size:26px;
+      font-weight:400;
+      letter-spacing:1px;
+    }
+
+    .block-number {
+      font-size:20px;
+      font-weight:400;
+      margin-top:12px;
+    }
+
+    /* =============================
+       SUBMIT OVERLAY
+    ============================= */
     .overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      position: fixed; 
+      top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.4);
       display: flex; justify-content: center; align-items: center;
       z-index: 9999;
     }
+
     .overlay.hide { display: none; }
+
     .overlay-card {
-      background: #fff; padding: 2rem 3rem; border-radius: 16px; text-align: center;
+      background: #fff; 
+      padding: 2rem 3rem; 
+      border-radius: 16px; 
+      text-align: center;
     }
+
     .loading .dot {
-      display: inline-block; width: 10px; height: 10px; margin: 0 3px;
-      background: #333; border-radius: 50%; animation: blink 1s infinite;
+      display: inline-block; 
+      width: 10px; height: 10px; 
+      margin: 0 3px;
+      background: #333; 
+      border-radius: 50%; 
+      animation: blink 1s infinite;
     }
+
     .loading .dot:nth-child(2) { animation-delay: 0.2s; }
     .loading .dot:nth-child(3) { animation-delay: 0.4s; }
+
     @keyframes blink { 0%,80%,100% {opacity:0;} 40% {opacity:1;} }
+
     .overlay-text { margin-top: 1rem; font-weight: 600; }
+
   </style>
 </head>
 
 <body>
 
-<!-- ⭐ FIX: Ensure currentEntry is ALWAYS available -->
-<script>
-  const qs = new URLSearchParams(location.search);
-  if (!localStorage.getItem("currentEntry")) {
-    localStorage.setItem("currentEntry", JSON.stringify({
-      ID: qs.get("id"),
-      NAME1: qs.get("name1"),
-      NAME2: qs.get("name2"),
-      NAME3: qs.get("name3"),
-      NAME4: qs.get("name4"),
-      TEAM: qs.get("team"),
-      STATE: qs.get("state"),
-      HEAT: qs.get("heat"),
-      EVENT: qs.get("event"),
-      DIVISION: qs.get("division"),
-      STATION: qs.get("station")
-    }));
-  }
-</script>
+<div class="wrapper">
 
 <header>
   <button class="back-btn" onclick="history.back()">Back</button>
@@ -130,24 +226,29 @@
     <div id="breakCount" class="block-number">0</div>
   </button>
 
-  <button id="spaceBtn" class="skill-btn"
-          style="background:#6a1b9a; grid-column: span 2; height: 120px;">
+  <button id="spaceBtn" class="skill-btn">
     <div class="block-label">SPACE VIOLATION</div>
     <div id="spaceCount" class="block-number">0</div>
   </button>
 </div>
 
+</div> <!-- wrapper end -->
+
 <!-- Scripts -->
 <script defer src="./app.js"></script>
 <script defer src="./config.js"></script>
+<script defer src="./nozoom.js"></script>
 <script defer src="./judge-core.js"></script>
 <script defer src="./judge-forms.js"></script>
 
 <script>
 window.addEventListener("DOMContentLoaded", () => {
+
+    // Must be lowercase because judge-forms.js defines "technical"
     const logic = initJudgeForm("technical");
+
     JudgeCore.init({
-        judgeType: "technical",
+        judgeType: "technical", 
         submitButton: document.getElementById("btnSubmit"),
         buildScore: () => logic.getScore()
     });
