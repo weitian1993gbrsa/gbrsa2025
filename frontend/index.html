@@ -4,235 +4,52 @@
 <meta name="format-detection" content="telephone=no">
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>GBRSA RopeScore</title>
+<title>GBRSA Score • Scoring</title>
+
+<!-- CSS -->
+<link rel="stylesheet" href="./styles.css"/>
+
+<!-- 🔥 PREFETCH (Speed Boost) -->
+<link rel="prefetch" href="speed-judge.html">
+<link rel="prefetch" href="speed-judge.js">
+<link rel="prefetch" href="styles.css">
+<link rel="prefetch" href="speed-station.html">
+
+<!-- Load config first -->
+<script src="./config.js"></script>
+
+<!-- Other scripts -->
+<script defer src="./app.js"></script>
+<script defer src="./nozoom.js"></script>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1020">
 
-<script src="./config.js"></script>
-<script defer src="./app.js"></script>
-<script defer src="./nozoom.js"></script>
-
-<link rel="prefetch" href="speed-judge.html">
-<link rel="prefetch" href="speed-station.html">
-
 <style>
-/* ---------------------------------
-   CSS VARIABLES
------------------------------------ */
-:root {
-  --bg: #f5f7fb;
-  --card: #ffffff;
-  --muted: #4b5563;
-  --text: #0b1020;
-  --accent: #2563eb;
-  --border: #e5e7eb;
-  --soft: #eef2f7;
-}
+  html, body { touch-action: manipulation; }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  touch-action: manipulation;
-  font-family: system-ui, Arial, sans-serif;
-}
-
-/* ---------------------------------
-   TOPBAR
------------------------------------ */
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .75rem 1rem;
-  background: #ffffffd9;
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: saturate(1.2) blur(4px);
-}
-
-.logo {
-  height: 48px;
-  max-width: 220px;
-  object-fit: contain;
-}
-
-.titles h1 {
-  margin: 0;
-  font-size: 1.15rem;
-}
-.subtitle {
-  margin: .125rem 0 0;
-  color: var(--muted);
-  font-size: .9rem;
-}
-
-/* ---------------------------------
-   BUTTONS
------------------------------------ */
-.btn {
-  appearance: none;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
-  padding: .75rem 1rem;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 12px #0000000a;
-  height: 48px !important;
-}
-
-.btn.primary {
-  background: linear-gradient(180deg,#3b82f6,#2563eb);
-  border-color:#1d4ed8;
-  color:#fff;
-  box-shadow:0 10px 20px #2563eb33;
-}
-
-/* ---------------------------------
-   INPUT FIELD (STABLE, NO MOVEMENT)
------------------------------------ */
-.input {
-  width: 100%;
-  padding: 0 1rem !important; /* fix vertical padding */
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
-  height: 48px !important;
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  display: flex;
-  align-items: center;
-  vertical-align: middle;
-  transition: none !important;
-}
-
-/* Prevent placeholder jump */
-.input::placeholder {
-  line-height: 1.2 !important;
-  opacity: .65;
-}
-
-.input:focus::placeholder {
-  opacity: .55;
-}
-
-/* Prevent focus animation */
-.input:focus,
-.input:focus-visible {
-  outline: none !important;
-  border-color: var(--border) !important;
-  box-shadow: none !important;
-  background: #fff !important;
-  transform: none !important;
-  transition: none !important;
-}
-
-/* ---------------------------------
-   LOGIN FIELD
------------------------------------ */
-.login-field {
-  display: flex;
-  gap: .5rem;
-  align-items: center;
-}
-
-.login-field input,
-.login-field button {
-  height: 48px !important;
-  transition: none !important;
-}
-
-/* ---------------------------------
-   HOMEPAGE LAYOUT
------------------------------------ */
-.home-wrapper {
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.menu-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-
-@media (min-width: 780px) {
-  .menu-grid { grid-template-columns: 1fr 1fr; }
-  .judge-login { grid-column: span 2; }
-}
-
-/* ---------------------------------
-   CARD UI
------------------------------------ */
-.card,
-.card:visited,
-.card h3,
-.card p {
-  color: var(--text) !important;
-  text-decoration: none !important;
-}
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 1.25rem 1.5rem;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-  transition: .15s ease;
-}
-
-.card:hover {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* ---------------------------------
-   JUDGE LOGIN CARD
------------------------------------ */
-.judge-login {
-  cursor: default !important;
-  border-left: 4px solid var(--accent);
-}
-
-.judge-desc {
-  margin: .25rem 0 1rem;
-  color: var(--muted);
-  font-size: .9rem;
-}
-
-.judge-error {
-  display: none;
-  color: #d00000;
-  font-weight: 600;
-  margin-top: .75rem;
-  animation: fadeIn .3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media(max-width: 480px) {
-  .login-field {
-    flex-direction: column;
-    align-items: stretch;
+  /* FIX — Judge Login Card Should Not Glow */
+  .judge-login {
+    cursor: default !important;
+    box-shadow: none !important;
+    border-left: none !important;
+    transition: none !important;
+    outline: none !important;
   }
-}
 
-/* ---------------------------------
-   FOOTER
------------------------------------ */
-.foot {
-  text-align: center;
-  padding: 1.5rem 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
+  .judge-login:hover {
+    cursor: default !important;
+    transform: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .judge-login input:focus,
+  .judge-login button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: var(--border) !important;
+  }
 </style>
 
 <!-- API Warm-Up -->
@@ -264,7 +81,7 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 <header class="topbar">
   <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
   <div class="titles">
-    <h1>GBRSA RopeScore</h1>
+    <h1>GBRSA RopeApp</h1>
     <p class="subtitle">powered by GBRSA</p>
   </div>
 </header>
@@ -274,8 +91,9 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 
     <div class="menu-grid">
 
+      <!-- Judge login ONLY -->
       <div class="card judge-login">
-        <h3>System Access</h3>
+        <h3>Judge Access</h3>
         <p class="judge-desc">Enter your assigned access code to open your duty.</p>
 
         <div class="login-field">
@@ -291,30 +109,37 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
   </div>
 </main>
 
-<footer class="foot">
+<footer class="foot" style="text-align:center;">
   <small>© 2025 GB Rope Skipping Academy</small>
 </footer>
 
 <script>
-/* ================================================
-   CLEAR CACHED STATION LISTS ON HOMEPAGE
-================================================ */
+/* ============================================================
+   CLEAR ALL CACHE ON LOGOUT / PAGE OPEN
+   (Speed + Freestyle)
+============================================================ */
 Object.keys(localStorage).forEach(k => {
-  if (k.startsWith("station_cache_") || k.startsWith("freestyle_cache_"))
+  if (k.startsWith("station_cache_")) {
     localStorage.removeItem(k);
+  }
+  if (k.startsWith("freestyle_cache_")) {
+    localStorage.removeItem(k);
+  }
 });
 
 const JUDGE_MAP = window.JUDGE_KEYS;
 
+// UI elements
 const keyInput  = document.getElementById("judgeKey");
 const keyError  = document.getElementById("keyError");
 const btnLogin  = document.getElementById("btnJudgeLogin");
 
 btnLogin.addEventListener("click", () => {
+
   const key = keyInput.value.trim();
   keyError.style.display = "none";
 
-  // Admin login
+  // Admin
   if (typeof ADMIN_KEY !== "undefined" && key === ADMIN_KEY) {
     btnLogin.disabled = true;
     btnLogin.textContent = "Loading…";
@@ -322,25 +147,27 @@ btnLogin.addEventListener("click", () => {
     return;
   }
 
+  // Judge key info
   const info = JUDGE_MAP[key];
-
   if (!info) {
     keyError.style.display = "block";
     return;
   }
 
-  btnLogin.disabled = true;
-  btnLogin.textContent = "Loading…";
-
   const station = info.station;
   const event = info.event;
   const judgeType = info.judgeType || "";
 
+  btnLogin.disabled = true;
+  btnLogin.textContent = "Loading…";
+
+  // ⭐ SPEED → go to speed-station
   if (event === "speed") {
     location.href = `speed-station.html?station=${station}&key=${key}`;
     return;
   }
 
+  // ⭐ FREESTYLE → go to freestyle-station
   if (event === "freestyle") {
     location.href =
       `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
@@ -353,7 +180,7 @@ keyInput.addEventListener("keyup", e => {
   if (e.key === "Enter") btnLogin.click();
 });
 
-// Reset page UI when returning from a judge page
+// Reset after back
 function resetJudgeLogin() {
   btnLogin.disabled = false;
   btnLogin.textContent = "Enter";
