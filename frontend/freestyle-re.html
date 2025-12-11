@@ -305,7 +305,7 @@ function updateLocks(key){
 
 /* TAP HANDLER */
 document.querySelectorAll(".re-btn-half, .re-btn-full").forEach(btn=>{
-    btn.addEventListener("click",()=>{
+    btn.addEventListener("pointdown",()=>{
 
         const key = btn.dataset.key;
         const add = (btn.dataset.type === "half" ? 0.5 : 1);
