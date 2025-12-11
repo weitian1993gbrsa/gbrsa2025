@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>Freestyle</title>
+
+  <link rel="stylesheet" href="./styles.css"/>
+
+  <script defer src="./app.js"></script>
+  <script defer src="./config.js"></script>
+  <script defer src="./admin freestyle.js"></script>
+  <script defer src="./nozoom.js"></script>
+
+  <style>
+    #entryIdInput { text-transform: uppercase; }
+    .scan-row { display:flex; gap:.75rem; align-items:center; }
+    .scan-row .input { flex:1; }
+    .refresh-btn { margin-left:auto; padding:.5rem .9rem; border-radius:.6rem;
+      border:1px solid rgba(0,0,0,.1); background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.06); }
+    .refresh-btn:active { transform:translateY(1px); }
+
+    /* Shared small button style */
+    .btn.small {
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+  </style>
+
+  <!-- iOS avoid zoom on inputs -->
+  <script>
+  (function(){
+    function ensureSize(el){
+      try{
+        if(!el) return;
+        var t = el.tagName.toLowerCase();
+        if(t==='input' || t==='textarea' || t==='select'){
+          el.style.fontSize='16px';
+          el.style.webkitTextSizeAdjust='100%';
+        }
+      }catch(e){}
+    }
+    document.addEventListener('focusin', e => ensureSize(e.target), true);
+    document.addEventListener('focusout', e => { 
+      try{ e.target.style.fontSize=''; e.target.style.webkitTextSizeAdjust=''; } catch(e){} 
+    }, true);
+  })();
+  </script>
+</head>
+
+<body data-mode="freestyle" class="page">
+
+<!-- 🔥 UPDATED HEADER (MATCHES SPEED PAGE) -->
+<header class="topbar"
+  style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
+
+  <!-- LEFT SIDE: Logo + Title -->
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="./assets/company-logo.png" alt="GBRSA" class="logo" style="height:38px;">
+    <h1 style="font-size:20px;margin:0;">Freestyle</h1>
+  </div>
+
+  <!-- RIGHT SIDE: Home + Refresh -->
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="btn small" onclick="location.href='admin.html'">Home</button>
+    <button id="btnRefresh" class="btn small refresh-btn" title="Refresh">Refresh</button>
+  </div>
+
+</header>
+<!-- END HEADER -->
+
+<main class="container">
+
+  <!-- Step 1 -->
+  <section class="block">
+    <h2>Step 1 — Identify Participant</h2>
+
+    <div class="scan-row">
+      <input id="entryIdInput" class="input"
+        placeholder="Type participant ID then click Search ID."
+        inputmode="text" autocapitalize="characters" spellcheck="false"/>
+      <button id="btnLookup" class="btn">Search ID</button>
+    </div>
+
+    <div class="hint">Type participant ID then click Search ID.</div>
+  </section>
+
+  <!-- Participant card -->
+  <section id="participantCard" class="block hide">
+    <div class="row space">
+      <h2>Participant</h2>
+      <div class="badges">
+        <span id="badgeHeat" class="badge">HEAT —</span>
+        <span id="badgeStation" class="badge">STATION —</span>
+        <span id="badgeEvent" class="badge">EVENT —</span>
+        <span id="badgeDivision" class="badge">DIVISION —</span>
+      </div>
+    </div>
+
+    <dl class="info">
+      <div><dt>ID</dt><dd id="pId">—</dd></div>
+      <div><dt>Names</dt><dd id="pNames">—</dd></div>
+      <div><dt>Team</dt><dd id="pRep">—</dd></div>
+      <div><dt>State</dt><dd id="pState">—</dd></div>
+    </dl>
+
+    <button id="btnConfirm" class="btn primary" disabled>
+      Confirm & Start Scoring
+    </button>
+  </section>
+
+  <!-- Step 2 -->
+  <section id="scoreFormWrap" class="block hide">
+    <h2>Step 2 — Enter Freestyle Scores</h2>
+
+    <form id="scoreForm" class="form">
+      <div class="grid">
+
+        <label class="field">
+          <span>MISSES</span>
+          <input name="MISSES" type="number" min="0" step="1" class="input" placeholder="0"/>
+        </label>
+
+        <label class="field">
+          <span>BREAKS</span>
+          <input name="BREAKS" type="number" min="0" step="1" class="input" placeholder="0"/>
+        </label>
+
+        <label class="field">
+          <span>DIFF J1</span>
+          <input name="DIFF J1" type="number" step="0.01" inputmode="decimal"
+            class="input" placeholder="0.00"/>
+        </label>
+
+        <label class="field">
+          <span>DIFF J2</span>
+          <input name="DIFF J2" type="number" step="0.01" inputmode="decimal"
+            class="input" placeholder="0.00"/>
+        </label>
+
+        <label class="field">
+          <span>Missed RE</span>
+          <input name="Missed RE" type="number" min="0" step="1" class="input" placeholder="0"/>
+        </label>
+
+        <label class="field col-span-2">
+          <span>REMARK</span>
+          <input name="REMARK" class="input" placeholder="Optional notes"/>
+        </label>
+
+      </div>
+
+      <!-- Hidden participant data -->
+      <input type="hidden" name="ID" id="fId"/>
+      <input type="hidden" name="NAME1" id="fNAME1"/>
+      <input type="hidden" name="NAME2" id="fNAME2"/>
+      <input type="hidden" name="NAME3" id="fNAME3"/>
+      <input type="hidden" name="NAME4" id="fNAME4"/>
+      <input type="hidden" name="TEAM" id="fREP"/>
+      <input type="hidden" name="STATE" id="fSTATE"/>
+      <input type="hidden" name="HEAT" id="fHEAT"/>
+      <input type="hidden" name="STATION" id="fSTATION"/>
+      <input type="hidden" name="EVENT" id="fEVENT"/>
+      <input type="hidden" name="DIVISION" id="fDIVISION"/>
+
+      <div class="row space">
+        <button type="submit" class="btn primary">Submit Result</button>
+      </div>
+    </form>
+  </section>
+
+</main>
+
+<!-- Submit overlay -->
+<div id="submitOverlay" class="overlay hide" aria-live="polite" aria-busy="true">
+  <div class="overlay-card">
+    <div class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div id="overlayText" class="overlay-text">Sending…</div>
+  </div>
+</div>
+
+<script>judging = true;</script>
+
+<script>
+(function helpersInit(){
+  try{
+    async function hardRefresh(){
+      try{
+        if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for(const r of regs){ try{ await r.unregister(); }catch(_){ } }
+        }
+        if(window.caches && caches.keys){
+          const keys = await caches.keys();
+          for(const k of keys){ try{ await caches.delete(k); }catch(_){ } }
+        }
+      }catch(_){}
+      location.reload(true);
+    }
+
+    window.hardRefresh = hardRefresh;
+
+    var btnRefresh = document.getElementById('btnRefresh');
+    if(btnRefresh){ btnRefresh.addEventListener('click', hardRefresh); }
+
+    var entryInput = document.getElementById('entryIdInput');
+    var btnLookup = document.getElementById('btnLookup');
+
+    if(btnLookup && entryInput){
+      btnLookup.addEventListener('click', function(){
+        var evt = new KeyboardEvent('keyup',{key:'Enter', bubbles:true});
+        entryInput.dispatchEvent(evt);
+      });
+    }
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>
