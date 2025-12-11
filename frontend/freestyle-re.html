@@ -269,7 +269,7 @@ function completed(v){ return Math.floor(v); }
 function updateMissing(){
     const total =
         completed(values.power) +
-        completed(values.multiples) +
+        completed(values.multiples) +   /* ✅ FIXED: correct key */
         completed(values.manipulation);
 
     document.getElementById("reLabel").textContent =
@@ -311,12 +311,11 @@ document.querySelectorAll(".re-btn-half, .re-btn-full").forEach(btn=>{
 
         undoBtn.classList.remove("hidden");
 
-        // ⭐ Instant vibration
         if (navigator.vibrate) navigator.vibrate([35]);
     }, { passive:true });
 });
 
-/* ⭐ UNDO BUTTON (pointerdown) */
+/* ⭐ UNDO BUTTON */
 undoBtn.addEventListener("pointerdown",()=>{
 
     if(!lastAction) return;
@@ -337,7 +336,7 @@ undoBtn.addEventListener("pointerdown",()=>{
     if (navigator.vibrate) navigator.vibrate([50,30]);
 });
 
-/* ⭐ RESET BUTTON (pointerdown) */
+/* ⭐ RESET BUTTON */
 resetBtn.addEventListener("pointerdown",()=>{
 
     values.power = 0;
@@ -357,10 +356,10 @@ resetBtn.addEventListener("pointerdown",()=>{
     if (navigator.vibrate) navigator.vibrate([60]);
 });
 
-/* ⭐ SUBMIT BUTTON (pointerdown) */
+/* ⭐ FIXED SUBMIT BUTTON — USE CLICK (NOT pointerdown) */
 const overlay = document.getElementById("submitOverlay");
 
-document.getElementById("btnSubmit").addEventListener("pointerdown",()=>{
+document.getElementById("btnSubmit").addEventListener("click", ()=>{
     overlay.classList.remove("hide");
     if (navigator.vibrate) navigator.vibrate([80]);
 });
@@ -386,6 +385,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+/* Overlay hides after backend submits */
 document.addEventListener("judge:submitted",()=>{
     overlay.classList.add("hide");
 });
