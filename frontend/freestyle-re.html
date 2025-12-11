@@ -110,7 +110,6 @@
         background:#f5f5f5;
         padding-bottom:40px;
     }
-    #reContainer::-webkit-scrollbar { width:0; }
 
     .re-grid {
         display:grid;
@@ -130,16 +129,19 @@
         justify-content:center;
         align-items:center;
         text-align:center;
-        line-height:1.2;
         color:white;
         font-size:14px;
         cursor:pointer;
+        line-height:1.2;
     }
 
     .re-btn-half { background:#d64545; }
     .re-btn-full { background:#28c766; }
 
-    .disabled { opacity:.35; pointer-events:none; }
+    .disabled {
+        opacity:.35;
+        pointer-events:none;
+    }
 
     .re-value-box {
         text-align:center;
@@ -151,9 +153,6 @@
         gap:6px;
     }
 
-    .slash { font-weight:700; }
-
-    /* Overlay (speed judge style) */
     .overlay {
       position:fixed;
       inset:0;
@@ -167,23 +166,19 @@
 
     .overlay-card {
       background:#fff;
-      padding:1.25rem 1.5rem;
+      padding:20px 28px;
       border-radius:16px;
       box-shadow:0 10px 30px #0002;
       border:1px solid #e5e7eb;
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap:.75rem;
+      gap:10px;
     }
 
-    .overlay-text { font-weight:700; }
-
-    .loading { display:flex; align-items:center; gap:.5rem; }
-
+    .loading { display:flex; align-items:center; gap:6px; }
     .loading .dot {
-      width:6px; height:6px;
-      border-radius:50%;
+      width:6px; height:6px; border-radius:50%;
       background:#9ca3af;
       animation:blink 1s infinite ease-in-out;
     }
@@ -230,15 +225,13 @@
     <div class="loading">
       <span class="dot"></span><span class="dot"></span><span class="dot"></span>
     </div>
-    <div class="overlay-text">Submitting…</div>
+    <div>Submitting…</div>
   </div>
 </div>
 
 <script>
 
-/* ⭐–––––––––––––––––––––––––––––––––––––––––––––––––
-   CRITICAL FIX: LOAD PARTICIPANT INFO INTO LOCALSTORAGE
-––––––––––––––––––––––––––––––––––––––––––––––––– */
+/* ⭐ Load participant info into localStorage so JudgeCore can submit correctly */
 const qs = new URLSearchParams(location.search);
 
 localStorage.setItem("currentEntry", JSON.stringify({
@@ -254,151 +247,58 @@ localStorage.setItem("currentEntry", JSON.stringify({
     HEAT: qs.get("heat") || ""
 }));
 
-/* ===================================================== */
-
-
+/* Build RE buttons (UI only — scoring handled in judge-forms.js) */
 const CATS = [
   { key:"power",        label:"Power / Gymnastics" },
   { key:"multiples",    label:"Multiples" },
   { key:"manipulation", label:"Rope Manipulation" }
 ];
 
-const values = { power:0, multiples:0, manipulation:0 };
-let lastAction = null;
-
 const container = document.getElementById("reContainer");
 
 CATS.forEach(cat => {
   container.innerHTML += `
     <div class="re-grid">
+
         <div class="re-btn-half" data-key="${cat.key}" data-type="half">
             ${cat.label}<br>+1/2
         </div>
 
         <div class="re-value-box">
             <span id="val_${cat.key}">0</span>
-            <span class="slash">/</span>
+            <span>/</span>
             <span>4</span>
         </div>
 
         <div class="re-btn-full" data-key="${cat.key}" data-type="full">
             ${cat.label}<br>+1
         </div>
+
     </div>
   `;
 });
 
-function completed(v){ return Math.floor(v); }
-
-function updateMissing(){
-    const total =
-        completed(values.power) +
-        completed(values.multiples) +
-        completed(values.manipulation);
-
-    window.reMiss = 12 - total;
-
-    document.getElementById("reLabel").textContent =
-        "RE (Missing: " + window.reMiss + ")";
-}
-
-function updateLocks(key){
-    const v = values[key];
-    const half = document.querySelector(`.re-btn-half[data-key="${key}"]`);
-    const full = document.querySelector(`.re-btn-full[data-key="${key}"]`);
-
-    if(v >= 4){
-        half.classList.add("disabled");
-        full.classList.add("disabled");
-    } else {
-        half.classList.remove("disabled");
-        full.classList.remove("disabled");
-    }
-}
-
-document.querySelectorAll(".re-btn-half, .re-btn-full").forEach(btn=>{
-    btn.addEventListener("pointerdown", ()=>{
-
-        const key = btn.dataset.key;
-        const add = (btn.dataset.type === "half" ? 0.5 : 1);
-
-        const prev = values[key];
-        const next = Math.min(prev + add, 4);
-
-        lastAction = { key, prev };
-        values[key] = next;
-
-        document.getElementById(`val_${key}`).textContent =
-            next.toFixed(1).replace(/\.0$/,"");
-
-        updateLocks(key);
-        updateMissing();
-
-        undoBtn.classList.remove("hidden");
-
-        if (navigator.vibrate) navigator.vibrate([35]);
-    }, { passive:true });
-});
-
-undoBtn.addEventListener("pointerdown",()=>{
-
-    if(!lastAction) return;
-
-    const { key, prev } = lastAction;
-
-    values[key] = prev;
-
-    document.getElementById(`val_${key}`).textContent =
-        prev.toFixed(1).replace(/\.0$/,"");
-
-    updateLocks(key);
-    updateMissing();
-
-    lastAction = null;
-    undoBtn.classList.add("hidden");
-
-    if (navigator.vibrate) navigator.vibrate([50,30]);
-});
-
-resetBtn.addEventListener("pointerdown",()=>{
-
-    values.power = 0;
-    values.multiples = 0;
-    values.manipulation = 0;
-
-    lastAction = null;
-    undoBtn.classList.add("hidden");
-
-    ["power","multiples","manipulation"].forEach(k=>{
-        document.getElementById(`val_${k}`).textContent = "0";
-        updateLocks(k);
-    });
-
-    updateMissing();
-
-    if (navigator.vibrate) navigator.vibrate([60]);
-});
-
-/* CLICK SUBMIT */
+/* Submit button overlay */
 const overlay = document.getElementById("submitOverlay");
-document.getElementById("btnSubmit").addEventListener("click", ()=>{
+document.getElementById("btnSubmit").addEventListener("click",()=>{
     overlay.classList.remove("hide");
 });
 
-/* ⭐ INIT JUDGE LOGIC */
+/* ⭐ INIT RE LOGIC FROM judge-forms.js */
 window.addEventListener("DOMContentLoaded", () => {
 
-  const logic = initJudgeForm("re");
+    const logic = initJudgeForm("re");
 
-  JudgeCore.init({
-    judgeType:"re",
-    submitButton:document.getElementById("btnSubmit"),
-    buildScore: () => logic.getScore()
-  });
+    JudgeCore.init({
+        judgeType:"re",
+        submitButton:document.getElementById("btnSubmit"),
+        buildScore: () => logic.getScore()
+    });
 });
 
+/* Hide overlay when submit completes */
 document.addEventListener("judge:submitted",()=>{
-    overlay.classList.add("hide");
+   overlay.classList.add("hide");
 });
 
 </script>
