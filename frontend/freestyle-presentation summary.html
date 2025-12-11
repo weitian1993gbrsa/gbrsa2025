@@ -79,6 +79,7 @@
 
     #summaryContainer::-webkit-scrollbar { width: 0; }
 
+    /* ===== PATCHED ROW (ONLY CHANGE ADDED justify-content:center) ===== */
     .row {
         display:grid;
         grid-template-columns:1fr 2fr 1fr;
@@ -87,6 +88,7 @@
         margin:20px auto;
         max-width:900px;
         padding:0 16px;
+        justify-content: center;   /* ⭐ FIX: CENTER LAYOUT */
     }
 
     .box-minus, .box-plus {
