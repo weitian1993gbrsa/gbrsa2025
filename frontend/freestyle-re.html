@@ -164,59 +164,16 @@
         font-weight:700;
     }
 
-    /* ======================================
-       MIRRORED SUBMIT OVERLAY (from speed-judge)
-    ====================================== */
-    .overlay {
-      position:fixed;
-      inset:0;
-      z-index:9999;
-      background:rgba(255,255,255,0.85);
-      display:flex;
-      justify-content:center;
-      align-items:center;
+    #submitOverlay {
+        position:fixed;
+        inset:0;
+        background:rgba(255,255,255,0.85);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        z-index:9999;
     }
-
-    .overlay.hide { display:none !important; }
-
-    .overlay-card {
-      background:#fff;
-      padding:1.25rem 1.5rem;
-      border-radius:16px;
-      box-shadow:0 10px 30px #0002;
-      border:1px solid #e5e7eb;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:.75rem;
-    }
-
-    .overlay-text {
-      font-weight:700;
-      color:#111827;
-    }
-
-    .loading {
-      display:flex;
-      align-items:center;
-      gap:.5rem;
-    }
-
-    .loading .dot {
-      width:6px;
-      height:6px;
-      border-radius:50%;
-      background:#9ca3af;
-      animation:blink 1s infinite ease-in-out;
-    }
-
-    .loading .dot:nth-child(2) { animation-delay:.15s }
-    .loading .dot:nth-child(3) { animation-delay:.3s }
-
-    @keyframes blink {
-      0%,80%,100% { transform:scale(0); opacity:.3; }
-      40% { transform:scale(1); opacity:1; }
-    }
+    #submitOverlay.hide { display:none!important; }
 
     html, body {
        overflow: hidden !important;
@@ -261,13 +218,10 @@
 
 </div>
 
-<!-- ⭐ MIRRORED SUBMIT OVERLAY -->
-<div id="submitOverlay" class="overlay hide">
-  <div class="overlay-card">
-    <div class="loading">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-    </div>
-    <div id="overlayText" class="overlay-text">Submitting…</div>
+<!-- Submit overlay -->
+<div id="submitOverlay" class="hide">
+  <div style="background:white; padding:20px 30px; border-radius:12px; border:1px solid #ccc; font-weight:700;">
+    Submitting...
   </div>
 </div>
 
@@ -324,7 +278,6 @@ function updateMissing(){
 
 function updateLocks(key){
     const v = values[key];
-
     const half = document.querySelector(`.re-btn-half[data-key="${key}"]`);
     const full = document.querySelector(`.re-btn-full[data-key="${key}"]`);
 
@@ -358,11 +311,12 @@ document.querySelectorAll(".re-btn-half, .re-btn-full").forEach(btn=>{
 
         undoBtn.classList.remove("hidden");
 
+        // ⭐ Instant vibration
         if (navigator.vibrate) navigator.vibrate([35]);
     }, { passive:true });
 });
 
-/* ⭐ UNDO BUTTON */
+/* ⭐ UNDO BUTTON (pointerdown) */
 undoBtn.addEventListener("pointerdown",()=>{
 
     if(!lastAction) return;
@@ -383,7 +337,7 @@ undoBtn.addEventListener("pointerdown",()=>{
     if (navigator.vibrate) navigator.vibrate([50,30]);
 });
 
-/* ⭐ RESET BUTTON */
+/* ⭐ RESET BUTTON (pointerdown) */
 resetBtn.addEventListener("pointerdown",()=>{
 
     values.power = 0;
@@ -403,10 +357,10 @@ resetBtn.addEventListener("pointerdown",()=>{
     if (navigator.vibrate) navigator.vibrate([60]);
 });
 
-/* ⭐ CLICK SUBMIT */
+/* ⭐ SUBMIT BUTTON (pointerdown) */
 const overlay = document.getElementById("submitOverlay");
 
-document.getElementById("btnSubmit").addEventListener("click", ()=>{
+document.getElementById("btnSubmit").addEventListener("pointerdown",()=>{
     overlay.classList.remove("hide");
     if (navigator.vibrate) navigator.vibrate([80]);
 });
@@ -419,7 +373,6 @@ window.addEventListener("DOMContentLoaded", () => {
     judgeType:"re",
     submitButton:document.getElementById("btnSubmit"),
 
-    /* ⭐ MINIMAL PATCH A — Required backend fields added */
     buildScore(){
       const comp =
         completed(values.power) +
@@ -427,25 +380,12 @@ window.addEventListener("DOMContentLoaded", () => {
         completed(values.manipulation);
 
       return {
-        MISSRE: 12 - comp,
-
-        // Required for backend row consistency
-        ID: JudgeCore.current?.ID,
-        NAME1: JudgeCore.current?.NAME1,
-        NAME2: JudgeCore.current?.NAME2,
-        NAME3: JudgeCore.current?.NAME3,
-        NAME4: JudgeCore.current?.NAME4,
-        TEAM: JudgeCore.current?.TEAM,
-        STATE: JudgeCore.current?.STATE,
-        EVENT: JudgeCore.current?.EVENT,
-        DIVISION: JudgeCore.current?.DIVISION,
-        STATION: JudgeCore.current?.STATION
+        MISSRE: 12 - comp
       };
     }
   });
 });
 
-/* ⭐ Hide overlay when backend submits */
 document.addEventListener("judge:submitted",()=>{
     overlay.classList.add("hide");
 });
