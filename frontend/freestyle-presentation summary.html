@@ -113,7 +113,7 @@ html, body {
 }
 
 .box-minus { background: #d64545; }
-.box-plus { background: #28c766; }
+.box-plus  { background: #28c766; }
 
 .label-text {
     font-size: clamp(11px, 3.2vw, 15px);
@@ -203,7 +203,7 @@ const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
 
 function safe(n){ return isNaN(Number(n)) ? 0 : Number(n); }
 
-/* ⭐ FIX: Display Miss Count from Page 1 */
+/* ⭐ SHOW MISS VALUE FROM PAGE 1 */
 document.getElementById("missText").textContent = `Misses (${data.misses || 0})`;
 
 const WEIGHTS = {
@@ -263,14 +263,18 @@ cats.forEach(cat => {
     `;
 });
 
-/* SCORE CALCULATION */
+/* ⭐ SCORE CALCULATION — NOW SUBTRACT MISSES */
 function recalcScore(){
     let score = 0;
 
+    // Weighted sliders
     cats.forEach(cat => {
         const v = Number(document.getElementById("slider_" + cat.key).value);
         score += v * WEIGHTS[cat.key];
     });
+
+    // ⭐ SUBTRACT MISSES (correct final score)
+    score -= safe(data.misses || 0);
 
     document.getElementById("scoreText").textContent =
         `Score (${score.toFixed(2)})`;
@@ -278,7 +282,7 @@ function recalcScore(){
 
 recalcScore();
 
-/* Undo stays untouched — original logic */
+/* Undo logic stays the same */
 let lastAction = null;
 
 function showUndo(){
@@ -332,7 +336,7 @@ document.getElementById("submitBtn").addEventListener("click", ()=>{
     document.getElementById("submitOverlay").classList.remove("hide");
 });
 
-/* JudgeCore setup */
+/* JudgeCore */
 window.addEventListener("DOMContentLoaded", () => {
     JudgeCore.init({
         judgeType: "presentation",
@@ -343,7 +347,6 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
-
 </script>
 
 </body>
