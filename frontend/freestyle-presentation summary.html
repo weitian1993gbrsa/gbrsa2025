@@ -6,11 +6,11 @@
 <title>Presentation Summary</title>
 
 <style>
-    /* ===== FULLSCREEN NO SCROLL + NO SELECT ===== */
+    /* ===== FULLSCREEN + NO SCROLL ===== */
     html, body {
         margin: 0;
         padding: 0;
-        overflow: hidden;   /* No scrolling */
+        overflow: hidden;
         height: 100%;
         background: #f5f5f5;
         font-family: system-ui, sans-serif;
@@ -18,10 +18,14 @@
 
     * {
         -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        -ms-user-select: none !important;
         user-select: none !important;
         -webkit-tap-highlight-color: transparent;
+    }
+
+    .wrapper {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
     /* ===== TOP BAR ===== */
@@ -36,117 +40,153 @@
     }
 
     .top-btn {
-        padding:10px 20px;
-        border-radius:0px;
-        border:1px solid #ccc;
-        background:white;
-        cursor:pointer;
+        padding: 10px 20px;
+        border: 1px solid #ccc;
+        background: white;
+        font-size: 16px;
+        border-radius: 0;
     }
-    .submit-btn { background:#007bff; color:white; border:none; }
+
+    .submit-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+    }
 
     /* ===== SCORE BAR ===== */
     .score-values {
-        display:flex;
-        justify-content:center;
-        gap:60px;
-        padding:12px 0;
-        font-size:15px;
-        font-weight:400;
-        background:white;
-        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        gap: 60px;
+        padding: 12px 0;
+        font-size: 15px;
+        background: white;
         border-bottom: 1px solid #ddd;
+        flex-shrink: 0;
     }
 
-    /* ===== CONTENT AREA ===== */
+    /* ===== MAIN GRID CONTAINER ===== */
     #summaryContainer {
         flex: 1;
         overflow-y: auto;
-        padding-bottom: 20px;
+        padding: 16px;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: 1fr; /* rows stack vertically */
+        gap: 20px;
         background: #f5f5f5;
     }
 
-    #summaryContainer::-webkit-scrollbar { width: 0; }
+    #summaryContainer::-webkit-scrollbar {
+        width: 0;
+    }
 
+    /* ===== 3-COLUMN RESPONSIVE ROW ===== */
     .row {
-        display:grid;
-        grid-template-columns:1fr 2fr 1fr;
-        gap:20px;
-        align-items:center;
-        margin:20px auto;
-        max-width:900px;
-        padding:0 16px;
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        gap: 16px;
+        align-items: stretch;
+        width: 100%;
     }
 
+    /* ===== SQUARE AUTO BUTTONS ===== */
     .box-minus, .box-plus {
-        height:105px;
-        border-radius:4px;
-        width: 100px;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        flex-direction:column;
-        font-size:13px;
-        color:#fff;
-        cursor:pointer;
+        aspect-ratio: 1 / 1;      /* SQUARE responsive */
+        width: 100%;
+        height: auto;
+        border-radius: 6px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #d64545;
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
     }
 
-    .box-minus { background:#d64545; }
-    .box-plus  { background:#28c766; }
+    .box-plus {
+        background: #28c766;
+    }
+
+    /* ===== SLIDER COLUMN ===== */
+    .row > div:nth-child(2) {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
 
     .level-labels {
-        display:grid;
-        grid-template-columns:1fr 20fr 1fr;
-        text-align:center;
-        font-size:16px;
-        font-weight:700;
-        margin-bottom:6px;
+        display: grid;
+        grid-template-columns: 1fr 20fr 1fr;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 8px;
     }
 
     .summary-slider {
-        width:100%;
-        accent-color:#008000;
+        width: 100%;
+        accent-color: #008000;
     }
 
-    /* Overlay */
+    /* ===== Overlay ===== */
     .overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: rgba(0,0,0,0.4);
-      display: flex; justify-content: center; align-items: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       z-index: 9999;
     }
     .overlay.hide { display: none; }
+
     .overlay-card {
-      background: #fff; padding: 2rem 3rem; border-radius: 16px; text-align: center;
+      background: #fff;
+      padding: 2rem 3rem;
+      border-radius: 16px;
+      text-align: center;
     }
+
     .loading .dot {
-      display: inline-block; width: 10px; height: 10px; margin: 0 3px;
-      background: #333; border-radius: 50%; animation: blink 1s infinite;
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0 3px;
+      background: #333;
+      border-radius: 50%;
+      animation: blink 1s infinite;
     }
+
     .loading .dot:nth-child(2) { animation-delay: 0.2s; }
     .loading .dot:nth-child(3) { animation-delay: 0.4s; }
+
     @keyframes blink { 0%,80%,100% {opacity:0;} 40% {opacity:1;} }
     .overlay-text { margin-top: 1rem; font-weight: 600; }
+
 </style>
 </head>
 
-<body data-page="presentation-summary">
+<body>
 
 <div class="wrapper">
 
-    <!-- Header -->
+    <!-- HEADER -->
     <div class="top-bar">
         <button class="top-btn" onclick="history.back()">Back</button>
         <h3>Final</h3>
         <button class="top-btn submit-btn" id="submitBtn">Submit</button>
     </div>
 
-    <!-- Score -->
+    <!-- SCORE BAR -->
     <div class="score-values">
         <div id="scoreText">Score (0.00)</div>
         <div id="missText">Misses (0)</div>
     </div>
 
-    <!-- Summary content container -->
+    <!-- GRID BODY -->
     <div id="summaryContainer"></div>
 
 </div>
@@ -161,7 +201,7 @@
   </div>
 </div>
 
-<!-- Scripts -->
+<!-- JS -->
 <script defer src="app.js"></script>
 <script defer src="config.js"></script>
 <script defer src="nozoom.js"></script>
@@ -169,12 +209,7 @@
 <script defer src="judge-forms.js"></script>
 
 <script>
-/* URL params */
-const qs = new URLSearchParams(location.search);
-const station = qs.get("station");
-const key = qs.get("key");
-
-/* Load Page 1 Data */
+/* Load saved Page 1 data */
 const data = JSON.parse(localStorage.getItem("presentationPage1") || "{}");
 
 function safe(n){ return isNaN(Number(n)) ? 0 : Number(n); }
@@ -198,6 +233,7 @@ const cats = [
 
 const container = document.getElementById("summaryContainer");
 
+/* Build rows */
 cats.forEach(cat => {
     const minus = safe(data[cat.minus]);
     const plus  = safe(data[cat.plus]);
@@ -226,73 +262,55 @@ cats.forEach(cat => {
     `;
 });
 
-/* Misses */
+/* Misses displayed */
 let misses = safe(data.misses);
 document.getElementById("missText").textContent = `Misses (${misses})`;
 
-/* Score Calculation */
+/* Recalculate score */
 function recalcScore(){
     let score = 0;
-
     cats.forEach(cat=>{
         const v = Number(document.getElementById("slider_"+cat.key).value);
         score += v * WEIGHTS[cat.key];
     });
-
     score -= misses;
     document.getElementById("scoreText").textContent =
         `Score (${score.toFixed(2)})`;
 }
-
 recalcScore();
 
-/* ===== MINUS BUTTON WITH VIBRATION ===== */
+/* Button vibration + adjustments */
 document.querySelectorAll(".box-minus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
         let slider = document.getElementById("slider_"+key);
-
-        let v = Number(slider.value) - 1;
-        if(v < 0) v = 0;
-
-        slider.value = v;
-        document.getElementById("val_"+key).textContent = v;
+        slider.value = Math.max(0, Number(slider.value) - 1);
+        document.getElementById("val_"+key).textContent = slider.value;
         recalcScore();
-
-        if (navigator.vibrate) navigator.vibrate([40]);
+        navigator.vibrate?.([40]);
     });
 });
 
-/* ===== PLUS BUTTON WITH VIBRATION ===== */
 document.querySelectorAll(".box-plus").forEach(box=>{
     box.addEventListener("click", ()=>{
         const key = box.dataset.key;
         let slider = document.getElementById("slider_"+key);
-
-        let v = Number(slider.value) + 1;
-        if(v > 24) v = 24;
-
-        slider.value = v;
-        document.getElementById("val_"+key).textContent = v;
+        slider.value = Math.min(24, Number(slider.value) + 1);
+        document.getElementById("val_"+key).textContent = slider.value;
         recalcScore();
-
-        if (navigator.vibrate) navigator.vibrate([40]);
+        navigator.vibrate?.([40]);
     });
 });
 
-/* JudgeCore Submission */
+/* JudgeCore submit */
 window.addEventListener("DOMContentLoaded", () => {
-
     JudgeForms.presentation.initPage2 = function() {};
-
     JudgeCore.init({
         judgeType: "presentation",
         submitButton: document.getElementById("submitBtn"),
-
         buildScore() {
-            const scoreText = document.getElementById("scoreText").textContent;
-            const finalScore = Number(scoreText.replace("Score (", "").replace(")", ""));
-
+            const t = document.getElementById("scoreText").textContent;
+            const finalScore = Number(t.replace("Score (","").replace(")",""));
             return { PRESENTATION: finalScore };
         }
     });
