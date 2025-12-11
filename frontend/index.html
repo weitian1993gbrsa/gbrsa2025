@@ -6,70 +6,174 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>GBRSA Score • Scoring</title>
 
-<!-- CSS -->
-<link rel="stylesheet" href="./styles.css"/>
+<!-- EMBEDDED CSS (standalone, no styles.css needed) -->
+<style>
+/* GLOBAL RESET */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+html, body {
+  margin:0;
+  padding:0;
+  background:#f5f7fb;
+  font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  touch-action: manipulation;
+}
 
-<!-- 🔥 PREFETCH (Speed Boost) -->
+/* PAGE WRAPPER */
+.page {
+  display:flex;
+  flex-direction:column;
+}
+body.homepage {
+  min-height:100dvh;
+  overflow-y:auto;
+}
+
+/* TOPBAR */
+.topbar {
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  padding:.75rem 1rem;
+  background:#ffffffd9;
+  border-bottom:1px solid #e5e7eb;
+  backdrop-filter: saturate(1.2) blur(4px);
+}
+.logo {
+  height:48px;
+  max-width:200px;
+  object-fit:contain;
+}
+.titles h1 {
+  margin:0;
+  font-size:1.35rem;
+}
+.subtitle {
+  margin:0;
+  font-size:.9rem;
+  color:#4b5563;
+}
+
+/* HOMEPAGE WRAPPER */
+.home-wrapper {
+  max-width:960px;
+  margin:0 auto;
+  padding:2rem 1rem;
+}
+
+.menu-grid {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:1.25rem;
+}
+
+/* CARD */
+.card {
+  display:block;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:1.25rem 1.5rem;
+  box-shadow:0 4px 14px rgba(0,0,0,0.06);
+}
+
+/* JUDGE LOGIN CARD SPECIAL FIX */
+.judge-login {
+  cursor:default !important;
+  box-shadow:none !important;
+  border-left:none !important;
+  transition:none !important;
+}
+.judge-login:hover {
+  cursor:default !important;
+  transform:none !important;
+  box-shadow:none !important;
+}
+
+.judge-desc {
+  margin:.25rem 0 1rem;
+  color:#4b5563;
+  font-size:.9rem;
+}
+
+/* LOGIN FIELD */
+.login-field {
+  display:flex;
+  gap:.5rem;
+  align-items:center;
+}
+.input {
+  width:100%;
+  padding:.75rem;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  background:white;
+  font-size:1rem;
+}
+
+/* BUTTON */
+.btn {
+  padding:.75rem 1rem;
+  background:#fff;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  font-weight:600;
+  cursor:pointer;
+}
+.btn.primary {
+  background:linear-gradient(180deg,#3b82f6,#2563eb);
+  border-color:#1d4ed8;
+  color:#fff;
+}
+
+/* ERROR TEXT */
+.judge-error {
+  display:none;
+  color:#d00000;
+  font-weight:600;
+  margin-top:.75rem;
+}
+
+/* FOOTER */
+.foot {
+  text-align:center;
+  padding:1.5rem 0;
+  color:#4b5563;
+  font-size:.9rem;
+}
+</style>
+
+<!-- PREFETCH (optional to keep) -->
 <link rel="prefetch" href="speed-judge.html">
 <link rel="prefetch" href="speed-judge.js">
-<link rel="prefetch" href="styles.css">
 <link rel="prefetch" href="speed-station.html">
 
-<!-- Load config first -->
+<!-- CORE SCRIPTS -->
 <script src="./config.js"></script>
-
-<!-- Other scripts -->
 <script defer src="./app.js"></script>
 <script defer src="./nozoom.js"></script>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b1020">
 
-<style>
-  html, body { touch-action: manipulation; }
-
-  /* FIX — Judge Login Card Should Not Glow */
-  .judge-login {
-    cursor: default !important;
-    box-shadow: none !important;
-    border-left: none !important;
-    transition: none !important;
-    outline: none !important;
-  }
-
-  .judge-login:hover {
-    cursor: default !important;
-    transform: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-  }
-
-  .judge-login input:focus,
-  .judge-login button:focus {
-    outline: none !important;
-    box-shadow: none !important;
-    border-color: var(--border) !important;
-  }
-
-</style>
-
-<!-- API Warm-Up -->
+<!-- Warm-up API -->
 <script>
 fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 </script>
 
-<!-- iOS zoom fix -->
+<!-- iOS keyboard zoom fix -->
 <script>
 (function(){
   function ensureSize(el){
-    try{
-      if(!el) return;
-      let t = el.tagName.toLowerCase();
-      if (t==='input' || t==='textarea' || t==='select'){
-        el.style.fontSize='16px';
-        el.style.webkitTextSizeAdjust='100%';
-      }
-    }catch(e){}
+    if(!el) return;
+    let t = el.tagName.toLowerCase();
+    if(['input','textarea','select'].includes(t)){
+      el.style.fontSize='16px';
+      el.style.webkitTextSizeAdjust='100%';
+    }
   }
   document.addEventListener('focusin', e => ensureSize(e.target), true);
 })();
@@ -80,7 +184,7 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 <body class="page homepage">
 
 <header class="topbar">
-  <img src="./assets/company-logo.png" alt="GBRSA" class="logo" />
+  <img src="./assets/company-logo.png" class="logo" />
   <div class="titles">
     <h1>GBRSA RopeApp</h1>
     <p class="subtitle">powered by GBRSA</p>
@@ -110,33 +214,25 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
   </div>
 </main>
 
-<footer class="foot" style="text-align:center;">
+<footer class="foot">
   <small>© 2025 GB Rope Skipping Academy</small>
 </footer>
 
 <script>
-/* ============================================================
-   CLEAR ALL CACHE ON LOGOUT / PAGE OPEN
-   (Speed + Freestyle)
-============================================================ */
-Object.keys(localStorage).forEach(k => {
-  if (k.startsWith("station_cache_")) {
-    localStorage.removeItem(k);
-  }
-  if (k.startsWith("freestyle_cache_")) {
-    localStorage.removeItem(k);
-  }
+/* CLEAR ALL STATION & FREESTYLE CACHE */
+Object.keys(localStorage).forEach(k=>{
+  if(k.startsWith("station_cache_")) localStorage.removeItem(k);
+  if(k.startsWith("freestyle_cache_")) localStorage.removeItem(k);
 });
 
 const JUDGE_MAP = window.JUDGE_KEYS;
 
-// UI elements
+// UI
 const keyInput  = document.getElementById("judgeKey");
 const keyError  = document.getElementById("keyError");
 const btnLogin  = document.getElementById("btnJudgeLogin");
 
 btnLogin.addEventListener("click", () => {
-
   const key = keyInput.value.trim();
   keyError.style.display = "none";
 
@@ -144,11 +240,10 @@ btnLogin.addEventListener("click", () => {
   if (typeof ADMIN_KEY !== "undefined" && key === ADMIN_KEY) {
     btnLogin.disabled = true;
     btnLogin.textContent = "Loading…";
-    window.location.href = "admin.html";
+    location.href = "admin.html";
     return;
   }
 
-  // Judge key info
   const info = JUDGE_MAP[key];
   if (!info) {
     keyError.style.display = "block";
@@ -162,13 +257,10 @@ btnLogin.addEventListener("click", () => {
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  // ⭐ SPEED → go to speed-station
   if (event === "speed") {
     location.href = `speed-station.html?station=${station}&key=${key}`;
     return;
   }
-
-  // ⭐ FREESTYLE → go to freestyle-station
   if (event === "freestyle") {
     location.href =
       `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
@@ -176,25 +268,24 @@ btnLogin.addEventListener("click", () => {
   }
 });
 
-// Enter key support
-keyInput.addEventListener("keyup", e => {
-  if (e.key === "Enter") btnLogin.click();
+// ENTER KEY
+keyInput.addEventListener("keyup", e=>{
+  if(e.key==="Enter") btnLogin.click();
 });
 
-// Reset after back
-function resetJudgeLogin() {
-  btnLogin.disabled = false;
-  btnLogin.textContent = "Enter";
-  keyError.style.display = "none";
-  keyInput.value = "";
+// RESET WHEN RETURNING TO PAGE
+function resetJudgeLogin(){
+  btnLogin.disabled=false;
+  btnLogin.textContent="Enter";
+  keyError.style.display="none";
+  keyInput.value="";
 }
-
 window.addEventListener("pageshow", resetJudgeLogin);
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") resetJudgeLogin();
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible") resetJudgeLogin();
 });
-window.addEventListener("pagehide", () => {
-  keyInput.value = "";
+window.addEventListener("pagehide", ()=>{
+  keyInput.value="";
 });
 </script>
 
