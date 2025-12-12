@@ -50,19 +50,21 @@ html, body {
   flex-direction:column;
 }
 
+/* ✅ FULL-WIDTH LAYOUT */
 .container {
-  padding:1rem;
-  max-width:900px;
   width:100%;
-  margin:0 auto;
+  padding:1rem;
+  margin:0;
+  max-width:none;
 }
 
+/* ✅ REMOVE CARD LOOK */
 .block {
-  background:#ffffff;
-  border-radius:16px;
-  padding:1.2rem 1rem;
-  margin:1rem 0;
-  box-shadow:0 6px 18px #00000014;
+  background:transparent;
+  padding:0;
+  margin:0;
+  border-radius:0;
+  box-shadow:none;
 }
 
 /* BUTTON BASE */
@@ -154,7 +156,7 @@ html, body {
   font-weight:700;
 }
 
-/* ⭐ REMARK INPUT */
+/* REMARK INPUT */
 .remark-rounded {
   width:100%;
   padding:14px 16px;
@@ -173,9 +175,7 @@ html, body {
   color:#9ca3af;
 }
 
-/* ======================================
-   SUBMIT OVERLAY + ANIMATION
-======================================*/
+/* SUBMIT OVERLAY */
 .overlay {
   position:fixed;
   inset:0;
@@ -233,46 +233,37 @@ html, body {
 
 <header class="judge-header">
   <button onclick="goBack()" class="btn">Back</button>
-  <div><div class="judge-title">Unofficial Score</div></div>
+  <div class="judge-title">Unofficial Score</div>
 </header>
 
 <main class="container">
   <section class="block">
     <form id="scoreForm" class="form">
 
-      <!-- FALSE START BTN -->
       <button type="button" id="falseStartBtn" class="fs-btn fs-no">False Start: No</button>
       <input type="hidden" id="falseStartVal" name="FALSE START" value="">
 
-      <!-- SCORE DISPLAY -->
       <div id="scoreScreen" class="score-screen">0</div>
 
-      <!-- NUMPAD -->
       <div class="numpad-grid">
         <button type="button" data-key="1">1</button>
         <button type="button" data-key="2">2</button>
         <button type="button" data-key="3">3</button>
-
         <button type="button" data-key="4">4</button>
         <button type="button" data-key="5">5</button>
         <button type="button" data-key="6">6</button>
-
         <button type="button" data-key="7">7</button>
         <button type="button" data-key="8">8</button>
         <button type="button" data-key="9">9</button>
-
         <button type="button" class="np-clear" data-key="clear">Clear</button>
         <button type="button" data-key="0">0</button>
-
         <button type="button" class="np-enter">Submit</button>
       </div>
 
-      <!-- REMARK INPUT -->
       <input type="text" id="remarkText" class="remark-rounded" placeholder="Enter remark…">
-
       <input type="hidden" name="REMARK" id="remarkField">
 
-      <!-- Backend Hidden Fields -->
+      <!-- Hidden backend fields -->
       <input type="hidden" name="ID" id="fID">
       <input type="hidden" name="NAME1" id="fNAME1">
       <input type="hidden" name="NAME2" id="fNAME2">
@@ -289,24 +280,16 @@ html, body {
   </section>
 </main>
 
-<!-- BACK -->
 <script>
 function goBack() {
-  const params = new URLSearchParams(location.search);
-  const station = params.get("station");
-  const key = params.get("key");
-  location.href = `speed-station.html?station=${station}&key=${key}`;
+  const p = new URLSearchParams(location.search);
+  location.href = `speed-station.html?station=${p.get("station")}&key=${p.get("key")}`;
 }
 
 history.pushState(null,null,location.href);
 window.onpopstate = () => goBack();
-
-window.addEventListener("pageshow", e => {
-  if (e.persisted) goBack();
-});
 </script>
 
-<!-- SUBMIT OVERLAY -->
 <div id="submitOverlay" class="overlay hide">
   <div class="overlay-card">
     <div class="loading">
@@ -316,24 +299,12 @@ window.addEventListener("pageshow", e => {
   </div>
 </div>
 
-<!-- REMARK LOGIC -->
 <script>
 const remarkText = document.getElementById("remarkText");
 const remarkField = document.getElementById("remarkField");
 
 remarkText.addEventListener("input", () => {
   remarkField.value = remarkText.value.trim();
-});
-
-remarkText.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    remarkField.value = remarkText.value.trim();
-    remarkText.blur();
-    if (navigator.vibrate) navigator.vibrate([30]);
-    remarkText.style.borderColor = "#2563eb";
-    setTimeout(()=> remarkText.style.borderColor="#d1d5db",150);
-  }
 });
 </script>
 
