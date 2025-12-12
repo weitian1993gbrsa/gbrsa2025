@@ -91,11 +91,12 @@ html, body {
 }
 
 /* ---------------------------------
-   INPUT FIELD (STABLE, NO MOVEMENT)
+   INPUT FIELD (STABLE)
 ----------------------------------- */
 .input {
   width: 100%;
-  padding: 0 1rem !important; /* fix vertical padding */
+  box-sizing: border-box; /* ✅ FIX */
+  padding: 0 1rem !important;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: #fff;
@@ -105,29 +106,18 @@ html, body {
   line-height: 1.2 !important;
   display: flex;
   align-items: center;
-  vertical-align: middle;
   transition: none !important;
 }
 
-/* Prevent placeholder jump */
 .input::placeholder {
   line-height: 1.2 !important;
   opacity: .65;
 }
 
-.input:focus::placeholder {
-  opacity: .55;
-}
-
-/* Prevent focus animation */
 .input:focus,
 .input:focus-visible {
   outline: none !important;
-  border-color: var(--border) !important;
   box-shadow: none !important;
-  background: #fff !important;
-  transform: none !important;
-  transition: none !important;
 }
 
 /* ---------------------------------
@@ -139,10 +129,14 @@ html, body {
   align-items: center;
 }
 
+/* ✅ FIX: allow flex children to shrink */
+.login-field > * {
+  min-width: 0;
+}
+
 .login-field input,
 .login-field button {
   height: 48px !important;
-  transition: none !important;
 }
 
 /* ---------------------------------
@@ -168,33 +162,15 @@ html, body {
 /* ---------------------------------
    CARD UI
 ----------------------------------- */
-.card,
-.card:visited,
-.card h3,
-.card p {
-  color: var(--text) !important;
-  text-decoration: none !important;
-}
-
 .card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 1.25rem 1.5rem;
   box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-  transition: .15s ease;
 }
 
-.card:hover {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* ---------------------------------
-   JUDGE LOGIN CARD
------------------------------------ */
 .judge-login {
-  cursor: default !important;
   border-left: 4px solid var(--accent);
 }
 
@@ -209,12 +185,6 @@ html, body {
   color: #d00000;
   font-weight: 600;
   margin-top: .75rem;
-  animation: fadeIn .3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 @media(max-width: 480px) {
@@ -234,29 +204,6 @@ html, body {
   font-size: 0.9rem;
 }
 </style>
-
-<!-- API Warm-Up -->
-<script>
-fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
-</script>
-
-<!-- iOS zoom fix -->
-<script>
-(function(){
-  function ensureSize(el){
-    try{
-      if(!el) return;
-      let t = el.tagName.toLowerCase();
-      if (t==='input' || t==='textarea' || t==='select'){
-        el.style.fontSize='16px';
-        el.style.webkitTextSizeAdjust='100%';
-      }
-    }catch(e){}
-  }
-  document.addEventListener('focusin', e => ensureSize(e.target), true);
-})();
-</script>
-
 </head>
 
 <body class="page homepage">
@@ -271,9 +218,7 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 
 <main class="page-wrapper">
   <div class="home-wrapper">
-
     <div class="menu-grid">
-
       <div class="card judge-login">
         <h3>System Access</h3>
         <p class="judge-desc">Enter your assigned access code to open your duty.</p>
@@ -285,9 +230,7 @@ fetch(window.CONFIG.APPS_SCRIPT_URL + "?warmup=1").catch(()=>{});
 
         <p id="keyError" class="judge-error">Invalid access code.</p>
       </div>
-
     </div>
-
   </div>
 </main>
 
@@ -305,68 +248,27 @@ Object.keys(localStorage).forEach(k => {
 });
 
 const JUDGE_MAP = window.JUDGE_KEYS;
-
 const keyInput  = document.getElementById("judgeKey");
 const keyError  = document.getElementById("keyError");
 const btnLogin  = document.getElementById("btnJudgeLogin");
 
-btnLogin.addEventListener("click", () => {
+btnLogin.onclick = () => {
   const key = keyInput.value.trim();
   keyError.style.display = "none";
-
-  // Admin login
-  if (typeof ADMIN_KEY !== "undefined" && key === ADMIN_KEY) {
-    btnLogin.disabled = true;
-    btnLogin.textContent = "Loading…";
-    window.location.href = "admin.html";
-    return;
-  }
-
   const info = JUDGE_MAP[key];
-
-  if (!info) {
-    keyError.style.display = "block";
-    return;
-  }
+  if (!info) return keyError.style.display = "block";
 
   btnLogin.disabled = true;
   btnLogin.textContent = "Loading…";
 
-  const station = info.station;
-  const event = info.event;
-  const judgeType = info.judgeType || "";
+  if (info.event === "speed")
+    location.href = `speed-station.html?station=${info.station}&key=${key}`;
+  else
+    location.href = `freestyle-station.html?station=${info.station}&judgeType=${info.judgeType}&key=${key}`;
+};
 
-  if (event === "speed") {
-    location.href = `speed-station.html?station=${station}&key=${key}`;
-    return;
-  }
-
-  if (event === "freestyle") {
-    location.href =
-      `freestyle-station.html?station=${station}&judgeType=${judgeType}&key=${key}`;
-    return;
-  }
-});
-
-// Enter key support
 keyInput.addEventListener("keyup", e => {
   if (e.key === "Enter") btnLogin.click();
-});
-
-// Reset page UI when returning from a judge page
-function resetJudgeLogin() {
-  btnLogin.disabled = false;
-  btnLogin.textContent = "Enter";
-  keyError.style.display = "none";
-  keyInput.value = "";
-}
-
-window.addEventListener("pageshow", resetJudgeLogin);
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") resetJudgeLogin();
-});
-window.addEventListener("pagehide", () => {
-  keyInput.value = "";
 });
 </script>
 
