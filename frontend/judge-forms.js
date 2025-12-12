@@ -105,7 +105,7 @@
 
           this.updateUI();
 
-          if (navigator.vibrate) navigator.vibrate([120]);
+          if (navigator.vibrate) navigator.vibrate([80]);
           btn.classList.add("pressed");
           setTimeout(() => btn.classList.remove("pressed"), 150);
         });
