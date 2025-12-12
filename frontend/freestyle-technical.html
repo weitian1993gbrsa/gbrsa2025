@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
   <title>Technical Judge</title>
 
-  <link rel="stylesheet" href="./styles.css"/>
-
   <style>
     * { 
       -webkit-tap-highlight-color: transparent; 
@@ -121,7 +119,7 @@
     .grid::-webkit-scrollbar { width: 0; }
 
     /* =============================
-       BUTTONS
+       BUTTONS (FLAT 2D — NO ANIMATION)
     ============================= */
     .skill-btn {
       width: 100%;
@@ -133,11 +131,13 @@
       color:white;
       border:none; 
       border-radius:6px;
-      transition:transform .15s ease;
       user-select:none;
+      /* ❌ no transition */
+      /* ❌ no transform */
     }
 
-    .skill-btn:active { transform:scale(0.95); }
+    /* ❌ remove press animation */
+    .skill-btn:active { }
 
     .miss-btn { background:#e53935; }
     .break-btn { background:#fb8c00; }
@@ -232,7 +232,7 @@
   </button>
 </div>
 
-</div> <!-- wrapper end -->
+</div>
 
 <!-- Scripts -->
 <script defer src="./app.js"></script>
@@ -243,15 +243,13 @@
 
 <script>
 window.addEventListener("DOMContentLoaded", () => {
+  const logic = initJudgeForm("technical");
 
-    // Must be lowercase because judge-forms.js defines "technical"
-    const logic = initJudgeForm("technical");
-
-    JudgeCore.init({
-        judgeType: "technical", 
-        submitButton: document.getElementById("btnSubmit"),
-        buildScore: () => logic.getScore()
-    });
+  JudgeCore.init({
+    judgeType: "technical",
+    submitButton: document.getElementById("btnSubmit"),
+    buildScore: () => logic.getScore()
+  });
 });
 </script>
 
