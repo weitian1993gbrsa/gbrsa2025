@@ -99,6 +99,34 @@ The app is optimized for **tablet use**, **offline-friendly operation**, and **f
 ✅ Competition Tested  
 ✅ Officially Completed  
 
+judge-forms.js = the UI scoring logic
+judge-forms.js controls how judges input scores + how score is computed.
+
+What it does:
+Adds event listeners to buttons (miss, break, +/-, undo, reset, sliders, numpad, etc.)
+Tracks values in memory (page1Data, technicalMisses, counts, etc.)
+Knows how to calculate the score object for that judge type via getScore()
+
+Example outputs:
+Speed: { SCORE: 123, "FALSE START": "YES" }
+Technical: { MISSES: 2, BREAKS: 1, SPACE: 0 }
+Presentation: { PRESENTATION: 13.6 }
+
+---------------------------------------------------------------------------------------------
+
+judge-core.js = the submission engine
+judge-core.js is the transport + submit workflow.
+
+What it does:
+Reads the current participant info (currentEntry) from localStorage / URL
+Reads judge identity info (station, judgeType, key, etc.)
+Calls the backend (apiPost / Apps Script endpoint) with:
+participant fields (ID, heat, names, station, event, division…)
+the score returned by JudgeForms[judgeType].getScore() or a buildScore() callback
+Shows/hides submit overlay
+Locks button to prevent double-submit
+Handles success/fail (redirect back, show error, etc.)
+
 ---
 
 © 2025 **GB Rope Skipping Academy (GBRSA)**  

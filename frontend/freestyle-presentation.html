@@ -6,126 +6,224 @@
 <title>Presentation Judge</title>
 
 <style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        height: 100%;
-        background: #f5f5f5;
-        font-family: system-ui, sans-serif;
-    }
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  background: #f5f5f5;
+  font-family: system-ui, sans-serif;
+}
 
-    * { 
-        -webkit-tap-highlight-color: transparent;
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        -ms-user-select: none !important;
-        user-select: none !important;
-    }
+* { -webkit-tap-highlight-color: transparent; user-select: none; }
 
-    .wrapper {
-        width: 100%;
-        max-width: 100%;
-        margin: 0 auto;
-        background: white;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
+.wrapper {
+  width: 100%;
+  height: 100%;
+  max-width: 650px;
+  margin: 0 auto;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
 
-    .top-bar {
-        background: white;
-        padding: 12px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #ddd;
-        flex-shrink: 0;
-    }
+/* HEADER (both pages) */
+.top-bar {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+  flex-shrink: 0;
+}
 
-    .top-btn {
-        background: white;
-        border: 1px solid #ccc;
-        padding: 10px 22px;
-        border-radius: 0;
-        cursor: pointer;
-        font-size: 18px;
-        font-weight: 600;
-    }
+.top-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
 
-    .submit-btn {
-        background: #1e88ff;
-        color: white;
-        border: none;
-        font-weight: bold;
-    }
+.primary-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+}
 
-    .control-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 20px;
-        background: white;
-        flex-shrink: 0;
-    }
+/* PAGE CONTAINERS */
+.page {
+  flex: 1;
+  min-height: 0;
+  display: none;      /* IMPORTANT: never stack */
+  flex-direction: column;
+}
 
-    .btn-undo {
-        background: #f2b632;
-        color: white;
-        font-weight: bold;
-        padding: 14px 30px;
-        font-size: 18px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
+/* PAGE 1 controls */
+.control-row {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+  flex-shrink: 0;
+}
 
-    .btn-reset {
-        background: #e53935;
-        color: white;
-        font-weight: bold;
-        padding: 14px 30px;
-        font-size: 18px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
+.btn-undo {
+  background: #f2b632;
+  color: white;
+  font-weight: bold;
+  padding: 14px 30px;
+  font-size: 18px;
+  border: none;
+  border-radius: 6px;
+}
 
-    .hidden {
-        opacity: 0;
-        pointer-events: none;
-        visibility: hidden;
-    }
+.btn-reset {
+  background: #e53935;
+  color: white;
+  font-weight: bold;
+  padding: 14px 30px;
+  font-size: 18px;
+  border: none;
+  border-radius: 6px;
+}
 
-    .pres-grid {
-        flex: 1;
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-auto-rows: 1fr;
-        gap: 12px;
-        padding: 16px 20px;
-        background: #f5f5f5;
-    }
+.hidden { opacity: 0; pointer-events: none; }
 
-    .pres-btn, .miss-btn {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        border-radius: 4px;
-        font-size: 14px;
-        cursor: pointer;
-    }
+/* PAGE 1 grid */
+.pres-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  background: #f5f5f5;
+}
 
-    .pres-btn { background: #d64545; }
-    .plus { background: #28c766; }
+.pres-btn, .miss-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+}
 
-    .miss-btn {
-        background: #d64545;
-        font-size: 24px;
-        grid-row: span 3;
-    }
+.pres-btn.minus { background: #d64545; }
+.pres-btn.plus  { background: #28c766; }
+
+.miss-btn {
+  background: #d64545;
+  font-size: 22px;
+  grid-row: span 3;
+}
+
+/* PAGE 2 score bar */
+.score-values {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  padding: 12px 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 15px;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+/* PAGE 2 summary scroll */
+#summaryScroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  background: #f5f5f5;
+}
+#summaryScroll::-webkit-scrollbar { width: 0; }
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 14px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+
+.box-minus, .box-plus {
+  color: white;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+
+  min-height: 90px;
+  height: 22vw;
+  max-height: 150px;
+
+  white-space: nowrap;
+  font-size: clamp(11px, 3.2vw, 15px);
+}
+
+.box-minus { background: #d64545; }
+.box-plus  { background: #28c766; }
+
+.label-text { font-size: clamp(11px, 3.2vw, 15px); margin-bottom: 4px; }
+.symbol { font-size: clamp(24px, 6vw, 32px); font-weight: 700; line-height: 1; }
+
+.row > div:nth-child(2) { display: flex; flex-direction: column; justify-content: center; }
+
+.level-labels {
+  display: grid;
+  grid-template-columns: 1fr 20fr 1fr;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.summary-slider { width: 100%; accent-color: #008000; }
+
+/* SUBMIT OVERLAY */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+.overlay.hide { display: none; }
+
+.overlay-card {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 12px;
+  font-weight: 700;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+.loading .dot {
+  width: 10px;
+  height: 10px;
+  margin: 0 3px;
+  background: #333;
+  border-radius: 50%;
+  display: inline-block;
+  animation: blink 1s infinite;
+}
+.loading .dot:nth-child(2){ animation-delay:.2s }
+.loading .dot:nth-child(3){ animation-delay:.4s }
+
+@keyframes blink {
+  0%,80%,100%{opacity:0}
+  40%{opacity:1}
+}
 </style>
 </head>
 
@@ -133,107 +231,281 @@
 
 <div class="wrapper">
 
+  <!-- ===================== PAGE 1 ===================== -->
+  <section id="page1" class="page">
+
     <div class="top-bar">
-        <button class="top-btn" onclick="history.back()">Back</button>
-        <button class="top-btn submit-btn" id="nextBtn">Next</button>
+      <button class="top-btn" id="backBtn1" type="button">Back</button>
+      <button class="top-btn primary-btn" id="nextBtn" type="button">Next</button>
     </div>
 
     <div class="control-row">
-        <button id="undoBtn" class="btn-undo hidden">Undo</button>
-        <button id="resetBtn" class="btn-reset">Reset</button>
+      <button id="undoBtn" class="btn-undo hidden" type="button">Undo</button>
+      <button id="resetBtn" class="btn-reset" type="button">Reset</button>
     </div>
 
     <div class="pres-grid">
 
-        <div class="pres-btn minus" data-type="creativity-minus">
-            Creativity-<br><span id="creMinus">0</span>
-        </div>
+      <div class="pres-btn minus" data-type="creativity-minus">
+        Creativity-<br><span id="creMinus">0</span>
+      </div>
 
-        <div></div>
+      <div></div>
 
-        <div class="pres-btn plus" data-type="creativity-plus">
-            Creativity+<br><span id="crePlus">0</span>
-        </div>
+      <div class="pres-btn plus" data-type="creativity-plus">
+        Creativity+<br><span id="crePlus">0</span>
+      </div>
 
-        <div class="pres-btn minus" data-type="musicality-minus">
-            Musicality-<br><span id="musMinus">0</span>
-        </div>
+      <div class="pres-btn minus" data-type="musicality-minus">
+        Musicality-<br><span id="musMinus">0</span>
+      </div>
 
-        <div class="miss-btn" id="missBtn">
-            Miss<br><span id="missCount">0</span>
-        </div>
+      <div class="miss-btn" id="missBtn">
+        Miss<br><span id="missCount">0</span>
+      </div>
 
-        <div class="pres-btn plus" data-type="musicality-plus">
-            Musicality+<br><span id="musPlus">0</span>
-        </div>
+      <div class="pres-btn plus" data-type="musicality-plus">
+        Musicality+<br><span id="musPlus">0</span>
+      </div>
 
-        <div class="pres-btn minus" data-type="entertain-minus">
-            Entertainment-<br><span id="entMinus">0</span>
-        </div>
+      <div class="pres-btn minus" data-type="entertain-minus">
+        Entertainment-<br><span id="entMinus">0</span>
+      </div>
 
-        <div class="pres-btn plus" data-type="entertain-plus">
-            Entertainment+<br><span id="entPlus">0</span>
-        </div>
+      <div class="pres-btn plus" data-type="entertain-plus">
+        Entertainment+<br><span id="entPlus">0</span>
+      </div>
 
-        <div class="pres-btn minus" data-type="form-minus">
-            Form-<br><span id="formMinus">0</span>
-        </div>
+      <div class="pres-btn minus" data-type="form-minus">
+        Form-<br><span id="formMinus">0</span>
+      </div>
 
-        <div class="pres-btn plus" data-type="form-plus">
-            Form+<br><span id="formPlus">0</span>
-        </div>
+      <div class="pres-btn plus" data-type="form-plus">
+        Form+<br><span id="formPlus">0</span>
+      </div>
 
-        <div class="pres-btn minus" data-type="variety-minus">
-            Repetitive-<br><span id="varMinus">0</span>
-        </div>
+      <div class="pres-btn minus" data-type="variety-minus">
+        Repetitive-<br><span id="varMinus">0</span>
+      </div>
 
-        <div></div>
+      <div></div>
 
-        <div class="pres-btn plus" data-type="variety-plus">
-            Variety+<br><span id="varPlus">0</span>
-        </div>
+      <div class="pres-btn plus" data-type="variety-plus">
+        Variety+<br><span id="varPlus">0</span>
+      </div>
 
     </div>
+  </section>
+
+  <!-- ===================== PAGE 2 ===================== -->
+  <section id="page2" class="page">
+
+    <div class="top-bar">
+      <button class="top-btn" id="backBtn2" type="button">Back</button>
+      <button class="top-btn primary-btn" id="submitBtn" type="button">Submit</button>
+    </div>
+
+    <div class="score-values">
+      <div id="scoreText">Score (0.00)</div>
+      <div id="missText">Misses (0)</div>
+    </div>
+
+    <div id="summaryScroll">
+      <div id="summaryContainer"></div>
+    </div>
+
+  </section>
 
 </div>
 
+<!-- SUBMIT OVERLAY -->
+<div id="submitOverlay" class="overlay hide" aria-hidden="true">
+  <div class="overlay-card">
+    <div class="loading" aria-hidden="true">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div id="overlayText">Submitting…</div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="config.js"></script>
+<script src="nozoom.js"></script>
 <script src="judge-forms.js"></script>
+<script src="judge-core.js"></script>
 
 <script>
-const qs = new URLSearchParams(location.search);
-const entry = {
-    ID: qs.get("id"),
-    NAME1: qs.get("name1") || "",
-    TEAM: qs.get("team") || "",
-    STATE: qs.get("state") || "",
-    HEAT: qs.get("heat") || "",
-    STATION: qs.get("station") || "",
-    EVENT: qs.get("event") || "",
-    DIVISION: qs.get("division") || ""
-};
-localStorage.setItem("currentEntry", JSON.stringify(entry));
+/* ============================================================
+   PRESENTATION MERGED (TRUE 2-PAGE BEHAVIOR)
+   - Page 1 shows ONLY grid (no score/miss bar)
+   - Page 2 shows ONLY summary + score/miss bar
+   - No stacking: we use display:none/flex
+============================================================ */
+window.addEventListener("DOMContentLoaded", () => {
 
-initJudgeForm("presentation");
+  const page1 = document.getElementById("page1");
+  const page2 = document.getElementById("page2");
 
-document.getElementById("resetBtn").addEventListener("click", () => {
-    const d = JudgeForms.presentation.page1Data;
+  function showPage1(){
+    page1.style.display = "flex";
+    page2.style.display = "none";
+  }
+  function showPage2(){
+    page1.style.display = "none";
+    page2.style.display = "flex";
+  }
 
-    d.creMinus = d.crePlus = 0;
-    d.musMinus = d.musPlus = 0;
-    d.entMinus = d.entPlus = 0;
-    d.formMinus = d.formPlus = 0;
-    d.varMinus = d.varPlus = 0;
-    d.misses = 0;
+  // Init Page 1 (binds buttons + reset/undo + internal pf.page1Data)
+  const pf = initJudgeForm("presentation");
 
-    document.querySelectorAll("span[id]").forEach(s => s.textContent = "0");
+  // Page navigation
+  document.getElementById("backBtn1").addEventListener("click", () => history.back());
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    buildSummaryFromPage1();
+    showPage2();
+  });
 
-    JudgeForms.presentation.lastAction = null;
-    document.getElementById("undoBtn").classList.add("hidden");
-});
+  document.getElementById("backBtn2").addEventListener("click", () => {
+    // hide overlay if visible
+    const overlay = document.getElementById("submitOverlay");
+    if (overlay) overlay.classList.add("hide");
+    showPage1();
+  });
 
-document.getElementById("nextBtn").addEventListener("click", () => {
-    localStorage.setItem("presentationPage1", JSON.stringify(JudgeForms.presentation.page1Data));
-    window.location.href = "freestyle-presentation summary.html" + location.search;
+  /* --------------------- SUMMARY BUILD --------------------- */
+  const summaryContainer = document.getElementById("summaryContainer");
+  const scoreText = document.getElementById("scoreText");
+  const missText  = document.getElementById("missText");
+
+  const cats = [
+    { key:"cre",  label:"Creativity" },
+    { key:"mus",  label:"Musicality" },
+    { key:"ent",  label:"Entertainment" },
+    { key:"form", label:"Form" },
+    { key:"var",  label:"Variety" }
+  ];
+  const WEIGHTS = { cre:.15, mus:.20, ent:.25, form:.25, var:.15 };
+
+  let summaryVals = { cre:12, mus:12, ent:12, form:12, var:12 };
+
+  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+  function safeNum(n){ n = Number(n); return Number.isFinite(n) ? n : 0; }
+
+  function buildSummaryFromPage1(){
+    const d = pf?.page1Data || {};
+    const misses = safeNum(d.misses || 0);
+
+    summaryVals = {
+      cre: clamp(12 + safeNum(d.crePlus)  - safeNum(d.creMinus),  0, 24),
+      mus: clamp(12 + safeNum(d.musPlus)  - safeNum(d.musMinus),  0, 24),
+      ent: clamp(12 + safeNum(d.entPlus)  - safeNum(d.entMinus),  0, 24),
+      form:clamp(12 + safeNum(d.formPlus) - safeNum(d.formMinus), 0, 24),
+      var: clamp(12 + safeNum(d.varPlus)  - safeNum(d.varMinus),  0, 24)
+    };
+
+    summaryContainer.innerHTML = "";
+
+    cats.forEach(cat => {
+      const v = summaryVals[cat.key];
+
+      summaryContainer.innerHTML += `
+        <div class="row">
+
+          <div class="box-minus" data-key="${cat.key}">
+            <div class="label-text">${cat.key === "var" ? "Repetitive" : cat.label}</div>
+            <div class="symbol">-</div>
+          </div>
+
+          <div>
+            <div class="level-labels">
+              <div>0</div>
+              <div id="val_${cat.key}">${v}</div>
+              <div>24</div>
+            </div>
+            <input id="slider_${cat.key}" class="summary-slider"
+                   type="range" min="0" max="24" value="${v}" disabled>
+          </div>
+
+          <div class="box-plus" data-key="${cat.key}">
+            <div class="label-text">${cat.key === "var" ? "Variety" : cat.label}</div>
+            <div class="symbol">+</div>
+          </div>
+
+        </div>
+      `;
+    });
+
+    // bind adjust +/- on summary
+    summaryContainer.querySelectorAll(".box-minus").forEach(box => {
+      box.addEventListener("click", () => {
+        const key = box.dataset.key;
+        summaryVals[key] = clamp(summaryVals[key] - 1, 0, 24);
+        document.getElementById("val_" + key).textContent = summaryVals[key];
+        document.getElementById("slider_" + key).value = summaryVals[key];
+        recalcFinalScore();
+        if (navigator.vibrate) navigator.vibrate([40]);
+      });
+    });
+
+    summaryContainer.querySelectorAll(".box-plus").forEach(box => {
+      box.addEventListener("click", () => {
+        const key = box.dataset.key;
+        summaryVals[key] = clamp(summaryVals[key] + 1, 0, 24);
+        document.getElementById("val_" + key).textContent = summaryVals[key];
+        document.getElementById("slider_" + key).value = summaryVals[key];
+        recalcFinalScore();
+        if (navigator.vibrate) navigator.vibrate([40]);
+      });
+    });
+
+    // set bars
+    missText.textContent = `Misses (${misses})`;
+    recalcFinalScore();
+  }
+
+  function recalcFinalScore(){
+    const d = pf?.page1Data || {};
+    const misses = safeNum(d.misses || 0);
+
+    let score = 0;
+    cats.forEach(cat => { score += safeNum(summaryVals[cat.key]) * WEIGHTS[cat.key]; });
+    score -= misses;
+
+    scoreText.textContent = `Score (${score.toFixed(2)})`;
+    missText.textContent  = `Misses (${misses})`;
+  }
+
+  /* --------------------- SUBMIT --------------------- */
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.addEventListener("click", () => {
+
+    const overlay = document.getElementById("submitOverlay");
+    if (overlay) overlay.classList.remove("hide");
+
+    // Ensure JudgeCore wired (it also binds click, but we call handleSubmit directly)
+    if (!window.JudgeCore || typeof window.JudgeCore.handleSubmit !== "function") {
+      alert("Submit engine not loaded (judge-core.js). Please refresh.");
+      if (overlay) overlay.classList.add("hide");
+      return;
+    }
+
+    if (!submitBtn.dataset.boundSubmit) {
+      submitBtn.dataset.boundSubmit = "1";
+      window.JudgeCore.init({
+        judgeType: "presentation",
+        submitButton: submitBtn,
+        buildScore() {
+          const m = (scoreText.textContent || "").match(/[\d.]+/);
+          return { PRESENTATION: m ? Number(m[0]) : 0 };
+        }
+      });
+    }
+
+    window.JudgeCore.handleSubmit();
+  });
+
+  // Start on Page 1
+  showPage1();
 });
 </script>
 
