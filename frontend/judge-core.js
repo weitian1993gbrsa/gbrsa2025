@@ -1,6 +1,6 @@
 /* ============================================================
    JUDGE CORE — Universal Submit Handler (Speed + Freestyle)
-   PATCHED: payload spread fix (...score, ...participant)
+   PATCHED: Fast submit overlay + instant redirect
 ============================================================ */
 
 (function () {
@@ -33,7 +33,6 @@
       const score = this.buildScore() || {};
       const participant = this.getParticipantInfo();
 
-      // ✅ FIX: spread, not ".score"
       const payload = {
         ID: entryId,
         STATION: station,
@@ -43,7 +42,11 @@
       };
 
       const overlay = document.getElementById("submitOverlay");
+      const overlayText = document.getElementById("overlayText");
+
+      // ✅ SHOW OVERLAY IMMEDIATELY
       if (overlay) overlay.classList.remove("hide");
+      if (overlayText) overlayText.textContent = "Submitting…";
 
       try {
         const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
@@ -54,20 +57,26 @@
         const json = await res.json();
         if (!json.ok) throw new Error(json.error || "Submit failed");
 
+        // ✅ FEELS FAST: update text immediately
+        if (overlayText) overlayText.textContent = "Submitted";
+
         this.updateLocalStationCache(entryId, station, judgeType);
 
         document.dispatchEvent(new CustomEvent("judge:submitted", {
           detail: { entryId, station, judgeType, payload }
         }));
 
+        // ✅ VERY SHORT DELAY (was 350ms)
         setTimeout(() => {
+          if (overlay) overlay.classList.add("hide");
+
           if (judgeType === "speed") {
             location.href = `speed-station.html?station=${station}&key=${key}`;
           } else {
             location.href =
               `freestyle-station.html?station=${station}&key=${key}&judgeType=${judgeType}`;
           }
-        }, 350);
+        }, 120);
 
       } catch (err) {
         if (overlay) overlay.classList.add("hide");
