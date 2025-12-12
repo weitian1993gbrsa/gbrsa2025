@@ -187,8 +187,14 @@ html, body {
 
 </div>
 
+<!-- Submit Overlay -->
 <div id="submitOverlay" class="overlay hide">
-    <div class="overlay-card">Submitting...</div>
+  <div class="overlay-card">
+    <div class="loading">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div id="overlayText" class="overlay-text">Submitting…</div>
+  </div>
 </div>
 
 <script defer src="app.js"></script>
