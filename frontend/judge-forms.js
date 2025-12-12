@@ -39,7 +39,7 @@
           this.falseStartBtn.classList.remove("fs-no");
           this.falseStartBtn.classList.add("fs-yes");
         }
-        if (navigator.vibrate) navigator.vibrate([120]);
+        if (navigator.vibrate) navigator.vibrate([80]);
       });
 
       // NUMPAD
@@ -51,7 +51,7 @@
 
           if (key === "clear") {
             this.scoreScreen.textContent = "0";
-            if (navigator.vibrate) navigator.vibrate([120]);
+            if (navigator.vibrate) navigator.vibrate([80]);
             return;
           }
 
@@ -61,7 +61,7 @@
           if (current.length >= MAX_DIGITS) return;
 
           this.scoreScreen.textContent = current + key;
-          if (navigator.vibrate) navigator.vibrate([120]);
+          if (navigator.vibrate) navigator.vibrate([40]);
         });
       });
     },
@@ -105,7 +105,7 @@
 
           this.updateUI();
 
-          if (navigator.vibrate) navigator.vibrate([80]);
+          if (navigator.vibrate) navigator.vibrate([40]);
           btn.classList.add("pressed");
           setTimeout(() => btn.classList.remove("pressed"), 150);
         });
@@ -117,7 +117,7 @@
         this.counts[this.lastAction.level] = this.lastAction.prev;
         this.lastAction = null;
         this.updateUI();
-        if (navigator.vibrate) navigator.vibrate([120]);
+        if (navigator.vibrate) navigator.vibrate([60,40]);
       };
 
       this.undoBtn.addEventListener("pointerdown", undoHandler);
@@ -195,7 +195,7 @@
         missEl.textContent = window.technicalMisses;
 
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate([120]);
+        if (navigator.vibrate) navigator.vibrate([40]);
       });
 
       // BREAK
@@ -206,7 +206,7 @@
         breakEl.textContent = window.technicalBreaks;
 
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate([120]);
+        if (navigator.vibrate) navigator.vibrate([40]);
       });
 
       // SPACE VIOLATION
@@ -217,7 +217,7 @@
         spaceEl.textContent = window.technicalSpace;
 
         undoBtn.classList.remove("hidden");
-        if (navigator.vibrate) navigator.vibrate([120]);
+        if (navigator.vibrate) navigator.vibrate([40]);
       });
 
       // UNDO
@@ -235,7 +235,7 @@
         undoBtn.classList.add("hidden");
         this.lastAction = null;
 
-        if (navigator.vibrate) navigator.vibrate([120]);
+        if (navigator.vibrate) navigator.vibrate([60,40]);
       });
 
       // RESET
@@ -401,7 +401,7 @@
           if (undoBtn) undoBtn.classList.remove("hidden");
 
           this.updateTotalsUI();
-          if (navigator.vibrate) navigator.vibrate([120]);
+          if (navigator.vibrate) navigator.vibrate([40]);
         });
       });
 
@@ -418,7 +418,7 @@
           if (undoBtn) undoBtn.classList.remove("hidden");
 
           this.updateTotalsUI();
-          if (navigator.vibrate) navigator.vibrate([120]);
+          if (navigator.vibrate) navigator.vibrate([40]);
         });
       }
 
@@ -442,7 +442,7 @@
           undoBtn.classList.add("hidden");
 
           this.updateTotalsUI();
-          if (navigator.vibrate) navigator.vibrate([120]);
+          if (navigator.vibrate) navigator.vibrate([60,40]);
         });
       }
 
