@@ -40,28 +40,34 @@
     flex-direction:column;
   }
 
-  .top-bar {
+  /* ===== HEADER (MATCH DIFFICULTY) ===== */
+  header {
     display:flex;
     justify-content:space-between;
     align-items:center;
     padding:12px 16px;
     background:white;
     border-bottom:1px solid var(--border);
+    flex-shrink:0;
   }
 
-  .top-btn {
-    padding:10px 20px;
-    border-radius:6px;
+  .back-btn {
+    padding:22px 26px;
+    border-radius:0;
     border:1px solid #ccc;
     background:white;
+    font-size:16px;
     cursor:pointer;
   }
 
   .submit-btn {
+    padding:22px 26px;
+    border-radius:0;
     background:#007bff;
     border:none;
     color:white;
     font-weight:600;
+    cursor:pointer;
   }
 
   .score-values {
@@ -184,11 +190,11 @@
     border-radius:50%;
     margin:0 3px;
     background:#333;
-    animation:blink 1s infinite;
+    animation:blink 0.45s infinite;
   }
 
-  .loading .dot:nth-child(2) { animation-delay:.2s; }
-  .loading .dot:nth-child(3) { animation-delay:.4s; }
+  .loading .dot:nth-child(2) { animation-delay:.15s; }
+  .loading .dot:nth-child(3) { animation-delay:.3s; }
 
   @keyframes blink {
     0%, 80%, 100% { opacity:0; }
@@ -203,13 +209,15 @@
 
 </head>
 <body>
+
 <div class="wrapper">
 
-  <div class="top-bar">
-    <button class="top-btn" onclick="history.back()">Back</button>
+  <!-- HEADER -->
+  <header>
+    <button class="back-btn" onclick="goBack()">Back</button>
     <h3>Final</h3>
-    <button class="top-btn submit-btn" id="btnSubmit">Submit</button>
-  </div>
+    <button class="submit-btn" id="btnSubmit">Submit</button>
+  </header>
 
   <div class="score-values">
     <span id="reLabel">RE (Missing: 12)</span>
@@ -265,9 +273,7 @@ CATS.forEach(cat => {
   `;
 });
 
-function completed(v) {
-  return Math.floor(v);
-}
+function completed(v) { return Math.floor(v); }
 
 function updateMissing() {
   const total =
@@ -275,23 +281,16 @@ function updateMissing() {
     completed(values.multiples) +
     completed(values.manipulation);
 
-  const missing = 12 - total;
   document.getElementById("reLabel").textContent =
-    "RE (Missing: " + missing + ")";
+    "RE (Missing: " + (12 - total) + ")";
 }
 
 function updateLocks(key) {
   const v = values[key];
   const half = document.querySelector(`.re-btn-half[data-key="${key}"]`);
   const full = document.querySelector(`.re-btn-full[data-key="${key}"]`);
-
-  if (v >= 4) {
-    half.classList.add("disabled");
-    full.classList.add("disabled");
-  } else {
-    half.classList.remove("disabled");
-    full.classList.remove("disabled");
-  }
+  if (v >= 4) { half.classList.add("disabled"); full.classList.add("disabled"); }
+  else { half.classList.remove("disabled"); full.classList.remove("disabled"); }
 }
 
 const undoBtn = document.getElementById("undoBtn");
@@ -301,87 +300,70 @@ document.querySelectorAll(".re-btn-half, .re-btn-full").forEach(btn => {
   btn.addEventListener("pointerdown", () => {
     const key = btn.dataset.key;
     const add = btn.dataset.type === "half" ? 0.5 : 1;
-
     const prev = values[key];
-    const next = Math.min(prev + add, 4);
-
+    values[key] = Math.min(prev + add, 4);
     lastAction = { key, prev };
-    values[key] = next;
 
     document.getElementById("val_" + key).textContent =
-      next.toFixed(1).replace(/\.0$/, "");
+      values[key].toFixed(1).replace(/\.0$/, "");
 
     updateLocks(key);
     updateMissing();
-
     undoBtn.classList.remove("hidden");
-
     if (navigator.vibrate) navigator.vibrate([35]);
-  }, { passive: true });
+  }, { passive:true });
 });
 
 undoBtn.addEventListener("pointerdown", () => {
   if (!lastAction) return;
-
-  const { key, prev } = lastAction;
-  values[key] = prev;
-
-  document.getElementById("val_" + key).textContent =
-    prev.toFixed(1).replace(/\.0$/, "");
-
-  updateLocks(key);
+  values[lastAction.key] = lastAction.prev;
+  document.getElementById("val_" + lastAction.key).textContent =
+    lastAction.prev.toFixed(1).replace(/\.0$/, "");
+  updateLocks(lastAction.key);
   updateMissing();
-
   lastAction = null;
   undoBtn.classList.add("hidden");
-
-  if (navigator.vibrate) navigator.vibrate([50, 30]);
+  if (navigator.vibrate) navigator.vibrate([50,30]);
 });
 
 resetBtn.addEventListener("pointerdown", () => {
-  values.power = 0;
-  values.multiples = 0;
-  values.manipulation = 0;
-
-  ["power", "multiples", "manipulation"].forEach(k => {
-    document.getElementById("val_" + k).textContent = "0";
+  values.power = values.multiples = values.manipulation = 0;
+  ["power","multiples","manipulation"].forEach(k=>{
+    document.getElementById("val_"+k).textContent="0";
     updateLocks(k);
   });
-
-  document.getElementById("reLabel").textContent = "RE (Missing: 12)";
-  lastAction = null;
+  document.getElementById("reLabel").textContent="RE (Missing: 12)";
+  lastAction=null;
   undoBtn.classList.add("hidden");
-
   if (navigator.vibrate) navigator.vibrate([60]);
 });
 
 const overlay = document.getElementById("submitOverlay");
 const submitBtn = document.getElementById("btnSubmit");
 
-submitBtn.addEventListener("click", () => {
-  overlay.classList.remove("hide");
-});
+submitBtn.addEventListener("click", () => overlay.classList.remove("hide"));
 
 window.addEventListener("DOMContentLoaded", () => {
   JudgeCore.init({
-    judgeType: "re",
-    submitButton: submitBtn,
-    buildScore() {
+    judgeType:"re",
+    submitButton:submitBtn,
+    buildScore(){
       const total =
         completed(values.power) +
         completed(values.multiples) +
         completed(values.manipulation);
-
-      return {
-        MISSRE: 12 - total
-      };
+      return { MISSRE: 12 - total };
     }
   });
 });
 
-document.addEventListener("judge:submitted", () => {
-  overlay.classList.add("hide");
-});
+document.addEventListener("judge:submitted", () => overlay.classList.add("hide"));
+
+function goBack() {
+  const p = new URLSearchParams(location.search);
+  location.href =
+    `freestyle-station.html?station=${p.get("station")}&key=${p.get("key")}&judgeType=re`;
+}
 </script>
 
 </body>
