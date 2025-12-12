@@ -95,6 +95,9 @@
       this.undoBtn = document.querySelector("#undoBtn");
       this.resetBtn = document.querySelector("#resetBtn");
 
+      // Mirror RE behavior: Undo is hidden until an action happens.
+      if (this.undoBtn) this.undoBtn.classList.add("hidden");
+
       // SKILL BUTTONS
       document.querySelectorAll(".skill-btn").forEach(btn => {
         btn.addEventListener("pointerdown", () => {
@@ -105,30 +108,43 @@
 
           this.updateUI();
 
+          if (this.undoBtn) this.undoBtn.classList.remove("hidden");
+
           if (navigator.vibrate) navigator.vibrate([40]);
           btn.classList.add("pressed");
           setTimeout(() => btn.classList.remove("pressed"), 150);
-        });
+        }, { passive: true });
       });
 
-      // UNDO
+      // UNDO (one-step)
       const undoHandler = () => {
         if (!this.lastAction) return;
+
         this.counts[this.lastAction.level] = this.lastAction.prev;
         this.lastAction = null;
+
         this.updateUI();
-        if (navigator.vibrate) navigator.vibrate([60,40]);
+
+        if (this.undoBtn) this.undoBtn.classList.add("hidden");
+
+        if (navigator.vibrate) navigator.vibrate([60, 40]);
       };
 
-      this.undoBtn.addEventListener("pointerdown", undoHandler);
+      if (this.undoBtn) this.undoBtn.addEventListener("pointerdown", undoHandler);
 
       // RESET
-      this.resetBtn.addEventListener("click", () => {
+      const resetHandler = () => {
         for (let lvl in this.counts) this.counts[lvl] = 0;
         this.lastAction = null;
+
         this.updateUI();
+
+        if (this.undoBtn) this.undoBtn.classList.add("hidden");
+
         if (navigator.vibrate) navigator.vibrate([120]);
-      });
+      };
+
+      if (this.resetBtn) this.resetBtn.addEventListener("pointerdown", resetHandler);
 
       this.updateUI();
     },

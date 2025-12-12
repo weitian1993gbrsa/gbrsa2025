@@ -90,6 +90,13 @@
       border-radius:0px;
     }
 
+    /* ✅ same as RE */
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
     .total-score { 
       font-size:18px; 
       font-weight:700; 
@@ -197,7 +204,8 @@
 </header>
 
 <div class="control-row">
-  <button id="undoBtn" class="btn-undo">Undo</button>
+  <!-- ✅ start hidden like RE -->
+  <button id="undoBtn" class="btn-undo hidden">Undo</button>
   <div class="total-score">Score (<span id="totalScore">0.00</span>)</div>
   <button id="resetBtn" class="btn-reset">Reset</button>
 </div>
